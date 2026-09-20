@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <rect width="64" height="64" rx="16" fill="#059669"/>
+  <!-- Goat Horns and Head Stylized Emblem -->
+  <path d="M16 22C16 14 24 10 32 10C40 10 48 14 48 22C48 28 44 32 40 34V42C40 46 36 50 32 50C28 50 24 46 24 42V34C20 32 16 28 16 22Z" fill="#FFFFFF"/>
+  <path d="M22 18C20 14 16 12 12 14C10 15 8 18 10 22C12 26 18 26 22 22Z" fill="#F59E0B"/>
+  <path d="M42 18C44 14 48 12 52 14C54 15 56 18 54 22C52 26 46 26 42 22Z" fill="#F59E0B"/>
+  <circle cx="28" cy="30" r="2.5" fill="#064E3B"/>
+  <circle cx="36" cy="30" r="2.5" fill="#064E3B"/>
+  <ellipse cx="32" cy="38" rx="4" ry="2" fill="#064E3B"/>
+</svg>

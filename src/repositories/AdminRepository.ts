@@ -1,0 +1,217 @@
+import { supabase } from '@/lib/supabase/client';
+import type { PlatformStats, Goat, Farm } from '@/types';
+import { mapGoatRow } from './GoatRepository';
+import { mapFarmRow } from './FarmRepository';
+
+export const AdminRepository = {
+  /**
+   * Aggregates real-time platform statistics for the Super Admin dashboard.
+   */
+  async getPlatformStats(): Promise<PlatformStats> {
+    const [
+      goatsRes,
+      pendingGoatsRes,
+      activeFarmsRes,
+      pendingFarmsRes,
+      suspendedFarmsRes,
+      totalBookingsRes,
+      activeBookingsRes,
+      completedBookingsRes,
+      customersRes,
+      reportsRes,
+    ] = await Promise.all([
+      supabase.from('goats').select('*', { count: 'exact', head: true }),
+      supabase.from('goats').select('*', { count: 'exact', head: true }).eq('is_approved_by_admin', false),
+      supabase.from('farms').select('*', { count: 'exact', head: true }).eq('status', 'APPROVED'),
+      supabase.from('farms').select('*', { count: 'exact', head: true }).eq('status', 'PENDING'),
+      supabase.from('farms').select('*', { count: 'exact', head: true }).eq('status', 'SUSPENDED'),
+      supabase.from('bookings').select('*', { count: 'exact', head: true }),
+      supabase.from('bookings').select('*', { count: 'exact', head: true }).in('status', ['PENDING', 'RESERVED', 'CONFIRMED']),
+      supabase.from('bookings').select('*', { count: 'exact', head: true }).eq('status', 'COMPLETED'),
+      supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'CUSTOMER'),
+      supabase.from('reports').select('*', { count: 'exact', head: true }).eq('status', 'PENDING'),
+    ]);
+
+    // Sum revenue from completed bookings
+    const { data: revData } = await supabase
+      .from('bookings')
+      .select('total_price')
+      .eq('status', 'COMPLETED');
+
+    const totalRevenue = (revData || []).reduce((acc, curr) => acc + Number(curr.total_price || 0), 0);
+
+    return {
+      totalGoats: goatsRes.count ?? 0,
+      pendingListings: pendingGoatsRes.count ?? 0,
+      activeFarms: activeFarmsRes.count ?? 0,
+      pendingFarms: pendingFarmsRes.count ?? 0,
+      suspendedFarms: suspendedFarmsRes.count ?? 0,
+      totalBookings: totalBookingsRes.count ?? 0,
+      activeBookings: activeBookingsRes.count ?? 0,
+      completedBookings: completedBookingsRes.count ?? 0,
+      totalCustomers: customersRes.count ?? 0,
+      totalRevenue,
+      totalReports: reportsRes.count ?? 0,
+    };
+  },
+
+  /**
+   * Fetches unapproved goat listings pending moderation.
+   */
+  async getPendingGoats(): Promise<Goat[]> {
+    const { data, error } = await supabase
+      .from('goats')
+      .select(`
+        *,
+        farms (
+          id, name, farm_code, location_district, location_state, contact_phone, is_ammal_own_farm
+        ),
+        goat_images (
+          id, image_url, is_primary, display_order
+        )
+      `)
+      .eq('is_approved_by_admin', false)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching pending goats:', error);
+      return [];
+    }
+
+    return (data || []).map(mapGoatRow);
+  },
+
+  /**
+   * Approves a goat listing.
+   */
+  async approveGoat(goatId: string): Promise<void> {
+    const { error } = await supabase
+      .from('goats')
+      .update({
+        is_approved_by_admin: true,
+        status: 'AVAILABLE',
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', goatId);
+
+    if (error) {
+      console.error('Error approving goat:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Rejects a goat listing.
+   */
+  async rejectGoat(goatId: string, notes?: string): Promise<void> {
+    const { error } = await supabase
+      .from('goats')
+      .update({
+        is_approved_by_admin: false,
+        status: 'INACTIVE',
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', goatId);
+
+    if (error) {
+      console.error('Error rejecting goat:', error);
+      throw error;
+    }
+
+    // Log in audit logs
+    if (notes) {
+      await supabase.from('audit_logs').insert({
+        action: 'REJECT_GOAT',
+        target_type: 'GOAT',
+        target_id: goatId,
+        notes,
+      });
+    }
+  },
+
+  /**
+   * Toggles featured status of a goat on the homepage.
+   */
+  async toggleFeatureGoat(goatId: string, isFeatured: boolean): Promise<void> {
+    const { error } = await supabase
+      .from('goats')
+      .update({ is_featured: isFeatured, updated_at: new Date().toISOString() })
+      .eq('id', goatId);
+
+    if (error) {
+      console.error('Error toggling featured goat:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Fetches farms pending approval or verification.
+   */
+  async getPendingFarms(): Promise<Farm[]> {
+    const { data, error } = await supabase
+      .from('farms')
+      .select('*')
+      .eq('status', 'PENDING')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching pending farms:', error);
+      return [];
+    }
+
+    return (data || []).map(mapFarmRow);
+  },
+
+  /**
+   * Approves and verifies a farm.
+   */
+  async verifyFarm(farmId: string, goatListingLimit: number = 2): Promise<void> {
+    const { error } = await supabase
+      .from('farms')
+      .update({
+        status: 'APPROVED',
+        verified_at: new Date().toISOString(),
+        goat_listing_limit: goatListingLimit,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', farmId);
+
+    if (error) {
+      console.error('Error verifying farm:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Suspends a farm from publishing or taking bookings.
+   */
+  async suspendFarm(farmId: string): Promise<void> {
+    const { error } = await supabase
+      .from('farms')
+      .update({
+        status: 'SUSPENDED',
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', farmId);
+
+    if (error) {
+      console.error('Error suspending farm:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Updates farm listing limit (quota).
+   */
+  async updateFarmListingLimit(farmId: string, limit: number): Promise<void> {
+    const { error } = await supabase
+      .from('farms')
+      .update({ goat_listing_limit: limit, updated_at: new Date().toISOString() })
+      .eq('id', farmId);
+
+    if (error) {
+      console.error('Error updating farm quota:', error);
+      throw error;
+    }
+  },
+};
