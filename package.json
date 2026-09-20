@@ -7,7 +7,9 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "deploy": "npm run build && wrangler pages deploy dist --project-name adu-santhai-website",
+    "pages:dev": "wrangler pages dev dist"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.116.0",
