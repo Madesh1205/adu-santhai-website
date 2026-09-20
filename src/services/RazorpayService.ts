@@ -55,7 +55,7 @@ export class RazorpayService {
       throw new Error('Razorpay SDK could not be loaded. Please check your internet connection.');
     }
 
-    const razorpayKeyId = import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_placeholder';
+    const razorpayKeyId = import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_AmmalFarmListing100';
     const amountInPaise = 10000; // ₹100.00
 
     return new Promise((resolve, reject) => {
