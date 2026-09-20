@@ -57,7 +57,7 @@ export const ForgotPasswordPage: React.FC = () => {
                 <p className="text-xs text-slate-500 leading-relaxed">
                   We have sent password reset instructions to <strong>{email}</strong>.
                 </p>
-                <Button asChild className="mt-4 w-full bg-emerald-600 text-white">
+                <Button asChild className="mt-4 w-full bg-emerald-800 hover:bg-emerald-900 text-white rounded-xl h-11 font-bold">
                   <Link to="/login">Back to Sign In</Link>
                 </Button>
               </CardContent>
@@ -92,7 +92,7 @@ export const ForgotPasswordPage: React.FC = () => {
                 <CardFooter className="flex flex-col gap-3 pt-2">
                   <Button
                     type="submit"
-                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-11 rounded-xl"
+                    className="w-full bg-emerald-800 hover:bg-emerald-900 text-white font-bold h-11 rounded-xl shadow-sm"
                     isLoading={isLoading}
                   >
                     Send Reset Link

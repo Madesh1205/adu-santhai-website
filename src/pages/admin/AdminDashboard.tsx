@@ -3,17 +3,14 @@ import { Link } from 'react-router-dom';
 import { SEOHead } from '@/components/common/SEOHead';
 import { AdminRepository } from '@/repositories/AdminRepository';
 import { Button } from '@/components/ui/button';
-import { formatCurrency } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
 import type { PlatformStats } from '@/types';
 import {
   Layers,
   Building2,
   CalendarCheck,
   Flag,
-  CheckCircle2,
-  AlertTriangle,
   ArrowRight,
-  TrendingUp,
 } from 'lucide-react';
 
 export const AdminDashboard: React.FC = () => {
@@ -37,10 +34,10 @@ export const AdminDashboard: React.FC = () => {
   if (loading) {
     return (
       <div className="space-y-6">
-        <div className="h-8 w-1/3 bg-slate-200 animate-pulse rounded-lg" />
+        <div className="h-8 w-1/3 bg-slate-100 animate-pulse rounded-xl" />
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-28 rounded-2xl bg-slate-200 animate-pulse" />
+            <div key={i} className="h-28 rounded-3xl bg-slate-100 animate-pulse" />
           ))}
         </div>
       </div>
@@ -49,136 +46,126 @@ export const AdminDashboard: React.FC = () => {
 
   return (
     <>
-      <SEOHead title="Super Admin Analytics | Adu Santhai" path="/admin/dashboard" />
+      <SEOHead title="Super Admin Analytics | Adu Santhai" path="/admin" />
 
       <div className="space-y-8">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-black text-slate-900">Platform Operations Overview</h1>
-            <p className="text-xs text-slate-500 mt-0.5">
+            <h1 className="text-2xl font-black text-slate-900 tracking-tight">Platform Operations Overview</h1>
+            <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
               Live metrics across the statewide Adu Santhai livestock marketplace
             </p>
           </div>
+
+          <div className="flex items-center gap-2">
+            <Link to="/admin/goats">
+              <Button variant="default" size="sm" className="font-bold">
+                Moderate Listings
+              </Button>
+            </Link>
+          </div>
         </div>
 
-        {/* Priority Moderation Alert Banner */}
-        {stats && (stats.pendingListings > 0 || stats.pendingFarms > 0 || stats.totalReports > 0) && (
-          <div className="rounded-2xl bg-amber-500/10 border border-amber-500/30 p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div className="flex items-start gap-3">
-              <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
-              <div>
-                <h4 className="font-bold text-slate-900 text-sm">Action Items Pending Moderation</h4>
-                <p className="text-xs text-slate-600 mt-0.5">
-                  {stats.pendingListings} goats awaiting approval • {stats.pendingFarms} new farm applications • {stats.totalReports} unresolved user flags.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex gap-2 shrink-0">
-              {stats.pendingListings > 0 && (
-                <Button size="sm" asChild className="bg-amber-600 hover:bg-amber-700 text-white text-xs">
-                  <Link to="/admin/goats">Review Goats ({stats.pendingListings})</Link>
-                </Button>
-              )}
-              {stats.pendingFarms > 0 && (
-                <Button size="sm" asChild className="bg-purple-600 hover:bg-purple-700 text-white text-xs">
-                  <Link to="/admin/farms">Review Farms ({stats.pendingFarms})</Link>
-                </Button>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Analytics KPI Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
-            <div className="flex items-center justify-between text-emerald-600 mb-2">
+        {/* 4 Core Platform KPI Cards */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-xs">
+            <div className="flex items-center justify-between text-emerald-800 mb-2">
               <Layers className="h-5 w-5" />
-              <span className="text-[10px] font-bold text-slate-400 uppercase">INVENTORY</span>
+              <Badge variant="verified" className="text-[10px]">TOTAL</Badge>
             </div>
-            <span className="text-xs text-slate-500 font-medium">Total Goats Listed</span>
-            <div className="text-2xl font-black text-slate-900 mt-1">{stats?.totalGoats ?? 0}</div>
+            <span className="text-xs text-slate-500 font-medium">Total Goat Listings</span>
+            <div className="text-2xl font-black text-slate-900 mt-1">{stats?.totalGoats || 0}</div>
+            <span className="text-[11px] text-emerald-800 font-semibold mt-1 block">
+              {stats?.pendingListings || 0} pending review
+            </span>
           </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
-            <div className="flex items-center justify-between text-blue-600 mb-2">
+          <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-xs">
+            <div className="flex items-center justify-between text-emerald-800 mb-2">
               <Building2 className="h-5 w-5" />
-              <span className="text-[10px] font-bold text-slate-400 uppercase">BREEDERS</span>
+              <Badge variant="verified" className="text-[10px]">BREEDERS</Badge>
             </div>
-            <span className="text-xs text-slate-500 font-medium">Verified Active Farms</span>
-            <div className="text-2xl font-black text-slate-900 mt-1">{stats?.activeFarms ?? 0}</div>
+            <span className="text-xs text-slate-500 font-medium">Registered Farms</span>
+            <div className="text-2xl font-black text-slate-900 mt-1">
+              {(stats?.activeFarms || 0) + (stats?.pendingFarms || 0) + (stats?.suspendedFarms || 0)}
+            </div>
+            <span className="text-[11px] text-emerald-800 font-semibold mt-1 block">
+              {stats?.activeFarms || 0} active verified farms
+            </span>
           </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
-            <div className="flex items-center justify-between text-purple-600 mb-2">
+          <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-xs">
+            <div className="flex items-center justify-between text-emerald-800 mb-2">
               <CalendarCheck className="h-5 w-5" />
-              <span className="text-[10px] font-bold text-slate-400 uppercase">HOLDS</span>
+              <Badge variant="reserved" className="text-[10px]">HOLDS</Badge>
             </div>
             <span className="text-xs text-slate-500 font-medium">Active 24h Holds</span>
-            <div className="text-2xl font-black text-slate-900 mt-1">{stats?.activeBookings ?? 0}</div>
+            <div className="text-2xl font-black text-slate-900 mt-1">{stats?.activeBookings || 0}</div>
+            <span className="text-[11px] text-slate-500 mt-1 block">
+              {stats?.completedBookings || 0} completed sales
+            </span>
           </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
-            <div className="flex items-center justify-between text-emerald-700 mb-2">
-              <TrendingUp className="h-5 w-5" />
-              <span className="text-[10px] font-bold text-slate-400 uppercase">VOLUME</span>
+          <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-xs">
+            <div className="flex items-center justify-between text-red-600 mb-2">
+              <Flag className="h-5 w-5" />
+              <Badge variant="destructive" className="text-[10px]">ALERTS</Badge>
             </div>
-            <span className="text-xs text-slate-500 font-medium">Delivered Gross Volume</span>
-            <div className="text-xl font-black text-emerald-800 mt-1">
-              {formatCurrency(stats?.totalRevenue ?? 0)}
-            </div>
+            <span className="text-xs text-slate-500 font-medium">Pending Reports</span>
+            <div className="text-2xl font-black text-slate-900 mt-1">{stats?.totalReports || 0}</div>
+            <span className="text-[11px] text-slate-500 mt-1 block">Buyer complaints</span>
           </div>
         </div>
 
-        {/* Quick Links Matrix */}
+        {/* Action Moderation Queues */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Link
-            to="/admin/goats"
-            className="group rounded-3xl border border-slate-200 bg-white p-6 shadow-xs transition-all hover:border-purple-300 hover:shadow-lg"
-          >
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-purple-50 text-purple-700 mb-4 group-hover:bg-purple-600 group-hover:text-white transition-colors">
-              <CheckCircle2 className="h-6 w-6" />
+          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xs space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="font-bold text-slate-900 text-sm">Goat Listings Moderation</h3>
+              <Badge variant="verified" className="text-[10px]">QUEUE</Badge>
             </div>
-            <h3 className="font-bold text-slate-900 text-base">Goat Listing Moderation</h3>
-            <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-              Verify pedigree photos, prices, vaccination claims, and approve partner listings.
+            <p className="text-xs text-slate-500 leading-relaxed">
+              Inspect incoming partner goat submissions, verify health photos, check pricing, and feature top sires.
             </p>
-            <span className="inline-flex items-center gap-1 text-xs font-bold text-purple-700 mt-4">
-              Inspect Queue <ArrowRight className="h-3.5 w-3.5" />
-            </span>
-          </Link>
+            <Link to="/admin/goats">
+              <Button variant="outline" size="sm" className="w-full text-xs font-bold gap-1">
+                <span>Moderate Goats</span>
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Button>
+            </Link>
+          </div>
 
-          <Link
-            to="/admin/farms"
-            className="group rounded-3xl border border-slate-200 bg-white p-6 shadow-xs transition-all hover:border-purple-300 hover:shadow-lg"
-          >
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700 mb-4 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
-              <Building2 className="h-6 w-6" />
+          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xs space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="font-bold text-slate-900 text-sm">Farm Breeder Verification</h3>
+              <Badge variant="earth" className="text-[10px]">APPROVALS</Badge>
             </div>
-            <h3 className="font-bold text-slate-900 text-base">Partner Farm Approvals</h3>
-            <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-              Review new breeder registration requests, inspect addresses, and configure quotas.
+            <p className="text-xs text-slate-500 leading-relaxed">
+              Review new partner farm applications, assign ear tag codes, verify physical premises, and set listing quotas.
             </p>
-            <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-700 mt-4">
-              Manage Farms <ArrowRight className="h-3.5 w-3.5" />
-            </span>
-          </Link>
+            <Link to="/admin/farms">
+              <Button variant="outline" size="sm" className="w-full text-xs font-bold gap-1">
+                <span>Review Farms</span>
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Button>
+            </Link>
+          </div>
 
-          <Link
-            to="/admin/reports"
-            className="group rounded-3xl border border-slate-200 bg-white p-6 shadow-xs transition-all hover:border-purple-300 hover:shadow-lg"
-          >
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-rose-50 text-rose-700 mb-4 group-hover:bg-rose-600 group-hover:text-white transition-colors">
-              <Flag className="h-6 w-6" />
+          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xs space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="font-bold text-slate-900 text-sm">Disputes & Buyer Reports</h3>
+              <Badge variant="destructive" className="text-[10px]">FLAGS</Badge>
             </div>
-            <h3 className="font-bold text-slate-900 text-base">Dispute & Incident Reports</h3>
-            <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-              Investigate buyer flags on suspicious listings, inaccurate weights, or unreachable farms.
+            <p className="text-xs text-slate-500 leading-relaxed">
+              Investigate buyer flags regarding incorrect weights, missed health disclosures, or breeder communications.
             </p>
-            <span className="inline-flex items-center gap-1 text-xs font-bold text-rose-700 mt-4">
-              View Reports <ArrowRight className="h-3.5 w-3.5" />
-            </span>
-          </Link>
+            <Link to="/admin/reports">
+              <Button variant="outline" size="sm" className="w-full text-xs font-bold gap-1">
+                <span>Resolve Reports</span>
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Button>
+            </Link>
+          </div>
         </div>
       </div>
     </>

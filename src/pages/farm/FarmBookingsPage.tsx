@@ -4,14 +4,12 @@ import { useAuth } from '@/lib/auth/AuthContext';
 import { BookingRepository } from '@/repositories/BookingRepository';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { EmptyState } from '@/components/common/EmptyState';
 import { formatCurrency, formatDateTime } from '@/lib/utils';
 import type { Booking, BookingStatus } from '@/types';
 import {
   CalendarCheck,
   PhoneCall,
-  CheckCircle,
-  XCircle,
-  Check,
 } from 'lucide-react';
 
 export const FarmBookingsPage: React.FC = () => {
@@ -61,19 +59,17 @@ export const FarmBookingsPage: React.FC = () => {
 
   return (
     <>
-      <SEOHead title="Bookings & Orders Received | Farm Admin" path="/farm/bookings" />
+      <SEOHead title="Customer Reservations | Farm Admin" path="/farm/bookings" />
 
       <div className="space-y-6">
         <div className="pb-4 border-b border-slate-200">
-          <h1 className="text-2xl font-black text-slate-900">
-            Bookings & Reservations Received
-          </h1>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Manage buyer reservations, verify holds with booking codes, and mark completed sales
+          <h1 className="text-2xl font-black text-slate-900 tracking-tight">Customer Reservations</h1>
+          <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+            Manage incoming 24-hour holds, verify holding codes, and confirm customer pickups
           </p>
         </div>
 
-        {/* Tab Filters */}
+        {/* Filter Tabs */}
         <div className="flex gap-2 overflow-x-auto text-xs font-semibold">
           {[
             { id: 'ALL', label: `All Orders (${bookings.length})` },
@@ -84,9 +80,9 @@ export const FarmBookingsPage: React.FC = () => {
             <button
               key={tab.id}
               onClick={() => setFilterTab(tab.id)}
-              className={`rounded-xl px-3.5 py-2 transition-all cursor-pointer whitespace-nowrap ${
+              className={`rounded-xl px-4 py-2 transition-all cursor-pointer whitespace-nowrap ${
                 filterTab === tab.id
-                  ? 'bg-slate-900 text-white shadow-xs'
+                  ? 'bg-emerald-800 text-white font-bold shadow-xs'
                   : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
               }`}
             >
@@ -95,124 +91,130 @@ export const FarmBookingsPage: React.FC = () => {
           ))}
         </div>
 
+        {/* Bookings List */}
         {loading ? (
           <div className="space-y-3">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-28 rounded-2xl bg-slate-200 animate-pulse" />
+              <div key={i} className="h-32 rounded-2xl bg-slate-100 animate-pulse" />
             ))}
           </div>
         ) : filteredBookings.length === 0 ? (
-          <div className="rounded-3xl border border-dashed border-slate-300 bg-white p-12 text-center space-y-3">
-            <CalendarCheck className="h-10 w-10 text-slate-400 mx-auto" />
-            <h3 className="text-base font-bold text-slate-900">No Orders in this View</h3>
-            <p className="text-xs text-slate-500 max-w-sm mx-auto">
-              Holding reservations and confirmed purchases placed by buyers will show here.
-            </p>
-          </div>
+          <EmptyState
+            icon={CalendarCheck}
+            title="No orders found"
+            description="You don't have any customer holds matching this tab yet."
+          />
         ) : (
           <div className="space-y-4">
             {filteredBookings.map((b) => {
               const isHold = b.status === 'RESERVED' || b.status === 'PENDING';
+              const isConfirmed = b.status === 'CONFIRMED';
+              const isCompleted = b.status === 'COMPLETED';
+
               return (
                 <div
                   key={b.id}
-                  className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs transition-all hover:shadow-md space-y-4"
+                  className="rounded-3xl border border-slate-200 bg-white p-5 shadow-xs space-y-4"
                 >
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-bold text-slate-900 text-base">{b.goatName}</h3>
-                        <span className="font-mono text-xs text-slate-400">#{b.goatCode}</span>
-                        <Badge
-                          variant={
-                            b.status === 'CONFIRMED'
-                              ? 'default'
-                              : isHold
-                              ? 'secondary'
-                              : b.status === 'COMPLETED'
-                              ? 'slate'
-                              : 'destructive'
-                          }
-                          className="text-[10px] font-bold"
-                        >
-                          {b.status}
-                        </Badge>
-                      </div>
-
-                      <div className="flex flex-wrap items-center gap-2 text-xs text-slate-600 mt-1">
-                        <span>
-                          Customer: <strong className="text-slate-900">{b.customerName}</strong>
-                        </span>
-                        <span>• Phone: {b.customerPhone || 'N/A'}</span>
-                        <span>• Ordered {formatDateTime(b.createdAt)}</span>
+                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                    <div className="flex items-start gap-4">
+                      <img
+                        src={b.goatPhoto || 'https://images.unsplash.com/photo-1524024973431-2ad916746881?auto=format&fit=crop&w=400&q=80'}
+                        alt={b.goatName || 'Goat'}
+                        className="h-16 w-16 rounded-xl object-cover bg-slate-100 border border-slate-200 shrink-0"
+                      />
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-bold text-slate-900 text-base">{b.goatName}</h3>
+                          <span className="font-mono text-xs text-slate-400">#{b.goatCode}</span>
+                        </div>
+                        <p className="text-xs text-slate-600">
+                          Buyer: <strong className="text-slate-800">{b.customerName || 'Direct Customer'}</strong>
+                        </p>
+                        <p className="text-[11px] text-slate-400">
+                          Placed: {formatDateTime(b.createdAt)}
+                        </p>
                       </div>
                     </div>
 
-                    <div className="flex flex-col sm:items-end">
-                      <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">
-                        Hold Verification Code
-                      </span>
-                      <span className="font-mono font-black text-lg text-emerald-800 bg-emerald-50 px-3 py-0.5 rounded-lg border border-emerald-200">
-                        {b.bookingCode || 'AGF-HOLD'}
-                      </span>
-                      <span className="text-sm font-extrabold text-slate-900 mt-1">
-                        {formatCurrency(b.totalPrice)}
-                      </span>
+                    <div className="flex flex-col items-start sm:items-end gap-1.5">
+                      <div className="flex items-center gap-2">
+                        {isHold && <Badge variant="reserved">24H HOLD ACTIVE</Badge>}
+                        {isConfirmed && <Badge variant="verified">CONFIRMED</Badge>}
+                        {isCompleted && <Badge variant="default">COMPLETED</Badge>}
+                      </div>
+
+                      <div className="text-left sm:text-right">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                          Holding Code
+                        </span>
+                        <span className="font-mono text-lg font-black text-emerald-950">
+                          {b.bookingCode}
+                        </span>
+                      </div>
                     </div>
                   </div>
 
                   {b.customerNotes && (
-                    <div className="rounded-xl bg-slate-50 p-3 text-xs text-slate-600">
-                      <span className="font-semibold text-slate-700">Buyer Notes: </span>
-                      "{b.customerNotes}"
+                    <div className="rounded-xl bg-slate-50 p-3 text-xs text-slate-600 border border-slate-100">
+                      <strong className="text-slate-800 block mb-0.5">Customer Notes:</strong>
+                      {b.customerNotes}
                     </div>
                   )}
 
-                  {/* Actions Row */}
-                  <div className="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
-                    <div className="flex items-center gap-2">
+                  {/* Order Footer & Action Controls */}
+                  <div className="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3 text-xs">
+                    <div>
+                      <span className="text-slate-500">Agreed Price: </span>
+                      <strong className="text-emerald-800 text-sm font-black">
+                        {formatCurrency(b.totalPrice)}
+                      </strong>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-2">
                       {b.customerPhone && (
                         <a
                           href={`tel:${b.customerPhone}`}
-                          className="inline-flex items-center gap-1.5 rounded-xl bg-slate-900 px-3 py-1.5 text-xs font-bold text-white hover:bg-slate-800"
+                          className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-50 px-3.5 py-2 font-bold text-emerald-900 border border-emerald-200 hover:bg-emerald-100 transition-colors"
                         >
-                          <PhoneCall className="h-3.5 w-3.5 text-emerald-400" />
+                          <PhoneCall className="h-3.5 w-3.5 text-emerald-800" />
                           <span>Call Buyer ({b.customerPhone})</span>
                         </a>
                       )}
-                    </div>
 
-                    <div className="flex items-center gap-2">
                       {isHold && (
-                        <>
-                          <Button
-                            size="sm"
-                            className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs gap-1"
-                            isLoading={updatingId === b.id}
-                            onClick={() => handleStatusUpdate(b.id, 'CONFIRMED')}
-                          >
-                            <Check className="h-3.5 w-3.5" /> Confirm Deal
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="text-xs text-rose-600 border-rose-200 hover:bg-rose-50"
-                            isLoading={updatingId === b.id}
-                            onClick={() => handleStatusUpdate(b.id, 'CANCELLED')}
-                          >
-                            <XCircle className="h-3.5 w-3.5 mr-1" /> Release Hold
-                          </Button>
-                        </>
+                        <Button
+                          variant="default"
+                          size="sm"
+                          className="font-bold text-xs"
+                          onClick={() => handleStatusUpdate(b.id, 'CONFIRMED')}
+                          disabled={updatingId === b.id}
+                        >
+                          Confirm Order
+                        </Button>
                       )}
 
-                      {b.status === 'CONFIRMED' && (
+                      {isConfirmed && (
                         <Button
+                          variant="default"
                           size="sm"
-                          className="bg-slate-900 hover:bg-slate-800 text-white text-xs gap-1"
-                          isLoading={updatingId === b.id}
+                          className="font-bold text-xs"
                           onClick={() => handleStatusUpdate(b.id, 'COMPLETED')}
+                          disabled={updatingId === b.id}
                         >
-                          <CheckCircle className="h-3.5 w-3.5 text-emerald-400" /> Mark Delivered & Sold
+                          Mark Completed
+                        </Button>
+                      )}
+
+                      {(isHold || isConfirmed) && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-xs text-red-600 hover:bg-red-50"
+                          onClick={() => handleStatusUpdate(b.id, 'CANCELLED')}
+                          disabled={updatingId === b.id}
+                        >
+                          Cancel
                         </Button>
                       )}
                     </div>

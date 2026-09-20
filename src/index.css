@@ -1,42 +1,45 @@
 @import "tailwindcss";
 
+@theme {
+  --color-primary: #166534;
+  --color-primary-hover: #14532d;
+  --color-primary-light: #f0fdf4;
+  --color-primary-subtle: #dcfce7;
+  --color-secondary: #22c55e;
+  --color-earth: #b7791f;
+  --color-earth-light: #fef3c7;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f8fafc;
+  --color-neutral-deep: #17211b;
+  --color-neutral-muted: #64748b;
+  --color-neutral-border: #e2e8f0;
+  --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+}
+
 @layer base {
   :root {
-    --background: 210 40% 98%;
-    --foreground: 222.2 84% 4.9%;
-
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-
-    --primary: 158 94% 31%; /* Emerald 600 #059669 */
-    --primary-foreground: 210 40% 98%;
-
-    --secondary: 38 92% 50%; /* Amber 500 #f59e0b */
-    --secondary-foreground: 222.2 47.4% 11.2%;
-
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-
-    --accent: 142 76% 95%; /* Soft Green tint */
-    --accent-foreground: 158 94% 20%;
-
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 158 94% 31%;
-
-    --radius: 0.625rem;
+    --background: #ffffff;
+    --foreground: #17211b;
+    --primary: #166534;
+    --primary-hover: #14532d;
+    --primary-light: #f0fdf4;
+    --secondary: #22c55e;
+    --muted: #64748b;
+    --border: #e2e8f0;
+    --success: #22c55e;
+    --warning: #d97706;
+    --error: #dc2626;
+    --accent: #b7791f;
+    --earth: #b7791f;
+    --radius: 0.75rem;
   }
 
   body {
-    background-color: #f8fafc;
-    color: #0f172a;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background-color: #ffffff;
+    color: #17211b;
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 }
 
@@ -46,7 +49,7 @@
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: #f8fafc;
 }
 ::-webkit-scrollbar-thumb {
   background: #cbd5e1;
@@ -54,4 +57,9 @@
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
+}
+
+/* Safe area bottom padding helper for mobile sticky nav/bars */
+.safe-area-pb {
+  padding-bottom: env(safe-area-inset-bottom, 0.75rem);
 }

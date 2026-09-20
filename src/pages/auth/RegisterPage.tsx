@@ -4,10 +4,10 @@ import { useAuth } from '@/lib/auth/AuthContext';
 import { SEOHead } from '@/components/common/SEOHead';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { FarmRepository } from '@/repositories/FarmRepository';
 import type { UserRole } from '@/types';
-import { AlertCircle, Lock, Mail, User, Phone, Building2, MapPin, ArrowRight } from 'lucide-react';
+import { AlertCircle, Lock, Mail, User, Phone, Building2, ArrowRight } from 'lucide-react';
 
 const TAMIL_NADU_DISTRICTS = [
   'Tiruvannamalai',
@@ -25,16 +25,6 @@ const TAMIL_NADU_DISTRICTS = [
   'Namakkal',
   'Villupuram',
   'Cuddalore',
-  'Kallakurichi',
-  'Karur',
-  'Theni',
-  'Virudhunagar',
-  'Ramanathapuram',
-  'Sivaganga',
-  'Thoothukudi',
-  'Kanchipuram',
-  'Chengalpattu',
-  'Tiruvallur',
   'Chennai',
 ];
 
@@ -79,7 +69,6 @@ export const RegisterPage: React.FC = () => {
       // If registering as a Farm Admin, create farm record
       if (accountType === 'FARM_ADMIN') {
         const farmCode = `FARM-${Math.floor(100 + Math.random() * 900)}`;
-        // We will insert farm for this owner
         await FarmRepository.registerFarm({
           name: farmName.trim() || `${name}'s Farm`,
           contact_phone: phone.trim(),
@@ -91,7 +80,7 @@ export const RegisterPage: React.FC = () => {
           goat_listing_limit: 2,
         });
 
-        navigate('/farm/dashboard');
+        navigate('/farm');
       } else {
         navigate('/marketplace');
       }
@@ -106,34 +95,34 @@ export const RegisterPage: React.FC = () => {
   return (
     <>
       <SEOHead
-        title={accountType === 'FARM_ADMIN' ? 'Partner Farm Registration' : 'Create Customer Account'}
+        title={accountType === 'FARM_ADMIN' ? 'Partner Farm Registration' : 'Create Free Account | Adu Santhai'}
         path="/register"
       />
 
       <div className="min-h-[75vh] flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-lg space-y-6">
           <div className="text-center space-y-2">
-            <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-600 text-white font-black text-xl shadow-md shadow-emerald-200">
-              AS
+            <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-800 text-white font-serif text-2xl font-black shadow-xs">
+              ஆ
             </div>
-            <h1 className="text-2xl font-black text-slate-900">
+            <h1 className="text-2xl font-black text-slate-900 tracking-tight">
               {accountType === 'FARM_ADMIN' ? 'Register Partner Farm' : 'Join Adu Santhai'}
             </h1>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-slate-500 max-w-sm mx-auto">
               {accountType === 'FARM_ADMIN'
-                ? 'Join Ammal Farm\'s verified network and showcase your livestock to thousands of buyers'
-                : 'Connect with verified goat farmers and reserve livestock with 24-hour holds'}
+                ? 'Join Ammal Farm\'s verified breeder network and showcase your goats directly to buyers.'
+                : 'Connect directly with verified breeders and reserve livestock with 24-hour holds.'}
             </p>
           </div>
 
           {/* Account Type Selector Tabs */}
-          <div className="grid grid-cols-2 rounded-2xl bg-slate-200/80 p-1.5 text-xs font-bold">
+          <div className="grid grid-cols-2 rounded-2xl bg-slate-100 p-1 text-xs font-bold border border-slate-200">
             <button
               type="button"
               onClick={() => setAccountType('CUSTOMER')}
-              className={`rounded-xl py-2 transition-all cursor-pointer ${
+              className={`rounded-xl py-2.5 transition-all cursor-pointer ${
                 accountType === 'CUSTOMER'
-                  ? 'bg-white text-emerald-800 shadow-sm'
+                  ? 'bg-white text-emerald-800 shadow-xs'
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
@@ -142,181 +131,189 @@ export const RegisterPage: React.FC = () => {
             <button
               type="button"
               onClick={() => setAccountType('FARM_ADMIN')}
-              className={`rounded-xl py-2 transition-all cursor-pointer ${
+              className={`rounded-xl py-2.5 transition-all cursor-pointer ${
                 accountType === 'FARM_ADMIN'
-                  ? 'bg-white text-emerald-800 shadow-sm'
+                  ? 'bg-white text-emerald-800 shadow-xs'
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              Goat Farmer / Breeder
+              Breeder / Partner Farm
             </button>
           </div>
 
-          <Card className="rounded-3xl border-slate-200 shadow-xl">
-            <CardHeader className="pb-3">
+          <Card className="rounded-3xl border-slate-200 shadow-xs">
+            <CardHeader className="pb-4">
               <CardTitle className="text-lg">
-                {accountType === 'FARM_ADMIN' ? 'Farm & Farmer Details' : 'Account Information'}
+                {accountType === 'FARM_ADMIN' ? 'Breeder Registration' : 'Create Free Account'}
               </CardTitle>
               <CardDescription className="text-xs">
-                Fill in your accurate details for platform verification
+                Fill out the required information to get started
               </CardDescription>
             </CardHeader>
 
             <form onSubmit={handleSubmit}>
               <CardContent className="space-y-4">
                 {error && (
-                  <div className="flex items-center gap-2 rounded-xl bg-red-50 p-3 text-xs text-red-700 border border-red-200">
-                    <AlertCircle className="h-4 w-4 shrink-0 text-red-600" />
+                  <div className="flex items-start gap-2 rounded-xl bg-red-50 p-3 border border-red-200 text-xs text-red-700">
+                    <AlertCircle className="h-4 w-4 shrink-0 text-red-600 mt-0.5" />
                     <span>{error}</span>
                   </div>
                 )}
 
-                <div className="space-y-1.5">
-                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                {/* Personal Information */}
+                <div>
+                  <label htmlFor="name" className="block text-xs font-bold text-slate-700 mb-1.5">
                     Your Full Name
                   </label>
                   <div className="relative">
-                    <User className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                    <User className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
                     <Input
+                      id="name"
                       type="text"
-                      required
-                      placeholder="e.g. Madesh Kumar"
+                      placeholder="e.g. S. Murugan"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      className="pl-9"
+                      className="pl-10 h-11 text-sm rounded-xl"
+                      required
                     />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="space-y-1.5">
-                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
-                      Mobile Number
-                    </label>
-                    <div className="relative">
-                      <Phone className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
-                      <Input
-                        type="tel"
-                        required
-                        placeholder="+91 98765 43210"
-                        value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
-                        className="pl-9"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
-                      Email Address
-                    </label>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
-                      <Input
-                        type="email"
-                        required
-                        placeholder="you@example.com"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        className="pl-9"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
-                    Account Password
+                <div>
+                  <label htmlFor="phone" className="block text-xs font-bold text-slate-700 mb-1.5">
+                    Phone Number (WhatsApp Preferred)
                   </label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                    <Phone className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
                     <Input
-                      type="password"
+                      id="phone"
+                      type="tel"
+                      placeholder="+91 98765 43210"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      className="pl-10 h-11 text-sm rounded-xl"
                       required
-                      minLength={6}
-                      placeholder="At least 6 characters"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="pl-9"
                     />
                   </div>
                 </div>
 
-                {/* Additional Fields for Farm Admin */}
+                <div>
+                  <label htmlFor="email" className="block text-xs font-bold text-slate-700 mb-1.5">
+                    Email Address
+                  </label>
+                  <div className="relative">
+                    <Mail className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="name@example.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="pl-10 h-11 text-sm rounded-xl"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label htmlFor="password" className="block text-xs font-bold text-slate-700 mb-1.5">
+                    Create Password
+                  </label>
+                  <div className="relative">
+                    <Lock className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
+                    <Input
+                      id="password"
+                      type="password"
+                      placeholder="Minimum 6 characters"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="pl-10 h-11 text-sm rounded-xl"
+                      required
+                      minLength={6}
+                    />
+                  </div>
+                </div>
+
+                {/* Farm Admin Specific Section */}
                 {accountType === 'FARM_ADMIN' && (
-                  <div className="pt-3 border-t border-slate-100 space-y-3">
-                    <div className="space-y-1.5">
-                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
-                        Farm Name
-                      </label>
-                      <div className="relative">
-                        <Building2 className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
-                        <Input
-                          type="text"
-                          required
-                          placeholder="e.g. Madesh Goat Breeding Farm"
-                          value={farmName}
-                          onChange={(e) => setFarmName(e.target.value)}
-                          className="pl-9"
-                        />
-                      </div>
+                  <div className="space-y-4 pt-4 border-t border-slate-100">
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-800">
+                      <Building2 className="h-4 w-4" />
+                      <span>Farm Details</span>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div className="space-y-1.5">
-                        <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
-                          District
-                        </label>
-                        <select
-                          value={district}
-                          onChange={(e) => setDistrict(e.target.value)}
-                          className="w-full rounded-lg border border-slate-300 bg-white p-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                        >
-                          {TAMIL_NADU_DISTRICTS.map((d) => (
-                            <option key={d} value={d}>
-                              {d}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
+                    <div>
+                      <label htmlFor="farmName" className="block text-xs font-bold text-slate-700 mb-1.5">
+                        Farm Name
+                      </label>
+                      <Input
+                        id="farmName"
+                        type="text"
+                        placeholder="e.g. Sri Murugan Goat Farm"
+                        value={farmName}
+                        onChange={(e) => setFarmName(e.target.value)}
+                        className="h-11 text-sm rounded-xl"
+                        required
+                      />
+                    </div>
 
-                      <div className="space-y-1.5">
-                        <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
-                          Farm Address / Village
-                        </label>
-                        <div className="relative">
-                          <MapPin className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
-                          <Input
-                            type="text"
-                            placeholder="e.g. Kilpennathur Road"
-                            value={address}
-                            onChange={(e) => setAddress(e.target.value)}
-                            className="pl-9"
-                          />
-                        </div>
-                      </div>
+                    <div>
+                      <label htmlFor="district" className="block text-xs font-bold text-slate-700 mb-1.5">
+                        Location District (Tamil Nadu)
+                      </label>
+                      <select
+                        id="district"
+                        value={district}
+                        onChange={(e) => setDistrict(e.target.value)}
+                        className="w-full rounded-xl border border-slate-200 bg-white py-2.5 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-800 h-11"
+                        required
+                      >
+                        {TAMIL_NADU_DISTRICTS.map((d) => (
+                          <option key={d} value={d}>
+                            {d}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label htmlFor="address" className="block text-xs font-bold text-slate-700 mb-1.5">
+                        Village / Full Farm Address
+                      </label>
+                      <Input
+                        id="address"
+                        type="text"
+                        placeholder="Village, Taluk, Landmark"
+                        value={address}
+                        onChange={(e) => setAddress(e.target.value)}
+                        className="h-11 text-sm rounded-xl"
+                      />
                     </div>
                   </div>
                 )}
-              </CardContent>
 
-              <CardFooter className="flex flex-col gap-3 pt-2">
-                <Button
-                  type="submit"
-                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-11 rounded-xl shadow-md shadow-emerald-700/20"
-                  isLoading={isLoading}
-                >
-                  {accountType === 'FARM_ADMIN' ? 'Register Farm & Sign Up' : 'Create Customer Account'}
-                  <ArrowRight className="h-4 w-4 ml-1" />
-                </Button>
+                <div className="pt-2">
+                  <Button
+                    type="submit"
+                    variant="default"
+                    size="default"
+                    className="w-full font-bold h-11"
+                    isLoading={isLoading}
+                  >
+                    <span>
+                      {accountType === 'FARM_ADMIN' ? 'Register Partner Farm' : 'Create Free Account'}
+                    </span>
+                    <ArrowRight className="h-4 w-4 ml-1" />
+                  </Button>
+                </div>
 
-                <p className="text-center text-xs text-slate-500">
-                  Already registered?{' '}
-                  <Link to="/login" className="font-bold text-emerald-700 hover:underline">
+                <div className="text-center pt-2 text-xs text-slate-500">
+                  Already have an account?{' '}
+                  <Link to="/login" className="font-bold text-emerald-800 hover:underline">
                     Sign in here
                   </Link>
-                </p>
-              </CardFooter>
+                </div>
+              </CardContent>
             </form>
           </Card>
         </div>

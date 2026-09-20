@@ -6,6 +6,7 @@ import { GoatRepository } from '@/repositories/GoatRepository';
 import { BookingRepository } from '@/repositories/BookingRepository';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { EmptyState } from '@/components/common/EmptyState';
 import { formatCurrency, formatDateTime } from '@/lib/utils';
 import type { Goat, Booking } from '@/types';
 import {
@@ -16,6 +17,7 @@ import {
   PlusCircle,
   PhoneCall,
   Building2,
+  ArrowRight,
 } from 'lucide-react';
 
 export const FarmDashboard: React.FC = () => {
@@ -46,16 +48,13 @@ export const FarmDashboard: React.FC = () => {
 
   if (!farm) {
     return (
-      <div className="rounded-3xl border border-dashed border-slate-300 bg-white p-12 text-center">
-        <Building2 className="h-12 w-12 text-slate-400 mx-auto mb-3" />
-        <h2 className="text-lg font-bold text-slate-900">No Farm Profile Found</h2>
-        <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
-          You are not currently linked to an active farm. Please register your farm to list livestock.
-        </p>
-        <Button asChild className="mt-4 bg-emerald-600 text-white text-xs">
-          <Link to="/register-farm">Register Farm</Link>
-        </Button>
-      </div>
+      <EmptyState
+        icon={Building2}
+        title="No Farm Profile Found"
+        description="You are not currently linked to an active breeder profile. Register your farm to list livestock."
+        actionLabel="Register Farm"
+        actionHref="/register-farm"
+      />
     );
   }
 
@@ -66,96 +65,99 @@ export const FarmDashboard: React.FC = () => {
 
   return (
     <>
-      <SEOHead title={`${farm.name} Dashboard | Adu Santhai`} path="/farm/dashboard" />
+      <SEOHead title={`${farm.name} Dashboard | Adu Santhai`} path="/farm" />
 
       <div className="space-y-8">
         {/* Top Welcome Strip */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-black text-slate-900">
-              Welcome back, {farm.name}
+            <h2 className="text-2xl font-black text-slate-900 tracking-tight">
+              Farm Dashboard
             </h2>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Live status of your herd listings, holds, and customer inquiries
+            <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+              Live status of your herd listings, customer holds, and inventory.
             </p>
           </div>
 
-          <Button asChild className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs gap-1.5 shadow-xs">
-            <Link to="/farm/goats/new">
+          <Link to="/farm/goats/new">
+            <Button variant="default" size="default" className="font-bold gap-1.5 shadow-xs">
               <PlusCircle className="h-4 w-4" />
               <span>List New Goat</span>
-            </Link>
-          </Button>
+            </Button>
+          </Link>
         </div>
 
-        {/* Metrics Grid */}
+        {/* Metrics KPI Grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
-            <div className="flex items-center justify-between text-emerald-600 mb-2">
+          <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-xs">
+            <div className="flex items-center justify-between text-emerald-800 mb-2">
               <Layers className="h-5 w-5" />
-              <Badge variant="default" className="text-[10px] bg-emerald-50 text-emerald-800">
+              <Badge variant="verified" className="text-[10px]">
                 ACTIVE
               </Badge>
             </div>
-            <span className="text-xs text-slate-500 font-medium">Active Listings</span>
+            <span className="text-xs text-slate-500 font-medium">Available Goats</span>
             <div className="text-2xl font-black text-slate-900 mt-1">{activeGoatsCount}</div>
           </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
-            <div className="flex items-center justify-between text-amber-600 mb-2">
+          <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-xs">
+            <div className="flex items-center justify-between text-amber-700 mb-2">
               <Clock className="h-5 w-5" />
-              <Badge variant="secondary" className="text-[10px] bg-amber-50 text-amber-800">
-                24H HOLDS
+              <Badge variant="reserved" className="text-[10px]">
+                HOLDS
               </Badge>
             </div>
-            <span className="text-xs text-slate-500 font-medium">Reserved on Hold</span>
+            <span className="text-xs text-slate-500 font-medium">24-Hour Holds</span>
             <div className="text-2xl font-black text-slate-900 mt-1">{reservedGoatsCount}</div>
           </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
+          <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-xs">
             <div className="flex items-center justify-between text-slate-700 mb-2">
               <CheckCircle2 className="h-5 w-5" />
-              <Badge variant="slate" className="text-[10px]">
+              <Badge variant="sold" className="text-[10px]">
                 SOLD
               </Badge>
             </div>
-            <span className="text-xs text-slate-500 font-medium">Goats Sold</span>
+            <span className="text-xs text-slate-500 font-medium">Completed Sales</span>
             <div className="text-2xl font-black text-slate-900 mt-1">{soldGoatsCount}</div>
           </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
-            <div className="flex items-center justify-between text-blue-600 mb-2">
+          <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-xs">
+            <div className="flex items-center justify-between text-emerald-800 mb-2">
               <CalendarCheck className="h-5 w-5" />
               <span className="font-mono text-xs text-slate-400 font-semibold">{farm.farmCode}</span>
             </div>
-            <span className="text-xs text-slate-500 font-medium">Quota Used</span>
+            <span className="text-xs text-slate-500 font-medium">Listing Quota</span>
             <div className="text-xl font-black text-slate-900 mt-1">{quota}</div>
           </div>
         </div>
 
         {/* Recent Reservations Received */}
-        <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xs">
-          <div className="flex items-center justify-between mb-4 pb-4 border-b border-slate-100">
+        <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xs space-y-4">
+          <div className="flex items-center justify-between pb-4 border-b border-slate-100">
             <div>
-              <h3 className="text-lg font-bold text-slate-900">Recent Holding Reservations</h3>
-              <p className="text-xs text-slate-500">
-                Customers who placed 24-hour holds on your livestock
+              <h3 className="text-base font-bold text-slate-900">Recent Customer Reservations</h3>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Buyers who placed 24-hour holds on your livestock
               </p>
             </div>
-            <Button variant="outline" size="sm" asChild className="text-xs">
-              <Link to="/farm/bookings">View All Orders</Link>
-            </Button>
+            <Link to="/farm/bookings">
+              <Button variant="outline" size="sm" className="text-xs font-bold">
+                <span>View All</span>
+                <ArrowRight className="h-3 w-3 ml-1" />
+              </Button>
+            </Link>
           </div>
 
           {loading ? (
             <div className="space-y-3">
               {[1, 2].map((i) => (
-                <div key={i} className="h-16 rounded-xl bg-slate-100 animate-pulse" />
+                <div key={i} className="h-16 rounded-2xl bg-slate-100 animate-pulse" />
               ))}
             </div>
           ) : bookings.length === 0 ? (
             <p className="text-center text-xs text-slate-400 py-8">
-              No reservation holds placed on your goats yet. Keep listings updated with clear photos!
+              No reservation holds placed on your goats yet. Keep listings updated with high-resolution photos!
             </p>
           ) : (
             <div className="divide-y divide-slate-100">
@@ -165,25 +167,25 @@ export const FarmDashboard: React.FC = () => {
                     <div className="flex items-center gap-2">
                       <span className="font-bold text-slate-900 text-sm">{b.goatName}</span>
                       <span className="font-mono text-xs text-slate-400">#{b.goatCode}</span>
-                      <Badge variant="secondary" className="text-[10px]">
+                      <Badge variant="reserved" className="text-[10px]">
                         Code: {b.bookingCode || 'AGF-HOLD'}
                       </Badge>
                     </div>
                     <p className="text-slate-500 mt-0.5">
-                      Customer: <strong className="text-slate-700">{b.customerName}</strong> • {formatDateTime(b.createdAt)}
+                      Buyer: <strong className="text-slate-700">{b.customerName}</strong> • {formatDateTime(b.createdAt)}
                     </p>
                   </div>
 
                   <div className="flex items-center gap-3">
-                    <span className="font-black text-emerald-700 text-sm">
+                    <span className="font-extrabold text-emerald-800 text-sm">
                       {formatCurrency(b.totalPrice)}
                     </span>
                     {b.customerPhone && (
                       <a
                         href={`tel:${b.customerPhone}`}
-                        className="inline-flex items-center gap-1 rounded-lg bg-slate-900 text-white px-2.5 py-1.5 font-bold hover:bg-slate-800"
+                        className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-50 text-emerald-900 px-3 py-1.5 font-bold border border-emerald-200 hover:bg-emerald-100 transition-colors"
                       >
-                        <PhoneCall className="h-3 w-3 text-emerald-400" />
+                        <PhoneCall className="h-3.5 w-3.5 text-emerald-800" />
                         <span>Call Buyer</span>
                       </a>
                     )}

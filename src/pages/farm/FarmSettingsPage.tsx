@@ -182,7 +182,7 @@ export const FarmSettingsPage: React.FC = () => {
               <Button
                 type="submit"
                 isLoading={isSaving}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs"
+                className="bg-emerald-800 hover:bg-emerald-900 text-white font-bold text-sm px-6 h-10 shadow-sm"
               >
                 Save Farm Settings
               </Button>

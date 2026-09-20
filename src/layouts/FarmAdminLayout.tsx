@@ -23,29 +23,29 @@ export const FarmAdminLayout: React.FC = () => {
   const isSuspended = farm?.status === 'SUSPENDED';
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-100 text-slate-900">
+    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900">
       <Navbar />
 
-      {/* Farm Banner Header */}
-      <div className="bg-slate-900 text-white py-6 border-b border-slate-800">
+      {/* Farm Banner Header - Clean White Surface */}
+      <div className="bg-white border-b border-slate-200 py-6">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-600 text-white font-bold text-xl shadow-md shadow-emerald-950">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-800 font-bold text-xl border border-emerald-100 shadow-xs">
                 <Building2 className="h-7 w-7" />
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h1 className="text-xl font-extrabold text-white">
+                  <h1 className="text-xl font-black text-slate-900 tracking-tight">
                     {farm?.name || 'Farm Admin Portal'}
                   </h1>
                   {farm && (
                     <Badge
                       variant={
                         farm.status === 'APPROVED'
-                          ? 'default'
+                          ? 'verified'
                           : farm.status === 'PENDING'
-                          ? 'secondary'
+                          ? 'reserved'
                           : 'destructive'
                       }
                       className="text-[11px]"
@@ -54,37 +54,37 @@ export const FarmAdminLayout: React.FC = () => {
                     </Badge>
                   )}
                   {farm?.isAmmalOwnFarm && (
-                    <Badge variant="default" className="bg-emerald-500 text-slate-950 font-bold text-[10px]">
+                    <Badge variant="earth" className="text-[10px] font-bold">
                       CENTRAL HUB
                     </Badge>
                   )}
                 </div>
-                <p className="text-xs text-slate-400 mt-1">
-                  Farm Code: <span className="font-mono text-emerald-400 font-bold">{farm?.farmCode || 'N/A'}</span> • {farm?.locationDistrict || 'Tamil Nadu'}
+                <p className="text-xs text-slate-500 mt-1">
+                  Farm Code: <span className="font-mono text-emerald-800 font-bold">{farm?.farmCode || 'N/A'}</span> • {farm?.locationDistrict || 'Tamil Nadu'}
                 </p>
               </div>
             </div>
 
             {/* Quota display */}
-            <div className="flex items-center gap-4 bg-slate-800/80 rounded-xl px-4 py-2.5 border border-slate-700">
+            <div className="flex items-center gap-4 bg-slate-50 rounded-2xl px-4 py-2.5 border border-slate-200">
               <div className="text-right text-xs">
-                <span className="text-slate-400 block">Listing Quota:</span>
-                <span className="font-bold text-white">
+                <span className="text-slate-500 block">Listing Quota:</span>
+                <span className="font-bold text-slate-900">
                   {farm?.isAmmalOwnFarm ? 'Unlimited (Ammal Farm)' : `Max ${farm?.goatListingLimit ?? 2} Active Goats`}
                 </span>
               </div>
               <Link
                 to={`/farms/${farm?.id}`}
-                className="flex items-center gap-1 text-xs text-emerald-400 hover:text-emerald-300 font-medium"
+                className="flex items-center gap-1 text-xs text-emerald-800 hover:text-emerald-950 font-bold"
               >
-                Public Profile <ExternalLink className="h-3.5 w-3.5" />
+                Public View <ExternalLink className="h-3.5 w-3.5" />
               </Link>
             </div>
           </div>
 
           {isPending && (
-            <div className="mt-4 flex items-center gap-2 rounded-xl bg-amber-500/10 border border-amber-500/30 px-4 py-2 text-xs text-amber-200">
-              <AlertTriangle className="h-4 w-4 text-amber-400 shrink-0" />
+            <div className="mt-4 flex items-center gap-2 rounded-2xl bg-amber-50 border border-amber-200 px-4 py-2.5 text-xs text-amber-900">
+              <AlertTriangle className="h-4 w-4 text-amber-700 shrink-0" />
               <span>
                 Your farm application is currently under review by Ammal Farm administration. Goats you list will be visible on the marketplace once approved.
               </span>
@@ -92,8 +92,8 @@ export const FarmAdminLayout: React.FC = () => {
           )}
 
           {isSuspended && (
-            <div className="mt-4 flex items-center gap-2 rounded-xl bg-red-500/10 border border-red-500/30 px-4 py-2 text-xs text-red-200">
-              <AlertTriangle className="h-4 w-4 text-red-400 shrink-0" />
+            <div className="mt-4 flex items-center gap-2 rounded-2xl bg-red-50 border border-red-200 px-4 py-2.5 text-xs text-red-900">
+              <AlertTriangle className="h-4 w-4 text-red-600 shrink-0" />
               <span>
                 This farm has been temporarily suspended. Please contact platform support at +91 63808 98358.
               </span>
@@ -101,15 +101,15 @@ export const FarmAdminLayout: React.FC = () => {
           )}
 
           {/* Sub Navigation Bar */}
-          <nav className="mt-6 flex gap-2 overflow-x-auto border-t border-slate-800 pt-4 text-xs font-medium">
+          <nav className="mt-6 flex gap-2 overflow-x-auto border-t border-slate-100 pt-4 text-xs font-semibold">
             <NavLink
-              to="/farm/dashboard"
+              to="/farm"
               end
               className={({ isActive }) =>
-                `flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap ${
+                `flex items-center gap-1.5 px-3.5 py-2 rounded-xl transition-colors whitespace-nowrap ${
                   isActive
-                    ? 'bg-emerald-600 text-white font-bold'
-                    : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                    ? 'bg-emerald-800 text-white font-bold shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                 }`
               }
             >
@@ -120,10 +120,10 @@ export const FarmAdminLayout: React.FC = () => {
               to="/farm/goats"
               end
               className={({ isActive }) =>
-                `flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap ${
+                `flex items-center gap-1.5 px-3.5 py-2 rounded-xl transition-colors whitespace-nowrap ${
                   isActive
-                    ? 'bg-emerald-600 text-white font-bold'
-                    : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                    ? 'bg-emerald-800 text-white font-bold shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                 }`
               }
             >
@@ -133,10 +133,10 @@ export const FarmAdminLayout: React.FC = () => {
             <NavLink
               to="/farm/goats/new"
               className={({ isActive }) =>
-                `flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap ${
+                `flex items-center gap-1.5 px-3.5 py-2 rounded-xl transition-colors whitespace-nowrap ${
                   isActive
-                    ? 'bg-emerald-600 text-white font-bold'
-                    : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                    ? 'bg-emerald-800 text-white font-bold shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                 }`
               }
             >
@@ -146,10 +146,10 @@ export const FarmAdminLayout: React.FC = () => {
             <NavLink
               to="/farm/bookings"
               className={({ isActive }) =>
-                `flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap ${
+                `flex items-center gap-1.5 px-3.5 py-2 rounded-xl transition-colors whitespace-nowrap ${
                   isActive
-                    ? 'bg-emerald-600 text-white font-bold'
-                    : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                    ? 'bg-emerald-800 text-white font-bold shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                 }`
               }
             >
@@ -159,10 +159,10 @@ export const FarmAdminLayout: React.FC = () => {
             <NavLink
               to="/farm/settings"
               className={({ isActive }) =>
-                `flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap ${
+                `flex items-center gap-1.5 px-3.5 py-2 rounded-xl transition-colors whitespace-nowrap ${
                   isActive
-                    ? 'bg-emerald-600 text-white font-bold'
-                    : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                    ? 'bg-emerald-800 text-white font-bold shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                 }`
               }
             >

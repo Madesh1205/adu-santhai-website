@@ -4,9 +4,10 @@ import { ReportRepository } from '@/repositories/ReportRepository';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { EmptyState } from '@/components/common/EmptyState';
 import { formatDateTime } from '@/lib/utils';
 import type { PlatformReport, ReportStatus } from '@/types';
-import { Check, X, ShieldAlert } from 'lucide-react';
+import { Flag, Check, Clock } from 'lucide-react';
 
 export const ReportsModerationPage: React.FC = () => {
   const { user } = useAuth();
@@ -52,97 +53,102 @@ export const ReportsModerationPage: React.FC = () => {
 
       <div className="space-y-6">
         <div className="pb-4 border-b border-slate-200">
-          <h1 className="text-2xl font-black text-slate-900">
-            Platform Incident Flags & Reports ({reports.length})
-          </h1>
-          <p className="text-xs text-slate-500 mt-0.5">
-            User reports submitted regarding inaccurate weights, false pedigrees, or breeder misconduct
-          </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-black text-slate-900 tracking-tight">
+                Listing Incident Reports ({reports.length})
+              </h1>
+              <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+                Buyer flags regarding inaccurate weights, false pedigrees, or breeder misconduct
+              </p>
+            </div>
+          </div>
         </div>
 
         {loading ? (
           <div className="space-y-3">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="h-28 rounded-2xl bg-slate-200 animate-pulse" />
+            {[1, 2].map((i) => (
+              <div key={i} className="h-28 rounded-2xl bg-slate-100 animate-pulse" />
             ))}
           </div>
         ) : reports.length === 0 ? (
-          <div className="rounded-3xl border border-dashed border-slate-300 bg-white p-12 text-center space-y-3">
-            <ShieldAlert className="h-10 w-10 text-emerald-600 mx-auto" />
-            <h3 className="text-base font-bold text-slate-900">No Reports Logged</h3>
-            <p className="text-xs text-slate-500 max-w-sm mx-auto">
-              The marketplace has no unresolved user flags or listing violations.
-            </p>
-          </div>
+          <EmptyState
+            icon={Flag}
+            title="No Buyer Reports Filed"
+            description="The marketplace is running smoothly with zero active flags or complaints."
+          />
         ) : (
           <div className="space-y-4">
-            {reports.map((report) => (
-              <div
-                key={report.id}
-                className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs transition-all hover:shadow-md space-y-3"
-              >
-                <div className="flex items-start justify-between">
-                  <div className="space-y-1">
+            {reports.map((report) => {
+              const isPending = report.status === 'PENDING';
+              const isResolved = report.status === 'RESOLVED';
+
+              return (
+                <div
+                  key={report.id}
+                  className="rounded-3xl border border-slate-200 bg-white p-5 shadow-xs space-y-3"
+                >
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
-                      <Badge variant="destructive" className="text-[10px]">
-                        {report.targetType} REPORT
+                      <span className="font-bold text-sm text-slate-900">
+                        {report.targetTitle || `Target ID: ${report.targetId}`}
+                      </span>
+                      <Badge
+                        variant={
+                          isPending ? 'reserved' : isResolved ? 'verified' : 'secondary'
+                        }
+                        className="text-[10px]"
+                      >
+                        {report.status}
                       </Badge>
-                      <h4 className="font-bold text-slate-900 text-sm">{report.reason}</h4>
+                      <span className="text-[11px] font-semibold text-slate-400 uppercase">
+                        Reason: {report.reason}
+                      </span>
                     </div>
-                    <p className="text-xs text-slate-500">
-                      Reported by: <strong>{report.reporterName}</strong> • {formatDateTime(report.createdAt)}
-                    </p>
+
+                    <div className="flex items-center gap-1 text-[11px] text-slate-400">
+                      <Clock className="h-3 w-3" />
+                      <span>{formatDateTime(report.createdAt)}</span>
+                    </div>
                   </div>
 
-                  <Badge
-                    variant={
-                      report.status === 'RESOLVED'
-                        ? 'default'
-                        : report.status === 'PENDING'
-                        ? 'secondary'
-                        : 'slate'
-                    }
-                    className="text-[10px]"
-                  >
-                    {report.status}
-                  </Badge>
-                </div>
-
-                {report.description && (
-                  <p className="rounded-xl bg-slate-50 p-3 text-xs text-slate-600">
-                    "{report.description}"
+                  <p className="text-xs text-slate-600 bg-slate-50 rounded-xl p-3 border border-slate-100 leading-relaxed">
+                    "{report.description || 'No additional details provided by buyer.'}"
                   </p>
-                )}
 
-                {report.resolutionNotes && (
-                  <div className="rounded-xl bg-emerald-50/70 border border-emerald-200 p-3 text-xs text-emerald-900">
-                    <strong>Resolution Notes: </strong> {report.resolutionNotes}
-                  </div>
-                )}
+                  {report.resolutionNotes && (
+                    <p className="text-xs text-emerald-800 bg-emerald-50 rounded-xl p-2.5 border border-emerald-100">
+                      <strong>Admin Resolution:</strong> {report.resolutionNotes}
+                    </p>
+                  )}
 
-                {report.status === 'PENDING' && (
-                  <div className="pt-2 border-t border-slate-100 flex items-center justify-end gap-2">
-                    <Button
-                      size="sm"
-                      className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs gap-1"
-                      isLoading={actionId === report.id}
-                      onClick={() => handleUpdateStatus(report.id, 'RESOLVED')}
-                    >
-                      <Check className="h-3.5 w-3.5" /> Resolve Report
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="text-xs text-slate-600"
-                      isLoading={actionId === report.id}
-                      onClick={() => handleUpdateStatus(report.id, 'DISMISSED')}
-                    >
-                      <X className="h-3.5 w-3.5 mr-1" /> Dismiss
-                    </Button>
-                  </div>
-                )}
-              </div>
-            ))}
+                  {isPending && (
+                    <div className="pt-2 border-t border-slate-100 flex items-center justify-end gap-2">
+                      <Button
+                        variant="default"
+                        size="sm"
+                        className="font-bold text-xs gap-1"
+                        onClick={() => handleUpdateStatus(report.id, 'RESOLVED')}
+                        disabled={actionId === report.id}
+                      >
+                        <Check className="h-3.5 w-3.5" />
+                        <span>Mark Resolved</span>
+                      </Button>
+
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-xs text-slate-600 hover:bg-slate-100"
+                        onClick={() => handleUpdateStatus(report.id, 'DISMISSED')}
+                        disabled={actionId === report.id}
+                      >
+                        Dismiss
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
       </div>

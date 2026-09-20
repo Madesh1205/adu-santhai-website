@@ -4,42 +4,42 @@ import { ShieldCheck, Phone, MapPin, Mail, Award, Clock } from 'lucide-react';
 
 export const Footer: React.FC = () => {
   return (
-    <footer className="border-t border-slate-200 bg-slate-950 text-slate-400 pb-20 md:pb-12 pt-16">
+    <footer className="border-t border-slate-200 bg-slate-50 text-slate-600 pb-24 md:pb-14 pt-16">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Trust Badges Strip */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pb-12 border-b border-slate-800">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pb-12 border-b border-slate-200">
           <div className="flex items-start gap-4">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-emerald-950 text-emerald-400 border border-emerald-800">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-800 border border-emerald-100 shadow-xs">
               <ShieldCheck className="h-6 w-6" />
             </div>
             <div>
-              <h4 className="font-bold text-white text-base">Direct Farm Sourcing</h4>
-              <p className="text-xs text-slate-400 mt-1">
-                Zero middlemen. Buy directly from verified goat breeders across Tamil Nadu & India.
+              <h4 className="font-bold text-slate-900 text-base">Direct Breeder Sourcing</h4>
+              <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                Zero middlemen. Buy directly from verified goat breeders across Tamil Nadu.
               </p>
             </div>
           </div>
 
           <div className="flex items-start gap-4">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-amber-950 text-amber-400 border border-amber-800">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-800 border border-emerald-100 shadow-xs">
               <Clock className="h-6 w-6" />
             </div>
             <div>
-              <h4 className="font-bold text-white text-base">24-Hour Zero-Risk Hold</h4>
-              <p className="text-xs text-slate-400 mt-1">
-                Lock your desired goat for 24 hours while you inspect the farm or arrange logistics.
+              <h4 className="font-bold text-slate-900 text-base">24-Hour Reservation Hold</h4>
+              <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                Hold your chosen goat for 24 hours while you coordinate farm inspection or transport.
               </p>
             </div>
           </div>
 
           <div className="flex items-start gap-4">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-blue-950 text-blue-400 border border-blue-800">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-800 border border-emerald-100 shadow-xs">
               <Award className="h-6 w-6" />
             </div>
             <div>
-              <h4 className="font-bold text-white text-base">Verified Health & Lineage</h4>
-              <p className="text-xs text-slate-400 mt-1">
-                Transparent vaccination records, deworming dates, weight data, and parent tags.
+              <h4 className="font-bold text-slate-900 text-base">Verified Health & Specs</h4>
+              <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                Transparent vaccination records, deworming history, and verified breeder profiles.
               </p>
             </div>
           </div>
@@ -50,67 +50,67 @@ export const Footer: React.FC = () => {
           {/* Col 1: Brand & Bio */}
           <div className="md:col-span-1 space-y-4">
             <div className="flex items-center gap-2.5">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-600 text-white font-black">
-                AS
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-800 text-white font-serif text-lg font-black">
+                ஆ
               </div>
-              <span className="font-extrabold text-white text-lg tracking-tight">ADU SANTHAI</span>
+              <span className="font-black text-slate-900 text-lg tracking-tight">ADU SANTHAI</span>
             </div>
-            <p className="text-xs leading-relaxed text-slate-400">
-              An enterprise platform powered by <strong>Ammal Farm</strong>, connecting goat farmers, commercial meat buyers, and stud breeders nationwide.
+            <p className="text-xs leading-relaxed text-slate-500">
+              Tamil Nadu's premier direct marketplace for verified goats, associated with <strong>Ammal Farm</strong>. Connecting breeders, farmers, and buyers with complete transparency.
             </p>
-            <div className="pt-2 text-xs space-y-2">
-              <div className="flex items-center gap-2 text-slate-300">
-                <MapPin className="h-4 w-4 text-emerald-500 shrink-0" />
+            <div className="pt-2 text-xs space-y-2.5 text-slate-600">
+              <div className="flex items-center gap-2">
+                <MapPin className="h-4 w-4 text-emerald-800 shrink-0" />
                 <span>Tiruvannamalai, Tamil Nadu, India</span>
               </div>
-              <div className="flex items-center gap-2 text-slate-300">
-                <Phone className="h-4 w-4 text-emerald-500 shrink-0" />
-                <a href="tel:+916380898358" className="hover:text-white transition-colors">
+              <div className="flex items-center gap-2">
+                <Phone className="h-4 w-4 text-emerald-800 shrink-0" />
+                <a href="tel:+916380898358" className="hover:text-emerald-800 font-semibold transition-colors">
                   +91 63808 98358
                 </a>
               </div>
-              <div className="flex items-center gap-2 text-slate-300">
-                <Mail className="h-4 w-4 text-emerald-500 shrink-0" />
-                <a href="mailto:madesh1205@gmail.com" className="hover:text-white transition-colors">
+              <div className="flex items-center gap-2">
+                <Mail className="h-4 w-4 text-emerald-800 shrink-0" />
+                <a href="mailto:contact@ammalfarm.live" className="hover:text-emerald-800 transition-colors">
                   contact@ammalfarm.live
                 </a>
               </div>
             </div>
           </div>
 
-          {/* Col 2: Popular Breeds */}
+          {/* Col 2: Featured Breeds */}
           <div>
-            <h5 className="font-bold text-white text-sm uppercase tracking-wider mb-4">
+            <h5 className="font-bold text-slate-900 text-xs uppercase tracking-wider mb-4">
               Featured Breeds
             </h5>
-            <ul className="space-y-2 text-xs">
+            <ul className="space-y-2 text-xs text-slate-500">
               <li>
-                <Link to="/marketplace?breed=Boer" className="hover:text-white transition-colors">
+                <Link to="/marketplace?breed=Boer" className="hover:text-emerald-800 transition-colors">
                   Boer (Heavy Meat Sires)
                 </Link>
               </li>
               <li>
-                <Link to="/marketplace?breed=Sirohi" className="hover:text-white transition-colors">
+                <Link to="/marketplace?breed=Sirohi" className="hover:text-emerald-800 transition-colors">
                   Sirohi (Hardy Commercial Breed)
                 </Link>
               </li>
               <li>
-                <Link to="/marketplace?breed=Tellicherry" className="hover:text-white transition-colors">
+                <Link to="/marketplace?breed=Tellicherry" className="hover:text-emerald-800 transition-colors">
                   Tellicherry / Malabari
                 </Link>
               </li>
               <li>
-                <Link to="/marketplace?breed=Jamnapari" className="hover:text-white transition-colors">
+                <Link to="/marketplace?breed=Jamnapari" className="hover:text-emerald-800 transition-colors">
                   Jamnapari (Dual Purpose)
                 </Link>
               </li>
               <li>
-                <Link to="/marketplace?breed=Kanni" className="hover:text-white transition-colors">
-                  Kanni Adu & Kodi Adu
+                <Link to="/marketplace?breed=Kanni" className="hover:text-emerald-800 transition-colors">
+                  Kanni Adu & Native Breeds
                 </Link>
               </li>
               <li>
-                <Link to="/marketplace?breed=Barbari" className="hover:text-white transition-colors">
+                <Link to="/marketplace?breed=Barbari" className="hover:text-emerald-800 transition-colors">
                   Barbari (Stall-fed Dairy)
                 </Link>
               </li>
@@ -119,59 +119,62 @@ export const Footer: React.FC = () => {
 
           {/* Col 3: Quick Navigation */}
           <div>
-            <h5 className="font-bold text-white text-sm uppercase tracking-wider mb-4">
+            <h5 className="font-bold text-slate-900 text-xs uppercase tracking-wider mb-4">
               Marketplace
             </h5>
-            <ul className="space-y-2 text-xs">
+            <ul className="space-y-2 text-xs text-slate-500">
               <li>
-                <Link to="/marketplace" className="hover:text-white transition-colors">
+                <Link to="/marketplace" className="hover:text-emerald-800 transition-colors">
                   Browse All Goats
                 </Link>
               </li>
               <li>
-                <Link to="/farms" className="hover:text-white transition-colors">
-                  Verified Goat Farms
+                <Link to="/farms" className="hover:text-emerald-800 transition-colors">
+                  Verified Breeder Directory
                 </Link>
               </li>
               <li>
-                <Link to="/register-farm" className="hover:text-white transition-colors">
-                  Become a Partner Farm
+                <Link to="/register-farm" className="hover:text-emerald-800 transition-colors">
+                  Partner Farm Registration
                 </Link>
               </li>
               <li>
-                <Link to="/my-bookings" className="hover:text-white transition-colors">
-                  Manage Reservations
+                <Link to="/my-bookings" className="hover:text-emerald-800 transition-colors">
+                  My Reservations
                 </Link>
               </li>
               <li>
-                <Link to="/wishlist" className="hover:text-white transition-colors">
-                  Saved Wishlist
+                <Link to="/wishlist" className="hover:text-emerald-800 transition-colors">
+                  Saved Goats
                 </Link>
               </li>
             </ul>
           </div>
 
-          {/* Col 4: Operations & Security */}
+          {/* Col 4: Operations & Trust */}
           <div>
-            <h5 className="font-bold text-white text-sm uppercase tracking-wider mb-4">
-              Platform & Security
+            <h5 className="font-bold text-slate-900 text-xs uppercase tracking-wider mb-4">
+              Verified Operations
             </h5>
-            <p className="text-xs text-slate-400 leading-relaxed mb-4">
-              Adu Santhai runs on high-availability Cloudflare edge network with Supabase PostgreSQL security, end-to-end data validation, and automated listing audits.
+            <p className="text-xs text-slate-500 leading-relaxed mb-4">
+              Every goat is backed by real breeder identification, transparent pricing, and direct farmer communication.
             </p>
-            <div className="rounded-xl bg-slate-900 p-3 border border-slate-800 text-xs">
-              <span className="font-semibold text-white">Central Operations Hub</span>
-              <p className="text-emerald-400 mt-0.5">Ammal Farm (FARM-001)</p>
+            <div className="rounded-2xl bg-white p-4 border border-slate-200 shadow-xs">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-800">
+                Primary Partner Hub
+              </span>
+              <h6 className="font-extrabold text-slate-900 text-sm mt-0.5">Ammal Farm (FARM-001)</h6>
+              <p className="text-xs text-slate-500 mt-0.5">Tiruvannamalai Hub</p>
             </div>
           </div>
         </div>
 
         {/* Bottom Bar */}
-        <div className="pt-8 border-t border-slate-900 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-4">
+        <div className="pt-8 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-400 gap-4">
           <p>© {new Date().getFullYear()} Adu Santhai • Ammal Farm. All rights reserved.</p>
           <div className="flex items-center gap-6">
-            <span>Powered by Supabase & Cloudflare Pages</span>
-            <span>Production Host: adusanthai.ammalfarm.dpdns.org</span>
+            <span>Direct Farm Sourcing</span>
+            <span>Zero Middlemen</span>
           </div>
         </div>
       </div>

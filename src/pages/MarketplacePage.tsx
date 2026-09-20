@@ -2,7 +2,9 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { SEOHead } from '@/components/common/SEOHead';
 import { GoatCard } from '@/components/marketplace/GoatCard';
+import { GoatCardSkeleton } from '@/components/marketplace/GoatCardSkeleton';
 import { BookingModal } from '@/components/marketplace/BookingModal';
+import { EmptyState } from '@/components/common/EmptyState';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { GoatRepository } from '@/repositories/GoatRepository';
@@ -14,7 +16,8 @@ import {
   SlidersHorizontal,
   X,
   RotateCcw,
-  Sparkles,
+  ChevronDown,
+  Check,
 } from 'lucide-react';
 
 const TAMIL_NADU_DISTRICTS = [
@@ -33,16 +36,6 @@ const TAMIL_NADU_DISTRICTS = [
   'Namakkal',
   'Villupuram',
   'Cuddalore',
-  'Kallakurichi',
-  'Karur',
-  'Theni',
-  'Virudhunagar',
-  'Ramanathapuram',
-  'Sivaganga',
-  'Thoothukudi',
-  'Kanchipuram',
-  'Chengalpattu',
-  'Tiruvallur',
   'Chennai',
 ];
 
@@ -74,6 +67,19 @@ export const MarketplacePage: React.FC = () => {
   const [sortBy, setSortBy] = useState<SortOption>(
     (searchParams.get('sort') as SortOption) || 'newest'
   );
+
+  // Progressive Disclosure accordions
+  const [openSections, setOpenSections] = useState<{ [key: string]: boolean }>({
+    breed: true,
+    gender: true,
+    purpose: true,
+    price: true,
+    specs: false,
+  });
+
+  const toggleSection = (section: string) => {
+    setOpenSections((prev) => ({ ...prev, [section]: !prev[section] }));
+  };
 
   // Load breeds and wishlist
   useEffect(() => {
@@ -144,224 +150,230 @@ export const MarketplacePage: React.FC = () => {
     setSearchParams({});
   };
 
-  const hasActiveFilters =
-    Boolean(searchQuery) ||
-    selectedBreed !== 'ALL' ||
-    selectedGender !== 'ALL' ||
-    selectedPurpose !== 'ALL' ||
-    selectedDistrict !== 'ALL' ||
-    Boolean(minPrice) ||
-    Boolean(maxPrice) ||
-    Boolean(minWeight) ||
-    Boolean(maxWeight) ||
-    sortBy !== 'newest';
+  const activeFilterCount = [
+    selectedBreed !== 'ALL',
+    selectedGender !== 'ALL',
+    selectedPurpose !== 'ALL',
+    selectedDistrict !== 'ALL',
+    minPrice !== '',
+    maxPrice !== '',
+    minWeight !== '',
+    maxWeight !== '',
+    searchQuery.trim() !== '',
+  ].filter(Boolean).length;
 
-  return (
-    <>
-      <SEOHead
-        title="Live Goat Marketplace | Verified Boer, Sirohi, Kanni Goats"
-        description="Browse certified live goats for sale in Tamil Nadu. Filter by breed, weight, purpose, and district with transparent pricing and 24-hour reservation hold."
-        path="/marketplace"
-      />
-
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-        {/* Marketplace Title & Action Bar */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-200">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-black text-slate-900">
-              Live Goat Marketplace
-            </h1>
-            <p className="text-xs sm:text-sm text-slate-500 mt-1">
-              Direct from verified breeders with 24-hour zero-risk holding reservations
-            </p>
-          </div>
-
-          {/* Search + Mobile Filter Button */}
-          <div className="flex items-center gap-2">
-            <div className="relative flex-1 sm:w-64">
-              <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
-              <input
-                type="search"
-                placeholder="Search name, code, breed..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 bg-white py-2 pl-9 pr-3 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-              />
-            </div>
-
-            {/* Sort Dropdown */}
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as SortOption)}
-              className="hidden md:block rounded-xl border border-slate-200 bg-white py-2 px-3 text-xs text-slate-800 font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500"
-            >
-              <option value="newest">Newest First</option>
-              <option value="price_low_high">Price: Low to High</option>
-              <option value="price_high_low">Price: High to Low</option>
-              <option value="weight_heaviest">Weight: Heaviest First</option>
-              <option value="age_youngest">Age: Youngest First</option>
-              <option value="top_rated">Top Rated</option>
-            </select>
-
-            {/* Mobile Filter Toggle Button */}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowMobileFilter(!showMobileFilter)}
-              className="lg:hidden gap-1.5 text-xs font-semibold"
-            >
-              <SlidersHorizontal className="h-4 w-4" />
-              <span>Filters</span>
-              {hasActiveFilters && (
-                <span className="flex h-2 w-2 rounded-full bg-emerald-600" />
-              )}
-            </Button>
-          </div>
+  const renderFilterPanel = () => (
+    <div className="space-y-6">
+      {/* Active Filters Summary & Reset */}
+      <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+        <div className="flex items-center gap-2">
+          <SlidersHorizontal className="h-4 w-4 text-emerald-800" />
+          <h3 className="font-bold text-slate-900 text-sm">Filters</h3>
+          {activeFilterCount > 0 && (
+            <Badge variant="verified" className="text-[10px] px-2">
+              {activeFilterCount} active
+            </Badge>
+          )}
         </div>
+        {activeFilterCount > 0 && (
+          <button
+            onClick={handleClearFilters}
+            className="flex items-center gap-1 text-xs font-semibold text-emerald-800 hover:text-emerald-950 transition-colors cursor-pointer"
+          >
+            <RotateCcw className="h-3 w-3" /> Reset
+          </button>
+        )}
+      </div>
 
-        {/* Active Filter Chips */}
-        {hasActiveFilters && (
-          <div className="flex flex-wrap items-center gap-2 py-3">
-            <span className="text-xs font-medium text-slate-500">Active filters:</span>
-            {searchQuery && (
-              <Badge variant="slate" className="gap-1 text-xs">
-                Search: "{searchQuery}"
-                <X className="h-3 w-3 cursor-pointer" onClick={() => setSearchQuery('')} />
-              </Badge>
-            )}
-            {selectedBreed !== 'ALL' && (
-              <Badge variant="default" className="gap-1 text-xs bg-emerald-100 text-emerald-800">
-                Breed: {selectedBreed}
-                <X className="h-3 w-3 cursor-pointer" onClick={() => setSelectedBreed('ALL')} />
-              </Badge>
-            )}
-            {selectedGender !== 'ALL' && (
-              <Badge variant="slate" className="gap-1 text-xs">
-                Gender: {selectedGender}
-                <X className="h-3 w-3 cursor-pointer" onClick={() => setSelectedGender('ALL')} />
-              </Badge>
-            )}
-            {selectedPurpose !== 'ALL' && (
-              <Badge variant="slate" className="gap-1 text-xs">
-                Purpose: {selectedPurpose}
-                <X className="h-3 w-3 cursor-pointer" onClick={() => setSelectedPurpose('ALL')} />
-              </Badge>
-            )}
-            {selectedDistrict !== 'ALL' && (
-              <Badge variant="slate" className="gap-1 text-xs">
-                District: {selectedDistrict}
-                <X className="h-3 w-3 cursor-pointer" onClick={() => setSelectedDistrict('ALL')} />
-              </Badge>
-            )}
-            {(minPrice || maxPrice) && (
-              <Badge variant="slate" className="gap-1 text-xs">
-                Price: ₹{minPrice || 0} - ₹{maxPrice || 'Any'}
-                <X
-                  className="h-3 w-3 cursor-pointer"
-                  onClick={() => {
-                    setMinPrice('');
-                    setMaxPrice('');
-                  }}
-                />
-              </Badge>
-            )}
+      {/* 1. Breed Filter */}
+      <div className="space-y-2">
+        <button
+          type="button"
+          onClick={() => toggleSection('breed')}
+          className="flex w-full items-center justify-between text-xs font-bold uppercase tracking-wider text-slate-700 cursor-pointer"
+        >
+          <span>Breed</span>
+          <ChevronDown
+            className={`h-4 w-4 text-slate-400 transition-transform ${
+              openSections.breed ? 'rotate-180' : ''
+            }`}
+          />
+        </button>
+
+        {openSections.breed && (
+          <div className="space-y-1 pt-1 max-h-48 overflow-y-auto pr-1">
             <button
-              onClick={handleClearFilters}
-              className="inline-flex items-center gap-1 text-xs font-semibold text-rose-600 hover:underline ml-2"
+              onClick={() => setSelectedBreed('ALL')}
+              className={`flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-colors cursor-pointer ${
+                selectedBreed === 'ALL'
+                  ? 'bg-emerald-50 text-emerald-900 font-bold'
+                  : 'text-slate-600 hover:bg-slate-50'
+              }`}
             >
-              <RotateCcw className="h-3 w-3" /> Reset all
+              <span>All Breeds</span>
+              {selectedBreed === 'ALL' && <Check className="h-3.5 w-3.5 text-emerald-800" />}
             </button>
+            {breeds.map((b) => (
+              <button
+                key={b.id}
+                onClick={() => setSelectedBreed(b.name)}
+                className={`flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-colors cursor-pointer ${
+                  selectedBreed === b.name
+                    ? 'bg-emerald-50 text-emerald-900 font-bold'
+                    : 'text-slate-600 hover:bg-slate-50'
+                }`}
+              >
+                <span>{b.name}</span>
+                {selectedBreed === b.name && <Check className="h-3.5 w-3.5 text-emerald-800" />}
+              </button>
+            ))}
           </div>
         )}
+      </div>
 
-        {/* Main Content Layout (Sidebar + Results Grid) */}
-        <div className="mt-6 grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Desktop Filter Sidebar */}
-          <aside className="hidden lg:block space-y-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-xs h-fit">
-            <div className="flex items-center justify-between pb-4 border-b border-slate-100">
-              <span className="font-bold text-slate-900 text-sm flex items-center gap-2">
-                <SlidersHorizontal className="h-4 w-4 text-emerald-600" /> Filter Criteria
-              </span>
-              {hasActiveFilters && (
-                <button
-                  onClick={handleClearFilters}
-                  className="text-xs text-rose-600 hover:underline font-medium"
-                >
-                  Clear All
-                </button>
-              )}
-            </div>
+      {/* 2. Purpose Filter */}
+      <div className="space-y-2 pt-3 border-t border-slate-100">
+        <button
+          type="button"
+          onClick={() => toggleSection('purpose')}
+          className="flex w-full items-center justify-between text-xs font-bold uppercase tracking-wider text-slate-700 cursor-pointer"
+        >
+          <span>Purpose</span>
+          <ChevronDown
+            className={`h-4 w-4 text-slate-400 transition-transform ${
+              openSections.purpose ? 'rotate-180' : ''
+            }`}
+          />
+        </button>
 
-            {/* Breed Filter */}
-            <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
-                Breed
-              </label>
-              <select
-                value={selectedBreed}
-                onChange={(e) => setSelectedBreed(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 bg-white p-2 text-xs font-medium text-slate-800 focus:ring-2 focus:ring-emerald-500"
+        {openSections.purpose && (
+          <div className="grid grid-cols-2 gap-1.5 pt-1">
+            {[
+              { label: 'All', value: 'ALL' },
+              { label: 'Breeding', value: 'BREEDING' },
+              { label: 'Meat', value: 'MEAT' },
+              { label: 'Milk', value: 'MILK' },
+              { label: 'Show', value: 'SHOW' },
+              { label: 'Pet', value: 'PET' },
+            ].map((item) => (
+              <button
+                key={item.value}
+                onClick={() => setSelectedPurpose(item.value as any)}
+                className={`rounded-lg py-1.5 px-2 text-xs font-semibold text-center transition-colors cursor-pointer border ${
+                  selectedPurpose === item.value
+                    ? 'border-emerald-700 bg-emerald-50 text-emerald-900 font-bold'
+                    : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+                }`}
               >
-                <option value="ALL">All Breeds</option>
-                {breeds.map((b) => (
-                  <option key={b.id} value={b.name}>
-                    {b.name}
-                  </option>
-                ))}
-              </select>
-            </div>
+                {item.label}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
 
-            {/* Purpose Filter */}
-            <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
-                Purpose
-              </label>
-              <select
-                value={selectedPurpose}
-                onChange={(e) => setSelectedPurpose(e.target.value as GoatPurpose | 'ALL')}
-                className="w-full rounded-xl border border-slate-200 bg-white p-2 text-xs font-medium text-slate-800 focus:ring-2 focus:ring-emerald-500"
+      {/* 3. Gender Filter */}
+      <div className="space-y-2 pt-3 border-t border-slate-100">
+        <button
+          type="button"
+          onClick={() => toggleSection('gender')}
+          className="flex w-full items-center justify-between text-xs font-bold uppercase tracking-wider text-slate-700 cursor-pointer"
+        >
+          <span>Gender</span>
+          <ChevronDown
+            className={`h-4 w-4 text-slate-400 transition-transform ${
+              openSections.gender ? 'rotate-180' : ''
+            }`}
+          />
+        </button>
+
+        {openSections.gender && (
+          <div className="grid grid-cols-3 gap-1.5 pt-1">
+            {[
+              { label: 'All', value: 'ALL' },
+              { label: 'Male', value: 'MALE' },
+              { label: 'Female', value: 'FEMALE' },
+            ].map((g) => (
+              <button
+                key={g.value}
+                onClick={() => setSelectedGender(g.value as any)}
+                className={`rounded-lg py-1.5 text-xs font-semibold text-center transition-colors cursor-pointer border ${
+                  selectedGender === g.value
+                    ? 'border-emerald-700 bg-emerald-50 text-emerald-900 font-bold'
+                    : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+                }`}
               >
-                <option value="ALL">All Purposes</option>
-                <option value="BREEDING">Breeding</option>
-                <option value="MEAT">Meat</option>
-                <option value="MILK">Milk</option>
-                <option value="SHOW">Show</option>
-                <option value="PET">Pet</option>
-              </select>
-            </div>
+                {g.label}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
 
-            {/* Gender Filter */}
-            <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
-                Gender
-              </label>
-              <div className="grid grid-cols-3 gap-1.5 text-xs">
-                {['ALL', 'MALE', 'FEMALE'].map((g) => (
-                  <button
-                    key={g}
-                    type="button"
-                    onClick={() => setSelectedGender(g as GoatGender | 'ALL')}
-                    className={`rounded-lg py-1.5 font-semibold text-center border transition-colors ${
-                      selectedGender === g
-                        ? 'bg-emerald-600 text-white border-emerald-600'
-                        : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
-                    }`}
-                  >
-                    {g === 'ALL' ? 'All' : g}
-                  </button>
-                ))}
-              </div>
-            </div>
+      {/* 4. Price Range */}
+      <div className="space-y-2 pt-3 border-t border-slate-100">
+        <button
+          type="button"
+          onClick={() => toggleSection('price')}
+          className="flex w-full items-center justify-between text-xs font-bold uppercase tracking-wider text-slate-700 cursor-pointer"
+        >
+          <span>Price Range (₹)</span>
+          <ChevronDown
+            className={`h-4 w-4 text-slate-400 transition-transform ${
+              openSections.price ? 'rotate-180' : ''
+            }`}
+          />
+        </button>
 
-            {/* District Filter */}
+        {openSections.price && (
+          <div className="grid grid-cols-2 gap-2 pt-1">
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
-                District (Tamil Nadu)
-              </label>
+              <label className="text-[10px] text-slate-400 font-medium">Min Price</label>
+              <input
+                type="number"
+                placeholder="₹ Min"
+                value={minPrice}
+                onChange={(e) => setMinPrice(e.target.value)}
+                className="w-full rounded-lg border border-slate-200 py-1.5 px-2 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-700"
+              />
+            </div>
+            <div>
+              <label className="text-[10px] text-slate-400 font-medium">Max Price</label>
+              <input
+                type="number"
+                placeholder="₹ Max"
+                value={maxPrice}
+                onChange={(e) => setMaxPrice(e.target.value)}
+                className="w-full rounded-lg border border-slate-200 py-1.5 px-2 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-700"
+              />
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* 5. Progressive Disclosure: District & Weight */}
+      <div className="space-y-2 pt-3 border-t border-slate-100">
+        <button
+          type="button"
+          onClick={() => toggleSection('specs')}
+          className="flex w-full items-center justify-between text-xs font-bold uppercase tracking-wider text-slate-700 cursor-pointer"
+        >
+          <span>District & Weight</span>
+          <ChevronDown
+            className={`h-4 w-4 text-slate-400 transition-transform ${
+              openSections.specs ? 'rotate-180' : ''
+            }`}
+          />
+        </button>
+
+        {openSections.specs && (
+          <div className="space-y-3 pt-1">
+            <div>
+              <label className="text-[10px] text-slate-400 font-medium">District</label>
               <select
                 value={selectedDistrict}
                 onChange={(e) => setSelectedDistrict(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 bg-white p-2 text-xs font-medium text-slate-800 focus:ring-2 focus:ring-emerald-500"
+                className="mt-1 w-full rounded-lg border border-slate-200 py-1.5 px-2 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-700 bg-white"
               >
                 <option value="ALL">All Districts</option>
                 {TAMIL_NADU_DISTRICTS.map((d) => (
@@ -372,85 +384,166 @@ export const MarketplacePage: React.FC = () => {
               </select>
             </div>
 
-            {/* Price Range */}
-            <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
-                Price (₹)
-              </label>
-              <div className="flex items-center gap-2">
-                <input
-                  type="number"
-                  placeholder="Min"
-                  value={minPrice}
-                  onChange={(e) => setMinPrice(e.target.value)}
-                  className="w-1/2 rounded-lg border border-slate-200 p-2 text-xs text-slate-900"
-                />
-                <span className="text-slate-400">-</span>
-                <input
-                  type="number"
-                  placeholder="Max"
-                  value={maxPrice}
-                  onChange={(e) => setMaxPrice(e.target.value)}
-                  className="w-1/2 rounded-lg border border-slate-200 p-2 text-xs text-slate-900"
-                />
-              </div>
-            </div>
-
-            {/* Weight Range */}
-            <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
-                Weight (Kg)
-              </label>
-              <div className="flex items-center gap-2">
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="text-[10px] text-slate-400 font-medium">Min Weight (kg)</label>
                 <input
                   type="number"
                   placeholder="Min kg"
                   value={minWeight}
                   onChange={(e) => setMinWeight(e.target.value)}
-                  className="w-1/2 rounded-lg border border-slate-200 p-2 text-xs text-slate-900"
+                  className="w-full rounded-lg border border-slate-200 py-1.5 px-2 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-700"
                 />
-                <span className="text-slate-400">-</span>
+              </div>
+              <div>
+                <label className="text-[10px] text-slate-400 font-medium">Max Weight (kg)</label>
                 <input
                   type="number"
                   placeholder="Max kg"
                   value={maxWeight}
                   onChange={(e) => setMaxWeight(e.target.value)}
-                  className="w-1/2 rounded-lg border border-slate-200 p-2 text-xs text-slate-900"
+                  className="w-full rounded-lg border border-slate-200 py-1.5 px-2 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-700"
                 />
               </div>
             </div>
-          </aside>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 
-          {/* Results Grid */}
-          <div className="lg:col-span-3">
-            {/* Results Count Header */}
-            <div className="flex items-center justify-between mb-4">
-              <span className="text-xs font-bold text-slate-700 uppercase tracking-wide">
-                Showing {goats.length} {goats.length === 1 ? 'Goat' : 'Goats'}
-              </span>
+  return (
+    <>
+      <SEOHead
+        title="Live Goat Marketplace | Buy Boer, Tellicherry, Sirohi | Adu Santhai"
+        description="Search verified live goats from certified farms. Filter by breed, weight, gender, price, and location with 24-hour hold reservation."
+        path="/marketplace"
+      />
+
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        {/* Marketplace Title & Search Bar */}
+        <div className="mb-6 space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+                Live Goat Marketplace
+              </h1>
+              <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+                Verified high-quality goats available for direct purchase and 24-hour reservation hold.
+              </p>
             </div>
 
+            {/* Mobile Filter Button */}
+            <div className="flex items-center gap-2 lg:hidden">
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1 flex items-center justify-center gap-2 h-10 rounded-xl"
+                onClick={() => setShowMobileFilter(true)}
+              >
+                <SlidersHorizontal className="h-4 w-4 text-emerald-800" />
+                <span>Filters {activeFilterCount > 0 ? `(${activeFilterCount})` : ''}</span>
+              </Button>
+
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as SortOption)}
+                aria-label="Sort goats by"
+                className="rounded-xl border border-slate-200 bg-white py-2 px-3 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-700 h-10"
+              >
+                <option value="newest">Newest</option>
+                <option value="price_asc">Price: Low to High</option>
+                <option value="price_desc">Price: High to Low</option>
+                <option value="weight_desc">Weight: High to Low</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Desktop Search & Sort Row */}
+          <div className="flex flex-col sm:flex-row items-center gap-3">
+            <div className="relative flex-1 w-full">
+              <Search className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Search by breed, name, ear tag, or farm..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-10 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-700 placeholder:text-slate-400"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  aria-label="Clear search query"
+                  className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 cursor-pointer"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+
+            {/* Desktop Sort Dropdown */}
+            <div className="hidden lg:flex items-center gap-2 shrink-0">
+              <span className="text-xs font-semibold text-slate-500">Sort by:</span>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as SortOption)}
+                aria-label="Sort goats by"
+                className="rounded-xl border border-slate-200 bg-white py-2.5 px-3 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-700"
+              >
+                <option value="newest">Newest Listings</option>
+                <option value="price_asc">Price: Low to High</option>
+                <option value="price_desc">Price: High to Low</option>
+                <option value="weight_desc">Weight: Heaviest First</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {/* Marketplace Grid Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          {/* Desktop Left Filter Rail (3 Cols) */}
+          <aside className="hidden lg:block lg:col-span-3 rounded-2xl border border-slate-200 bg-white p-5 shadow-xs sticky top-24">
+            {renderFilterPanel()}
+          </aside>
+
+          {/* Right Results Grid (9 Cols) */}
+          <main className="lg:col-span-9 space-y-4">
+            {/* Results Counter & Active Pills */}
+            <div className="flex items-center justify-between text-xs text-slate-500 pb-2">
+              <span>
+                Showing <strong className="text-slate-900">{goats.length}</strong> verified goats
+              </span>
+
+              {activeFilterCount > 0 && (
+                <button
+                  onClick={handleClearFilters}
+                  className="text-emerald-800 hover:underline font-semibold cursor-pointer"
+                >
+                  Clear all filters
+                </button>
+              )}
+            </div>
+
+            {/* Loading Skeleton State */}
             {loading ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {[1, 2, 3, 4, 5, 6].map((i) => (
-                  <div key={i} className="h-96 rounded-2xl bg-slate-200 animate-pulse" />
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <GoatCardSkeleton key={i} />
                 ))}
               </div>
             ) : goats.length === 0 ? (
-              <div className="rounded-3xl border border-dashed border-slate-300 bg-white p-12 text-center space-y-4">
-                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-slate-100 text-slate-400">
-                  <Sparkles className="h-6 w-6" />
-                </div>
-                <h3 className="text-lg font-bold text-slate-900">No Goats Match Your Filters</h3>
-                <p className="text-xs text-slate-500 max-w-sm mx-auto">
-                  Try clearing some criteria or expanding your price and weight ranges.
-                </p>
-                <Button onClick={handleClearFilters} className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs">
-                  Reset All Filters
-                </Button>
-              </div>
+              /* Contextual Empty State */
+              <EmptyState
+                icon={Search}
+                title="No goats match your filters"
+                description="We couldn't find any goats matching your current criteria. Try adjusting your breed, price range, or clearing filters."
+                actionLabel="Reset All Filters"
+                onActionClick={handleClearFilters}
+              />
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              /* Real Data Card Grid */
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
                 {goats.map((goat) => (
                   <GoatCard
                     key={goat.id}
@@ -461,108 +554,57 @@ export const MarketplacePage: React.FC = () => {
                 ))}
               </div>
             )}
-          </div>
+          </main>
         </div>
       </div>
 
-      {/* Mobile Filters Drawer Modal */}
+      {/* Mobile Filter Bottom Drawer Modal */}
       {showMobileFilter && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-900/60 p-0 sm:p-4 backdrop-blur-xs">
-          <div className="w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl bg-white p-6 max-h-[85vh] overflow-y-auto space-y-4">
+        <div className="fixed inset-0 z-50 flex flex-col justify-end bg-black/40 backdrop-blur-xs lg:hidden animate-in fade-in">
+          <div className="max-h-[85vh] overflow-y-auto rounded-t-3xl bg-white p-6 shadow-2xl space-y-6">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h3 className="font-bold text-base text-slate-900">Filter Listings</h3>
+              <h3 className="text-base font-bold text-slate-900">Filter Goats</h3>
               <button
+                type="button"
                 onClick={() => setShowMobileFilter(false)}
-                className="rounded-full p-1 text-slate-400 hover:bg-slate-100"
+                aria-label="Close filters"
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-500 cursor-pointer"
               >
-                <X className="h-5 w-5" />
+                <X className="h-4 w-4" />
               </button>
             </div>
 
-            {/* Mobile Breed */}
-            <div>
-              <label className="block text-xs font-bold uppercase text-slate-700 mb-1">
-                Breed
-              </label>
-              <select
-                value={selectedBreed}
-                onChange={(e) => setSelectedBreed(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 p-2 text-sm bg-white"
-              >
-                <option value="ALL">All Breeds</option>
-                {breeds.map((b) => (
-                  <option key={b.id} value={b.name}>
-                    {b.name}
-                  </option>
-                ))}
-              </select>
-            </div>
+            {renderFilterPanel()}
 
-            {/* Mobile Gender */}
-            <div>
-              <label className="block text-xs font-bold uppercase text-slate-700 mb-1">
-                Gender
-              </label>
-              <div className="grid grid-cols-3 gap-2">
-                {['ALL', 'MALE', 'FEMALE'].map((g) => (
-                  <button
-                    key={g}
-                    type="button"
-                    onClick={() => setSelectedGender(g as GoatGender | 'ALL')}
-                    className={`rounded-lg py-2 text-xs font-bold border ${
-                      selectedGender === g
-                        ? 'bg-emerald-600 text-white border-emerald-600'
-                        : 'bg-slate-50 border-slate-200 text-slate-700'
-                    }`}
-                  >
-                    {g}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Mobile District */}
-            <div>
-              <label className="block text-xs font-bold uppercase text-slate-700 mb-1">
-                District
-              </label>
-              <select
-                value={selectedDistrict}
-                onChange={(e) => setSelectedDistrict(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 p-2 text-sm bg-white"
-              >
-                <option value="ALL">All Districts</option>
-                {TAMIL_NADU_DISTRICTS.map((d) => (
-                  <option key={d} value={d}>
-                    {d}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="flex gap-2 pt-4 border-t border-slate-100">
+            <div className="pt-3 border-t border-slate-100 flex gap-2">
               <Button
                 variant="outline"
+                size="default"
                 className="flex-1"
-                onClick={handleClearFilters}
+                onClick={() => {
+                  handleClearFilters();
+                  setShowMobileFilter(false);
+                }}
               >
-                Reset
+                Reset All
               </Button>
               <Button
-                className="flex-1 bg-emerald-600 text-white font-bold"
+                variant="default"
+                size="default"
+                className="flex-1"
                 onClick={() => setShowMobileFilter(false)}
               >
-                Apply Filters
+                Show {goats.length} Goats
               </Button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Global Booking Modal */}
+      {/* Booking Hold Modal */}
       <BookingModal
         goat={selectedGoatForBooking}
-        isOpen={Boolean(selectedGoatForBooking)}
+        isOpen={!!selectedGoatForBooking}
         onClose={() => setSelectedGoatForBooking(null)}
       />
     </>

@@ -2,9 +2,11 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import type { Goat } from '@/types';
 import { Badge } from '@/components/ui/badge';
-import { Button, buttonVariants } from '@/components/ui/button';
-import { formatCurrency, formatAge } from '@/lib/utils';
-import { Heart, CheckCircle, ShieldCheck } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { PriceDisplay } from '@/components/common/PriceDisplay';
+import { VerifiedBadge } from '@/components/common/VerifiedBadge';
+import { formatAge } from '@/lib/utils';
+import { Heart, Building2 } from 'lucide-react';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { WishlistRepository } from '@/repositories/WishlistRepository';
 
@@ -59,127 +61,114 @@ export const GoatCard: React.FC<GoatCardProps> = ({
   const isSold = goat.status === 'SOLD' || goat.status === 'COMPLETED';
 
   return (
-    <div className="group relative flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xs transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
-      {/* Photo Container */}
-      <Link to={`/goats/${goat.id}`} className="relative aspect-4/3 w-full overflow-hidden bg-slate-100">
+    <div className="group relative flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white transition-all duration-200 hover:border-emerald-700/40 hover:shadow-md">
+      {/* 1. DOMINANT IMAGE CONTAINER */}
+      <Link to={`/goats/${goat.id}`} className="relative aspect-4/3 w-full overflow-hidden bg-slate-100 block">
         <img
           src={goat.primaryPhoto}
           alt={goat.name}
           loading="lazy"
-          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-103"
           onError={(e) => {
             (e.target as HTMLImageElement).src =
               'https://images.unsplash.com/photo-1524024973431-2ad916746881?auto=format&fit=crop&w=800&q=80';
           }}
         />
 
-        {/* Top Badges */}
+        {/* Status Overlays */}
         <div className="absolute left-3 top-3 flex flex-wrap gap-1.5">
           {goat.isFeatured && (
-            <Badge variant="secondary" className="shadow-xs font-bold text-[11px] bg-amber-400 text-slate-950">
+            <Badge variant="earth" className="shadow-xs font-bold text-[10px]">
               FEATURED
             </Badge>
           )}
-          {goat.hasDiscount && (
-            <Badge variant="destructive" className="shadow-xs font-bold text-[11px]">
-              {goat.discountPercentage}% OFF
-            </Badge>
-          )}
           {isReserved && (
-            <Badge variant="secondary" className="bg-amber-100 text-amber-900 border-amber-300">
-              RESERVED HOLD
+            <Badge variant="reserved" className="shadow-xs text-[10px]">
+              24H HOLD
             </Badge>
           )}
           {isSold && (
-            <Badge variant="slate" className="bg-slate-800 text-white">
+            <Badge variant="sold" className="shadow-xs text-[10px]">
               SOLD
             </Badge>
           )}
         </div>
 
-        {/* Wishlist Button */}
+        {/* Wishlist Button (Icon Action) */}
         <button
           type="button"
           onClick={handleWishlistClick}
           disabled={isTogglingWishlist}
           aria-label={saved ? 'Remove from wishlist' : 'Add to wishlist'}
-          className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-white/90 shadow-md backdrop-blur-xs transition-transform active:scale-90 hover:bg-white text-slate-700"
+          className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-white/90 shadow-sm backdrop-blur-xs transition-all active:scale-90 hover:bg-white text-slate-700 cursor-pointer"
         >
           <Heart
-            className={`h-5 w-5 transition-colors ${
+            className={`h-4.5 w-4.5 transition-colors ${
               saved ? 'fill-rose-500 text-rose-500' : 'hover:text-rose-500'
             }`}
           />
         </button>
-
-        {/* Bottom Farm Tag on Image */}
-        <div className="absolute bottom-2 left-2 flex items-center gap-1 rounded-md bg-slate-900/75 px-2 py-0.5 text-xs font-medium text-white backdrop-blur-xs">
-          <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />
-          <span className="truncate max-w-[150px]">{goat.farmName}</span>
-        </div>
       </Link>
 
-      {/* Content */}
+      {/* 2. BODY CONTENT */}
       <div className="flex flex-1 flex-col p-4">
-        <div className="flex items-start justify-between gap-2">
-          <div>
-            <span className="text-xs font-semibold uppercase tracking-wider text-emerald-700">
-              {goat.breedName}
-            </span>
-            <Link to={`/goats/${goat.id}`}>
-              <h3 className="text-base font-bold text-slate-900 line-clamp-1 group-hover:text-emerald-700 transition-colors">
-                {goat.name}
-              </h3>
-            </Link>
-          </div>
-          <span className="font-mono text-xs text-slate-400">#{goat.goatCode}</span>
+        {/* Verification indicator */}
+        <div className="flex items-center justify-between gap-2 mb-1.5">
+          <VerifiedBadge label="Verified" variant="subtle" />
+          <span className="font-mono text-[11px] text-slate-400">#{goat.goatCode}</span>
         </div>
 
-        {/* Key Metrics Chips */}
-        <div className="mt-3 grid grid-cols-3 gap-1.5 rounded-lg bg-slate-50 p-2 text-center text-xs text-slate-600">
-          <div className="flex flex-col items-center">
-            <span className="text-[10px] text-slate-400 uppercase font-medium">Gender</span>
-            <span className="font-semibold text-slate-800">{goat.gender}</span>
-          </div>
-          <div className="flex flex-col items-center border-x border-slate-200">
-            <span className="text-[10px] text-slate-400 uppercase font-medium">Age</span>
-            <span className="font-semibold text-slate-800">{formatAge(goat.ageMonths)}</span>
-          </div>
-          <div className="flex flex-col items-center">
-            <span className="text-[10px] text-slate-400 uppercase font-medium">Weight</span>
-            <span className="font-semibold text-slate-800">{goat.weightKg} kg</span>
-          </div>
-        </div>
+        {/* Goat Name */}
+        <Link to={`/goats/${goat.id}`}>
+          <h3 className="text-base font-bold text-slate-900 line-clamp-1 group-hover:text-emerald-800 transition-colors">
+            {goat.name}
+          </h3>
+        </Link>
 
-        {/* Location & Health Note */}
-        <div className="mt-3 flex items-center justify-between text-xs text-slate-500">
-          <span className="truncate max-w-[180px]">{goat.farmLocation}</span>
-          {goat.vaccinationStatus && (
-            <span className="flex items-center gap-1 text-emerald-600 font-medium">
-              <CheckCircle className="h-3.5 w-3.5" /> Vaccinated
-            </span>
+        {/* Breed + Gender + Age / Weight (Clean Bulleted Line) */}
+        <p className="mt-1 text-xs text-slate-500 line-clamp-1">
+          <span className="font-semibold text-slate-700">{goat.breedName}</span>
+          {' • '}
+          <span>{goat.gender}</span>
+          {' • '}
+          <span>{formatAge(goat.ageMonths)}</span>
+          {' • '}
+          <span className="font-medium text-slate-700">{goat.weightKg} kg</span>
+        </p>
+
+        {/* Farm Line */}
+        <div className="mt-2.5 flex items-center gap-1.5 text-xs text-slate-600">
+          <Building2 className="h-3.5 w-3.5 text-emerald-800 shrink-0" />
+          <span className="truncate font-medium">{goat.farmName}</span>
+          {goat.farmLocation && (
+            <>
+              <span className="text-slate-300">•</span>
+              <span className="truncate text-slate-400">{goat.farmLocation}</span>
+            </>
           )}
         </div>
 
-        <div className="mt-4 pt-3 border-t border-slate-100 flex items-end justify-between">
-          {/* Price Display */}
-          <div>
-            {goat.hasDiscount && (
-              <span className="text-xs text-slate-400 line-through mr-1.5">
-                {formatCurrency(goat.price)}
-              </span>
-            )}
-            <div className="text-lg font-extrabold text-emerald-700">
-              {formatCurrency(goat.finalPrice)}
-            </div>
-          </div>
+        {/* Spacer */}
+        <div className="mt-auto pt-3" />
+
+        {/* 3. PRICE & PRIMARY ACTION */}
+        <div className="pt-3 border-t border-slate-100 flex items-end justify-between gap-2">
+          {/* Dominant Final Price */}
+          <PriceDisplay
+            price={goat.price}
+            finalPrice={goat.finalPrice}
+            hasDiscount={goat.hasDiscount}
+            discountPercentage={goat.discountPercentage}
+            size="sm"
+          />
 
           {/* Action CTA */}
-          <div className="flex gap-1.5">
+          <div className="shrink-0">
             {isAvailable ? (
               <Button
+                variant="default"
                 size="sm"
-                className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-3"
+                className="font-bold text-xs px-3.5 h-9"
                 onClick={() => {
                   if (onOpenBookingModal) {
                     onOpenBookingModal(goat);
@@ -188,14 +177,13 @@ export const GoatCard: React.FC<GoatCardProps> = ({
                   }
                 }}
               >
-                Reserve Hold
+                Reserve Goat
               </Button>
             ) : (
-              <Link
-                to={`/goats/${goat.id}`}
-                className={buttonVariants({ size: 'sm', variant: 'outline', className: 'text-xs' })}
-              >
-                View Details
+              <Link to={`/goats/${goat.id}`}>
+                <Button variant="secondary" size="sm" className="font-semibold text-xs px-3 h-9">
+                  View Details
+                </Button>
               </Link>
             )}
           </div>

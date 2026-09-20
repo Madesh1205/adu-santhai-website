@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
-import { formatCurrency } from '@/lib/utils';
+import { PriceDisplay } from '@/components/common/PriceDisplay';
 import type { Breed, GoatGender, GoatPurpose, GoatStatus } from '@/types';
 import { calculateFinalPrice } from '@/types';
 import {
@@ -17,6 +17,10 @@ import {
   X,
   AlertCircle,
   ArrowLeft,
+  Image as ImageIcon,
+  DollarSign,
+  HeartPulse,
+  Layers,
 } from 'lucide-react';
 
 export const GoatFormPage: React.FC = () => {
@@ -80,7 +84,7 @@ export const GoatFormPage: React.FC = () => {
           }
         }
       } catch (err) {
-        console.error('Error initializing form:', err);
+        console.error('Failed to initialize goat form:', err);
       } finally {
         setLoading(false);
       }
@@ -90,8 +94,8 @@ export const GoatFormPage: React.FC = () => {
 
   const handleBreedChange = (selectedName: string) => {
     setBreedName(selectedName);
-    const found = breeds.find((b) => b.name === selectedName);
-    setBreedId(found?.id || null);
+    const b = breeds.find((item) => item.name === selectedName);
+    setBreedId(b ? b.id : null);
   };
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -102,21 +106,16 @@ export const GoatFormPage: React.FC = () => {
     setErrorMsg(null);
 
     try {
-      const uploadedUrls: string[] = [];
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        const url = await StorageService.uploadGoatPhoto(
-          file,
-          farm.farmCode,
-          goatCode,
-          photos.length + i
-        );
-        uploadedUrls.push(url);
-      }
+      const fileList = Array.from(files);
+      const uploadPromises = fileList.map((file) =>
+        StorageService.uploadGoatPhoto(file, farm.farmCode, goatCode)
+      );
+
+      const uploadedUrls = await Promise.all(uploadPromises);
       setPhotos((prev) => [...prev, ...uploadedUrls]);
     } catch (err: any) {
       console.error('Photo upload failed:', err);
-      setErrorMsg(err.message || 'Failed to upload photo. Please try smaller image files.');
+      setErrorMsg(err.message || 'Failed to upload photos. Please try again.');
     } finally {
       setUploadingPhotos(false);
     }
@@ -128,7 +127,10 @@ export const GoatFormPage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!farm) return;
+    if (!farm) {
+      setErrorMsg('No farm profile linked. Please create farm first.');
+      return;
+    }
 
     if (photos.length === 0) {
       setErrorMsg('Please upload at least one photo of the goat.');
@@ -139,63 +141,44 @@ export const GoatFormPage: React.FC = () => {
     setErrorMsg(null);
 
     try {
+      const goatPayload: any = {
+        farm_id: farm.id,
+        name: name.trim(),
+        goat_code: goatCode.trim(),
+        breed_id: breedId,
+        breed_name: breedName,
+        gender,
+        age_months: Number(ageMonths),
+        weight_kg: Number(weightKg),
+        purpose,
+        price: Number(price),
+        discount_percentage: Number(discountPercentage),
+        description: description.trim() || null,
+        vaccination_status: vaccinationStatus.trim() || null,
+        dewormed_date: dewormedDate || null,
+        parentage_father_tag: parentageFatherTag.trim() || null,
+        parentage_mother_tag: parentageMotherTag.trim() || null,
+        status,
+        photos,
+        is_featured: false,
+      };
+
+      delete goatPayload.photos;
+
       if (isEditMode && id) {
-        await GoatRepository.updateGoatListing(
-          id,
-          {
-            name: name.trim(),
-            breed_name: breedName,
-            breed_id: breedId,
-            gender,
-            age_months: Number(ageMonths),
-            weight_kg: Number(weightKg),
-            purpose,
-            price: Number(price),
-            discount_percentage: Number(discountPercentage),
-            description: description.trim() || null,
-            vaccination_status: vaccinationStatus.trim() || null,
-            dewormed_date: dewormedDate || null,
-            parentage_father_tag: parentageFatherTag.trim() || null,
-            parentage_mother_tag: parentageMotherTag.trim() || null,
-            status,
-            updated_at: new Date().toISOString(),
-          },
-          photos
-        );
+        await GoatRepository.updateGoatListing(id, goatPayload, photos);
         navigate('/farm/goats');
       } else {
-        // Create new listing
-        const newGoatId = await GoatRepository.createGoatListing(
-          {
-            farm_id: farm.id,
-            name: name.trim(),
-            goat_code: goatCode,
-            breed_name: breedName,
-            breed_id: breedId,
-            gender,
-            age_months: Number(ageMonths),
-            weight_kg: Number(weightKg),
-            purpose,
-            price: Number(price),
-            discount_percentage: Number(discountPercentage),
-            description: description.trim() || null,
-            vaccination_status: vaccinationStatus.trim() || null,
-            dewormed_date: dewormedDate || null,
-            parentage_father_tag: parentageFatherTag.trim() || null,
-            parentage_mother_tag: parentageMotherTag.trim() || null,
-            status: 'AVAILABLE',
-            is_approved_by_admin: farm.isAmmalOwnFarm ? true : false,
-          },
-          photos
-        );
+        const newGoatId = await GoatRepository.createGoatListing(goatPayload, photos);
 
-        // Partner farms: prompt for ₹100 listing fee if required
+        // Atomic Razorpay payment trigger for partner farms (waived for Ammal Farm)
         if (!farm.isAmmalOwnFarm) {
           try {
             const payRes = await RazorpayService.payListingFee({
               goatId: newGoatId,
-              goatName: name.trim(),
+              goatName: goatPayload.name,
               customerEmail: user?.email,
+              customerPhone: farm.contactPhone || undefined,
               farmName: farm.name,
             });
 
@@ -221,8 +204,8 @@ export const GoatFormPage: React.FC = () => {
   if (loading) {
     return (
       <div className="mx-auto max-w-4xl py-12 space-y-6">
-        <div className="h-10 w-1/3 bg-slate-200 animate-pulse rounded-lg" />
-        <div className="h-96 bg-slate-200 animate-pulse rounded-3xl" />
+        <div className="h-10 w-1/3 bg-slate-100 animate-pulse rounded-xl" />
+        <div className="h-96 bg-slate-100 animate-pulse rounded-3xl" />
       </div>
     );
   }
@@ -238,21 +221,21 @@ export const GoatFormPage: React.FC = () => {
         {/* Back Link */}
         <Link
           to="/farm/goats"
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-900 transition-colors"
+          className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-slate-900 transition-colors"
         >
           <ArrowLeft className="h-4 w-4" /> Back to Goat Inventory
         </Link>
 
         <div className="pb-4 border-b border-slate-200">
-          <h1 className="text-2xl font-black text-slate-900">
+          <h1 className="text-2xl font-black text-slate-900 tracking-tight">
             {isEditMode ? `Edit Listing: ${name}` : 'List a New Goat'}
           </h1>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Provide transparent weight, health, and pedigree records to maximize buyer confidence
+          <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+            Provide transparent weight, health, and pedigree records to maximize buyer confidence.
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-8">
+        <form onSubmit={handleSubmit} className="space-y-6">
           {errorMsg && (
             <div className="flex items-center gap-2 rounded-2xl bg-red-50 p-4 text-xs text-red-700 border border-red-200">
               <AlertCircle className="h-4 w-4 shrink-0 text-red-600" />
@@ -260,18 +243,20 @@ export const GoatFormPage: React.FC = () => {
             </div>
           )}
 
-          {/* Section 1: Photos */}
+          {/* Section 1: Photos (Media) */}
           <Card className="rounded-3xl border-slate-200 shadow-xs">
             <CardHeader className="pb-3">
-              <CardTitle className="text-base">Livestock Photos</CardTitle>
+              <div className="flex items-center gap-2 text-emerald-800">
+                <ImageIcon className="h-4 w-4" />
+                <CardTitle className="text-base">Livestock Photography</CardTitle>
+              </div>
               <CardDescription className="text-xs">
-                Upload clear side-profile and face pictures. Images are automatically compressed to WebP for fast mobile loading.
+                Upload clear side-profile and face pictures. Images are automatically compressed to WebP for fast mobile browsing.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {/* Photo Upload Zone */}
-              <label className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-emerald-300 bg-emerald-50/40 p-6 text-center cursor-pointer hover:bg-emerald-50/80 transition-colors">
-                <Upload className="h-8 w-8 text-emerald-600 mb-2" />
+              <label className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-emerald-300 bg-emerald-50/40 p-6 text-center cursor-pointer hover:bg-emerald-50/70 transition-colors">
+                <Upload className="h-8 w-8 text-emerald-800 mb-2" />
                 <span className="text-xs font-bold text-emerald-900">
                   {uploadingPhotos ? 'Compressing and uploading...' : 'Click to Upload Photos'}
                 </span>
@@ -288,24 +273,23 @@ export const GoatFormPage: React.FC = () => {
                 />
               </label>
 
-              {/* Photos Preview Grid */}
               {photos.length > 0 && (
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
                   {photos.map((url, idx) => (
                     <div
                       key={idx}
-                      className="group relative aspect-square rounded-xl overflow-hidden border border-slate-200 bg-slate-100 shadow-xs"
+                      className="group relative aspect-square rounded-2xl overflow-hidden border border-slate-200 bg-slate-100 shadow-xs"
                     >
                       <img src={url} alt={`Goat preview ${idx + 1}`} className="h-full w-full object-cover" />
                       {idx === 0 && (
-                        <span className="absolute bottom-1 left-1 rounded-md bg-emerald-600 px-1.5 py-0.5 text-[9px] font-bold text-white">
+                        <span className="absolute bottom-1.5 left-1.5 rounded-md bg-emerald-800 px-2 py-0.5 text-[9px] font-bold text-white">
                           PRIMARY
                         </span>
                       )}
                       <button
                         type="button"
                         onClick={() => handleRemovePhoto(idx)}
-                        className="absolute right-1 top-1 rounded-full bg-slate-900/80 p-1 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="absolute right-1.5 top-1.5 rounded-full bg-slate-900/80 p-1 text-white opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
                       >
                         <X className="h-3.5 w-3.5" />
                       </button>
@@ -316,32 +300,36 @@ export const GoatFormPage: React.FC = () => {
             </CardContent>
           </Card>
 
-          {/* Section 2: General Specs */}
+          {/* Section 2: Basic Information & Physical Specs */}
           <Card className="rounded-3xl border-slate-200 shadow-xs">
             <CardHeader className="pb-3">
-              <CardTitle className="text-base">Goat Specifications</CardTitle>
+              <div className="flex items-center gap-2 text-emerald-800">
+                <Layers className="h-4 w-4" />
+                <CardTitle className="text-base">Goat Identity & Physical Attributes</CardTitle>
+              </div>
             </CardHeader>
             <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5 sm:col-span-2">
                 <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
-                  Goat Name / Title
+                  Goat Name / Title <span className="text-red-500">*</span>
                 </label>
                 <Input
                   required
                   placeholder="e.g. Pure Boer Stud Buck 14M"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
+                  className="h-11 rounded-xl"
                 />
               </div>
 
               <div className="space-y-1.5">
                 <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
-                  Breed
+                  Breed <span className="text-red-500">*</span>
                 </label>
                 <select
                   value={breedName}
                   onChange={(e) => handleBreedChange(e.target.value)}
-                  className="w-full rounded-lg border border-slate-300 bg-white p-2 text-sm text-slate-900 focus:ring-2 focus:ring-emerald-500"
+                  className="w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-800 h-11"
                 >
                   {breeds.map((b) => (
                     <option key={b.id} value={b.name}>
@@ -355,12 +343,12 @@ export const GoatFormPage: React.FC = () => {
 
               <div className="space-y-1.5">
                 <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
-                  Gender
+                  Gender <span className="text-red-500">*</span>
                 </label>
                 <select
                   value={gender}
                   onChange={(e) => setGender(e.target.value as GoatGender)}
-                  className="w-full rounded-lg border border-slate-300 bg-white p-2 text-sm text-slate-900 focus:ring-2 focus:ring-emerald-500"
+                  className="w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-800 h-11"
                 >
                   <option value="MALE">MALE (Buck / Ram)</option>
                   <option value="FEMALE">FEMALE (Doe / Ewe)</option>
@@ -370,7 +358,7 @@ export const GoatFormPage: React.FC = () => {
 
               <div className="space-y-1.5">
                 <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
-                  Age (in Months)
+                  Age (in Months) <span className="text-red-500">*</span>
                 </label>
                 <Input
                   type="number"
@@ -379,12 +367,13 @@ export const GoatFormPage: React.FC = () => {
                   max={120}
                   value={ageMonths}
                   onChange={(e) => setAgeMonths(Number(e.target.value))}
+                  className="h-11 rounded-xl"
                 />
               </div>
 
               <div className="space-y-1.5">
                 <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
-                  Current Live Weight (Kg)
+                  Live Weight (Kg) <span className="text-red-500">*</span>
                 </label>
                 <Input
                   type="number"
@@ -393,17 +382,18 @@ export const GoatFormPage: React.FC = () => {
                   max={250}
                   value={weightKg}
                   onChange={(e) => setWeightKg(Number(e.target.value))}
+                  className="h-11 rounded-xl"
                 />
               </div>
 
               <div className="space-y-1.5 sm:col-span-2">
                 <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
-                  Primary Purpose
+                  Primary Purpose <span className="text-red-500">*</span>
                 </label>
                 <select
                   value={purpose}
                   onChange={(e) => setPurpose(e.target.value as GoatPurpose)}
-                  className="w-full rounded-lg border border-slate-300 bg-white p-2 text-sm text-slate-900 focus:ring-2 focus:ring-emerald-500"
+                  className="w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-800 h-11"
                 >
                   <option value="BREEDING">BREEDING (Stud Stock & Foundation Does)</option>
                   <option value="MEAT">MEAT (Commercial / Festival / Santhai)</option>
@@ -418,13 +408,16 @@ export const GoatFormPage: React.FC = () => {
           {/* Section 3: Pricing & Discount */}
           <Card className="rounded-3xl border-slate-200 shadow-xs">
             <CardHeader className="pb-3">
-              <CardTitle className="text-base">Pricing & Discounts</CardTitle>
+              <div className="flex items-center gap-2 text-emerald-800">
+                <DollarSign className="h-4 w-4" />
+                <CardTitle className="text-base">Pricing & Final Value</CardTitle>
+              </div>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
-                    Base Price (₹)
+                    Base Price (₹) <span className="text-red-500">*</span>
                   </label>
                   <Input
                     type="number"
@@ -432,6 +425,7 @@ export const GoatFormPage: React.FC = () => {
                     min={1000}
                     value={price}
                     onChange={(e) => setPrice(Number(e.target.value))}
+                    className="h-11 rounded-xl"
                   />
                 </div>
 
@@ -445,23 +439,25 @@ export const GoatFormPage: React.FC = () => {
                     max={90}
                     value={discountPercentage}
                     onChange={(e) => setDiscountPercentage(Number(e.target.value))}
+                    className="h-11 rounded-xl"
                   />
                 </div>
               </div>
 
               {/* Price Preview Banner */}
-              <div className="rounded-2xl bg-emerald-50 p-4 border border-emerald-200 flex items-center justify-between">
+              <div className="rounded-2xl bg-emerald-50/60 p-4 border border-emerald-200 flex items-center justify-between">
                 <div>
-                  <span className="text-xs text-emerald-800 font-medium">Buyer Final Price:</span>
-                  <div className="text-xl font-black text-emerald-900">
-                    {formatCurrency(finalPricePreview)}
-                  </div>
-                </div>
-                {discountPercentage > 0 && (
-                  <span className="text-xs font-bold text-rose-600 bg-white px-2.5 py-1 rounded-full border border-rose-200">
-                    {discountPercentage}% Discount Applied
+                  <span className="text-xs text-emerald-800 font-bold block mb-1">
+                    Buyer Final Price Preview:
                   </span>
-                )}
+                  <PriceDisplay
+                    price={Number(price || 0)}
+                    finalPrice={finalPricePreview}
+                    hasDiscount={discountPercentage > 0}
+                    discountPercentage={discountPercentage}
+                    size="md"
+                  />
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -469,7 +465,10 @@ export const GoatFormPage: React.FC = () => {
           {/* Section 4: Health & Lineage */}
           <Card className="rounded-3xl border-slate-200 shadow-xs">
             <CardHeader className="pb-3">
-              <CardTitle className="text-base">Health & Pedigree Lineage</CardTitle>
+              <div className="flex items-center gap-2 text-emerald-800">
+                <HeartPulse className="h-4 w-4" />
+                <CardTitle className="text-base">Health Records & Parentage</CardTitle>
+              </div>
             </CardHeader>
             <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
@@ -480,6 +479,7 @@ export const GoatFormPage: React.FC = () => {
                   placeholder="e.g. PPR, ET, Goat Pox done"
                   value={vaccinationStatus}
                   onChange={(e) => setVaccinationStatus(e.target.value)}
+                  className="h-11 rounded-xl"
                 />
               </div>
 
@@ -491,6 +491,7 @@ export const GoatFormPage: React.FC = () => {
                   type="date"
                   value={dewormedDate}
                   onChange={(e) => setDewormedDate(e.target.value)}
+                  className="h-11 rounded-xl"
                 />
               </div>
 
@@ -502,6 +503,7 @@ export const GoatFormPage: React.FC = () => {
                   placeholder="Optional ear tag ID"
                   value={parentageFatherTag}
                   onChange={(e) => setParentageFatherTag(e.target.value)}
+                  className="h-11 rounded-xl"
                 />
               </div>
 
@@ -513,6 +515,7 @@ export const GoatFormPage: React.FC = () => {
                   placeholder="Optional ear tag ID"
                   value={parentageMotherTag}
                   onChange={(e) => setParentageMotherTag(e.target.value)}
+                  className="h-11 rounded-xl"
                 />
               </div>
 
@@ -525,6 +528,7 @@ export const GoatFormPage: React.FC = () => {
                   rows={4}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
+                  className="rounded-xl"
                 />
               </div>
             </CardContent>
@@ -540,8 +544,9 @@ export const GoatFormPage: React.FC = () => {
               </Button>
               <Button
                 type="submit"
+                variant="default"
                 isLoading={isSubmitting}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-6"
+                className="font-bold px-7"
               >
                 {isEditMode ? 'Update Listing' : 'Publish Goat Listing'}
               </Button>

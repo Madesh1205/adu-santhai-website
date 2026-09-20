@@ -4,7 +4,8 @@ import type { Goat } from '@/types';
 import { Dialog } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { formatCurrency, formatAge } from '@/lib/utils';
+import { PriceDisplay } from '@/components/common/PriceDisplay';
+import { formatAge } from '@/lib/utils';
 import { BookingRepository, type BookingHoldResult } from '@/repositories/BookingRepository';
 import { useAuth } from '@/lib/auth/AuthContext';
 import confetti from 'canvas-confetti';
@@ -51,7 +52,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({ goat, isOpen, onClos
           particleCount: 80,
           spread: 70,
           origin: { y: 0.6 },
-          colors: ['#059669', '#10b981', '#f59e0b', '#3b82f6'],
+          colors: ['#166534', '#22c55e', '#b7791f', '#dcfce7'],
         });
       } catch (cErr) {
         console.log('Confetti trigger skipped:', cErr);
@@ -78,47 +79,56 @@ export const BookingModal: React.FC<BookingModalProps> = ({ goat, isOpen, onClos
       title={result ? 'Reservation Confirmed!' : 'Reserve Goat - 24-Hour Hold'}
       description={
         result
-          ? 'Your reservation hold has been securely registered in the system.'
-          : 'Hold this goat exclusively for 24 hours while you coordinate farm inspection.'
+          ? 'Your 24-hour reservation hold has been securely confirmed.'
+          : 'Reserve this goat exclusively for 24 hours while you coordinate farm visit or transport.'
       }
       className="max-w-lg"
     >
       {result ? (
         /* Success Confirmation View */
-        <div className="py-2 text-center">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 mb-3">
+        <div className="py-2 text-center space-y-4">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-800 border border-emerald-200">
             <CheckCircle2 className="h-8 w-8" />
           </div>
 
-          <span className="text-xs font-semibold uppercase tracking-wider text-emerald-700">
-            Authoritative Booking Code
-          </span>
-          <div className="mt-1 inline-block rounded-xl bg-emerald-50 px-5 py-2.5 border-2 border-emerald-500 font-mono text-2xl font-black text-emerald-800 tracking-wider">
-            {result.bookingCode || 'AGF-SUCCESS'}
+          <div>
+            <span className="text-xs font-bold uppercase tracking-wider text-emerald-800">
+              Authoritative Holding Code
+            </span>
+            <div className="mt-1.5 inline-block rounded-2xl bg-emerald-50 px-6 py-3 border-2 border-emerald-700 font-mono text-2xl font-black text-emerald-950 tracking-widest">
+              {result.bookingCode || 'AGF-SUCCESS'}
+            </div>
           </div>
 
-          <p className="mt-3 text-sm text-slate-600">
-            This goat is now reserved under your name for <strong>24 hours</strong>. No other buyer can book or purchase this goat during your hold window.
+          <p className="text-xs sm:text-sm text-slate-600 leading-relaxed max-w-sm mx-auto">
+            This goat is now reserved under your account for <strong>24 hours</strong>. No other buyer can book or purchase this goat during your hold window.
           </p>
 
-          <div className="mt-4 rounded-xl bg-slate-50 p-4 border border-slate-200 text-left text-xs text-slate-600 space-y-2">
-            <div className="flex items-center gap-2 font-semibold text-slate-800">
-              <Phone className="h-4 w-4 text-emerald-600" />
-              <span>Contact Breeder: {goat.farmName}</span>
+          <div className="rounded-2xl bg-slate-50 p-4 border border-slate-200 text-left text-xs text-slate-600 space-y-2">
+            <div className="flex items-center gap-2 font-bold text-slate-900">
+              <Phone className="h-4 w-4 text-emerald-800" />
+              <span>Breeder: {goat.farmName}</span>
             </div>
-            <p>Direct Phone: <a href={`tel:${goat.farmContact}`} className="font-bold text-emerald-700 hover:underline">{goat.farmContact}</a></p>
-            <p>Farm Location: {goat.farmLocation}</p>
+            <p>
+              Direct Phone:{' '}
+              <a href={`tel:${goat.farmContact}`} className="font-bold text-emerald-800 hover:underline">
+                {goat.farmContact}
+              </a>
+            </p>
+            <p>Location: {goat.farmLocation || 'Tamil Nadu'}</p>
           </div>
 
-          <div className="mt-6 flex flex-col sm:flex-row gap-2">
+          <div className="pt-2 flex flex-col sm:flex-row gap-2">
             <Button
-              className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white gap-1"
+              variant="default"
+              className="flex-1 font-bold"
               onClick={() => {
                 handleClose();
                 navigate('/my-bookings');
               }}
             >
-              Go to My Bookings <ArrowRight className="h-4 w-4" />
+              <span>View in My Reservations</span>
+              <ArrowRight className="h-4 w-4 ml-1" />
             </Button>
             <Button variant="outline" onClick={handleClose}>
               Done
@@ -128,59 +138,58 @@ export const BookingModal: React.FC<BookingModalProps> = ({ goat, isOpen, onClos
       ) : (
         /* Booking Review & Placement View */
         <div className="space-y-4 pt-2">
-          {/* Goat Summary Strip */}
-          <div className="flex items-center gap-3 rounded-xl bg-slate-50 p-3 border border-slate-200">
+          {/* Goat Summary Card */}
+          <div className="flex items-center gap-3 rounded-2xl bg-slate-50 p-3 border border-slate-200">
             <img
               src={goat.primaryPhoto}
               alt={goat.name}
-              className="h-16 w-16 rounded-lg object-cover bg-slate-200 shrink-0"
+              className="h-16 w-16 rounded-xl object-cover bg-slate-200 shrink-0"
             />
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between">
-                <h4 className="font-bold text-slate-900 truncate">{goat.name}</h4>
-                <span className="font-mono text-xs text-slate-400">#{goat.goatCode}</span>
+                <h4 className="font-bold text-slate-900 truncate text-sm">{goat.name}</h4>
+                <span className="font-mono text-[11px] text-slate-400">#{goat.goatCode}</span>
               </div>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-slate-500 mt-0.5">
                 {goat.breedName} • {goat.gender} • {formatAge(goat.ageMonths)} • {goat.weightKg} kg
               </p>
-              <div className="mt-1 flex items-baseline gap-2">
-                <span className="text-sm font-extrabold text-emerald-700">
-                  {formatCurrency(goat.finalPrice)}
-                </span>
-                {goat.hasDiscount && (
-                  <span className="text-xs text-slate-400 line-through">
-                    {formatCurrency(goat.price)}
-                  </span>
-                )}
+              <div className="mt-1">
+                <PriceDisplay
+                  price={goat.price}
+                  finalPrice={goat.finalPrice}
+                  hasDiscount={goat.hasDiscount}
+                  discountPercentage={goat.discountPercentage}
+                  size="sm"
+                />
               </div>
             </div>
           </div>
 
-          {/* How Hold Works Banner */}
-          <div className="rounded-xl bg-emerald-50 border border-emerald-200 p-3.5 text-xs text-emerald-950 space-y-1.5">
+          {/* Factual 24h Hold Explanation Banner (User Refinement 2) */}
+          <div className="rounded-2xl bg-emerald-50/70 border border-emerald-200 p-3.5 text-xs text-emerald-950 space-y-1.5">
             <div className="flex items-center gap-2 font-bold text-emerald-900">
-              <Clock className="h-4 w-4 text-emerald-600 shrink-0" />
-              <span>Zero-Risk 24-Hour Hold Guarantee</span>
+              <Clock className="h-4 w-4 text-emerald-800 shrink-0" />
+              <span>24-Hour Reservation Hold</span>
             </div>
             <p className="text-emerald-800 leading-relaxed">
-              Placing a hold is <strong>100% free</strong>. It locks this goat exclusively for you for 24 hours. You can inspect the goat at the farm or verify via video call. If not confirmed within 24 hours, the hold automatically expires with no penalty.
+              Placing a hold is <strong>completely free</strong>. It reserves this goat exclusively for you for 24 hours while you coordinate a farm visit or speak with the breeder. If not completed, the hold expires automatically with zero penalty.
             </p>
           </div>
 
           {/* Customer info preview */}
           {user && (
-            <div className="rounded-lg border border-slate-200 p-3 bg-white text-xs">
-              <span className="font-semibold text-slate-700">Your Booking Contact Info:</span>
+            <div className="rounded-xl border border-slate-200 p-3 bg-white text-xs">
+              <span className="font-bold text-slate-700">Reservation Contact:</span>
               <p className="text-slate-600 mt-0.5">
                 {profile?.name || user.email} {profile?.phone ? `• ${profile.phone}` : ''}
               </p>
             </div>
           )}
 
-          {/* Notes textarea */}
+          {/* Optional notes textarea */}
           <div>
-            <label htmlFor="notes" className="block text-xs font-semibold text-slate-700 mb-1">
-              Inspection Notes or Visit Plan (Optional)
+            <label htmlFor="notes" className="block text-xs font-bold text-slate-700 mb-1">
+              Visit Plan or Notes for Breeder (Optional)
             </label>
             <Textarea
               id="notes"
@@ -188,11 +197,12 @@ export const BookingModal: React.FC<BookingModalProps> = ({ goat, isOpen, onClos
               value={customerNotes}
               onChange={(e) => setCustomerNotes(e.target.value)}
               rows={2}
+              className="text-xs"
             />
           </div>
 
           {error && (
-            <div className="flex items-start gap-2 rounded-lg bg-red-50 p-3 border border-red-200 text-xs text-red-700">
+            <div className="flex items-start gap-2 rounded-xl bg-red-50 p-3 border border-red-200 text-xs text-red-700">
               <AlertCircle className="h-4 w-4 shrink-0 text-red-600 mt-0.5" />
               <span>{error}</span>
             </div>
@@ -209,11 +219,12 @@ export const BookingModal: React.FC<BookingModalProps> = ({ goat, isOpen, onClos
               Cancel
             </Button>
             <Button
-              className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold"
+              variant="default"
+              className="flex-1 font-bold"
               onClick={handleConfirmHold}
               isLoading={isSubmitting}
             >
-              Confirm 24h Hold
+              Confirm 24-Hour Reservation
             </Button>
           </div>
         </div>

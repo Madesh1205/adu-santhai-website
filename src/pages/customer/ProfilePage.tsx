@@ -4,7 +4,6 @@ import { useAuth } from '@/lib/auth/AuthContext';
 import { SEOHead } from '@/components/common/SEOHead';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { User, Phone, Mail, CheckCircle2, AlertCircle } from 'lucide-react';
 
@@ -28,7 +27,7 @@ export const ProfilePage: React.FC = () => {
       const { error } = await supabase
         .from('profiles')
         .update({
-          name: name.trim(),
+          full_name: name.trim(),
           phone: phone.trim(),
         })
         .eq('id', user.id);
@@ -50,105 +49,118 @@ export const ProfilePage: React.FC = () => {
     <>
       <SEOHead title="My Account Profile | Adu Santhai" path="/profile" />
 
-      <div className="mx-auto max-w-2xl px-4 sm:px-6 lg:px-8 py-8">
+      <div className="mx-auto max-w-2xl px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
         <div className="pb-6 border-b border-slate-200">
-          <h1 className="text-2xl sm:text-3xl font-black text-slate-900">
+          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
             Account Profile
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            Manage your personal details and contact numbers for booking notifications
+            Manage your contact numbers and identity for booking coordination with breeders.
           </p>
         </div>
 
-        <div className="mt-8 space-y-6">
-          <Card className="rounded-3xl border-slate-200 shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between pb-4">
-              <div>
-                <CardTitle className="text-lg">Personal Information</CardTitle>
-                <CardDescription className="text-xs">
-                  Your identity on the Adu Santhai platform
-                </CardDescription>
+        {/* Profile Card */}
+        <div className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-xs space-y-6">
+          {/* Header Strip */}
+          <div className="flex items-center gap-4 pb-6 border-b border-slate-100">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-800 font-bold text-xl border border-emerald-100">
+              {profile?.name?.charAt(0) || user?.email?.charAt(0).toUpperCase() || 'U'}
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-slate-900">
+                {profile?.name || 'Adu Santhai Member'}
+              </h2>
+              <p className="text-xs text-slate-500">{user?.email}</p>
+              <div className="mt-1.5 flex items-center gap-2">
+                <Badge variant="verified" className="text-[10px]">
+                  Role: {profile?.role || 'Customer'}
+                </Badge>
               </div>
-              <Badge variant="secondary" className="bg-emerald-100 text-emerald-800 text-xs font-bold">
-                {profile?.role || 'CUSTOMER'}
-              </Badge>
-            </CardHeader>
+            </div>
+          </div>
 
-            <form onSubmit={handleUpdate}>
-              <CardContent className="space-y-4">
-                {successMsg && (
-                  <div className="flex items-center gap-2 rounded-xl bg-emerald-50 p-3 text-xs text-emerald-800 border border-emerald-200">
-                    <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
-                    <span>{successMsg}</span>
-                  </div>
-                )}
+          {/* Form */}
+          <form onSubmit={handleUpdate} className="space-y-4">
+            <div>
+              <label htmlFor="fullName" className="block text-xs font-bold text-slate-700 mb-1.5">
+                Full Name
+              </label>
+              <div className="relative">
+                <User className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
+                <Input
+                  id="fullName"
+                  type="text"
+                  placeholder="Your full name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="pl-10 h-11 text-sm rounded-xl"
+                  required
+                />
+              </div>
+            </div>
 
-                {errorMsg && (
-                  <div className="flex items-center gap-2 rounded-xl bg-red-50 p-3 text-xs text-red-700 border border-red-200">
-                    <AlertCircle className="h-4 w-4 text-red-600 shrink-0" />
-                    <span>{errorMsg}</span>
-                  </div>
-                )}
+            <div>
+              <label htmlFor="email" className="block text-xs font-bold text-slate-700 mb-1.5">
+                Email Address (Account Login)
+              </label>
+              <div className="relative">
+                <Mail className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
+                <Input
+                  id="email"
+                  type="email"
+                  value={user?.email || ''}
+                  disabled
+                  className="pl-10 h-11 text-sm rounded-xl bg-slate-50 text-slate-500 cursor-not-allowed"
+                />
+              </div>
+              <span className="text-[11px] text-slate-400 mt-1 block">
+                Your email is linked to Supabase authentication and cannot be changed here.
+              </span>
+            </div>
 
-                <div className="space-y-1.5">
-                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
-                    Full Name
-                  </label>
-                  <div className="relative">
-                    <User className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
-                    <Input
-                      type="text"
-                      required
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      className="pl-9"
-                    />
-                  </div>
-                </div>
+            <div>
+              <label htmlFor="phone" className="block text-xs font-bold text-slate-700 mb-1.5">
+                Phone Number (Required for Breeder Call / WhatsApp)
+              </label>
+              <div className="relative">
+                <Phone className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
+                <Input
+                  id="phone"
+                  type="tel"
+                  placeholder="+91 98765 43210"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  className="pl-10 h-11 text-sm rounded-xl"
+                />
+              </div>
+            </div>
 
-                <div className="space-y-1.5">
-                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
-                    Phone Number (Used for Booking SMS & Farm Contact)
-                  </label>
-                  <div className="relative">
-                    <Phone className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
-                    <Input
-                      type="tel"
-                      required
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      className="pl-9"
-                    />
-                  </div>
-                </div>
+            {successMsg && (
+              <div className="flex items-center gap-2 rounded-xl bg-emerald-50 p-3.5 border border-emerald-200 text-xs font-semibold text-emerald-900">
+                <CheckCircle2 className="h-4 w-4 text-emerald-800 shrink-0" />
+                <span>{successMsg}</span>
+              </div>
+            )}
 
-                <div className="space-y-1.5 opacity-70">
-                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
-                    Email Address (Immutable)
-                  </label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
-                    <Input
-                      type="email"
-                      disabled
-                      value={user?.email || ''}
-                      className="pl-9 bg-slate-50 cursor-not-allowed"
-                    />
-                  </div>
-                </div>
-              </CardContent>
+            {errorMsg && (
+              <div className="flex items-center gap-2 rounded-xl bg-red-50 p-3.5 border border-red-200 text-xs font-semibold text-red-700">
+                <AlertCircle className="h-4 w-4 text-red-600 shrink-0" />
+                <span>{errorMsg}</span>
+              </div>
+            )}
 
-              <CardFooter className="pt-2">
-                <Button
-                  type="submit"
-                  isLoading={isSaving}
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs"
-                >
-                  Save Profile Changes
-                </Button>
-              </CardFooter>
-            </form>
-          </Card>
+            <div className="pt-2">
+              <Button
+                type="submit"
+                variant="default"
+                size="default"
+                className="w-full sm:w-auto font-bold px-6"
+                isLoading={isSaving}
+              >
+                Save Changes
+              </Button>
+            </div>
+          </form>
         </div>
       </div>
     </>
