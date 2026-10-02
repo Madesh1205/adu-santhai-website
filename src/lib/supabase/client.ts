@@ -1,9 +1,67 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://wphgctwmjcvrblpybktd.supabase.co';
-const supabaseAnonKey =
-  import.meta.env.VITE_SUPABASE_ANON_KEY ||
+const DEFAULT_SUPABASE_URL = 'https://wphgctwmjcvrblpybktd.supabase.co';
+const DEFAULT_SUPABASE_ANON_KEY =
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndwaGdjdHdtamN2cmJscHlia3RkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk2OTA3MTEsImV4cCI6MjEwNTI2NjcxMX0.S6k-iMBtKvjn3F8us6Vfi1vos9K826xL8Kh62rHzuUo';
+
+function getSupabaseUrl(): string {
+  const envUrl = import.meta.env.VITE_SUPABASE_URL;
+  if (
+    envUrl &&
+    typeof envUrl === 'string' &&
+    envUrl.trim() &&
+    !envUrl.includes('placeholder') &&
+    !envUrl.includes('your-project-id') &&
+    envUrl.startsWith('https://')
+  ) {
+    return envUrl.trim();
+  }
+  return DEFAULT_SUPABASE_URL;
+}
+
+function getSupabaseAnonKey(): string {
+  const envKey =
+    import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
+    import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+  if (
+    envKey &&
+    typeof envKey === 'string' &&
+    envKey.trim() &&
+    !envKey.includes('placeholder') &&
+    !envKey.includes('your-supabase-anon-key') &&
+    !envKey.includes('your-supabase-publishable-key')
+  ) {
+    const cleanKey = envKey.trim();
+
+    // 1. Supabase Publishable Key format (e.g. sbp_...)
+    if (cleanKey.startsWith('sbp_') && cleanKey.length > 20) {
+      return cleanKey;
+    }
+
+    // 2. Standard Supabase JWT Anon Key format (e.g. eyJ...)
+    if (cleanKey.startsWith('eyJ') && cleanKey.length > 50) {
+      try {
+        const parts = cleanKey.split('.');
+        if (parts.length === 3) {
+          return cleanKey;
+        }
+      } catch {
+        // fall through to default
+      }
+    }
+
+    // 3. Generic valid custom key
+    if (cleanKey.length > 20) {
+      return cleanKey;
+    }
+  }
+
+  return DEFAULT_SUPABASE_ANON_KEY;
+}
+
+const supabaseUrl = getSupabaseUrl();
+const supabaseAnonKey = getSupabaseAnonKey();
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {

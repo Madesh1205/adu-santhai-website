@@ -7,6 +7,8 @@ import {
   BarChart3,
   CheckSquare,
   Building2,
+  CalendarCheck,
+  Users,
   Flag,
   ArrowLeft,
   ShieldCheck,
@@ -83,6 +85,32 @@ export const SuperAdminLayout: React.FC = () => {
               }
             >
               <Building2 className="h-4 w-4" /> Farm Approvals
+            </NavLink>
+
+            <NavLink
+              to="/admin/bookings"
+              className={({ isActive }) =>
+                `flex items-center gap-1.5 px-3.5 py-2 rounded-xl transition-colors whitespace-nowrap ${
+                  isActive
+                    ? 'bg-emerald-800 text-white font-bold shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                }`
+              }
+            >
+              <CalendarCheck className="h-4 w-4" /> Platform Bookings
+            </NavLink>
+
+            <NavLink
+              to="/admin/users"
+              className={({ isActive }) =>
+                `flex items-center gap-1.5 px-3.5 py-2 rounded-xl transition-colors whitespace-nowrap ${
+                  isActive
+                    ? 'bg-emerald-800 text-white font-bold shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                }`
+              }
+            >
+              <Users className="h-4 w-4" /> User Accounts
             </NavLink>
 
             <NavLink

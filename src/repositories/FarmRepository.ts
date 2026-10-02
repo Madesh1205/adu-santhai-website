@@ -1,4 +1,4 @@
-import { supabase, resolveStorageUrl, BUCKET_FARM_DOCS } from '@/lib/supabase/client';
+import { supabase, resolveStorageUrl, BUCKET_GOAT_IMAGES } from '@/lib/supabase/client';
 import type { Database } from '@/lib/supabase/database.types';
 import type { Farm } from '@/types';
 
@@ -21,10 +21,10 @@ export function mapFarmRow(row: FarmRow): Farm {
     status: row.status,
     isAmmalOwnFarm: row.is_ammal_own_farm ?? false,
     verifiedAt: row.verified_at,
-    rating: Number(row.rating ?? 5.0),
-    reviewCount: Number(row.review_count ?? 0),
-    logoUrl: row.logo_url ? resolveStorageUrl(row.logo_url, BUCKET_FARM_DOCS) : null,
-    bannerUrl: row.banner_url ? resolveStorageUrl(row.banner_url, BUCKET_FARM_DOCS) : null,
+    rating: Number((row as any).rating ?? 5.0),
+    reviewCount: Number((row as any).review_count ?? 0),
+    logoUrl: row.logo_url ? resolveStorageUrl(row.logo_url, BUCKET_GOAT_IMAGES) : null,
+    bannerUrl: row.banner_url ? resolveStorageUrl(row.banner_url, BUCKET_GOAT_IMAGES) : null,
     goatListingLimit: Number(row.goat_listing_limit ?? 2),
     farmCode: row.farm_code,
     createdAt: row.created_at,
@@ -42,7 +42,7 @@ export const FarmRepository = {
       .select('*')
       .eq('status', 'APPROVED')
       .order('is_ammal_own_farm', { ascending: false })
-      .order('rating', { ascending: false });
+      .order('created_at', { ascending: false });
 
     if (error) {
       console.error('Error fetching approved farms:', error);

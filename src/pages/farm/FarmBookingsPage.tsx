@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { SEOHead } from '@/components/common/SEOHead';
+import { DEFAULT_GOAT_IMAGE_FALLBACK } from '@/components/common/FallbackGoatImage';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { BookingRepository } from '@/repositories/BookingRepository';
 import { Button } from '@/components/ui/button';
@@ -119,7 +120,7 @@ export const FarmBookingsPage: React.FC = () => {
                   <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                     <div className="flex items-start gap-4">
                       <img
-                        src={b.goatPhoto || 'https://images.unsplash.com/photo-1524024973431-2ad916746881?auto=format&fit=crop&w=400&q=80'}
+                        src={b.goatPhoto || DEFAULT_GOAT_IMAGE_FALLBACK}
                         alt={b.goatName || 'Goat'}
                         className="h-16 w-16 rounded-xl object-cover bg-slate-100 border border-slate-200 shrink-0"
                       />

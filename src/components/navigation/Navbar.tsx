@@ -64,11 +64,21 @@ export const Navbar: React.FC = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Fetch notification and wishlist counts
+  // Fetch notification and wishlist counts and subscribe to realtime updates
   useEffect(() => {
     if (user) {
       NotificationRepository.getUnreadCount(user.id).then(setUnreadCount);
       WishlistRepository.getWishlistGoatIds(user.id).then((ids) => setWishlistCount(ids.length));
+
+      // Realtime notification listener
+      const unsubscribe = NotificationRepository.subscribeToNotifications(user.id, (newNotif) => {
+        setUnreadCount((prev) => prev + 1);
+        setNotifications((prev) => [newNotif, ...prev]);
+      });
+
+      return () => {
+        unsubscribe();
+      };
     } else {
       setUnreadCount(0);
       setWishlistCount(0);
@@ -111,8 +121,12 @@ export const Navbar: React.FC = () => {
         {/* Brand Logo & Ammal Farm Heritage */}
         <div className="flex items-center gap-8">
           <Link to="/" className="flex items-center gap-3 group">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-800 text-white shadow-xs group-hover:bg-emerald-900 transition-colors">
-              <span className="font-serif text-xl font-black tracking-tighter">ஆ</span>
+            <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl overflow-hidden bg-white shadow-xs border border-emerald-800/15 group-hover:border-emerald-800 transition-colors">
+              <img
+                src="/logo.jpg"
+                alt="Ammal Farm Adu Santhai"
+                className="h-full w-full object-contain p-0.5"
+              />
             </div>
             <div className="flex flex-col">
               <span className="text-lg font-black tracking-tight text-slate-900 group-hover:text-emerald-800 transition-colors leading-none">

@@ -2,11 +2,12 @@ import React, { useState } from 'react';
 import { SEOHead } from '@/components/common/SEOHead';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { FarmRepository } from '@/repositories/FarmRepository';
+import { StorageService } from '@/services/StorageService';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
-import { CheckCircle2, AlertCircle, Building2 } from 'lucide-react';
+import { CheckCircle2, AlertCircle, Building2, Upload, Image as ImageIcon } from 'lucide-react';
 
 export const FarmSettingsPage: React.FC = () => {
   const { farm, refreshProfile } = useAuth();
@@ -18,12 +19,48 @@ export const FarmSettingsPage: React.FC = () => {
   const [contactEmail, setContactEmail] = useState<string>(farm?.contactEmail || '');
   const [locationDistrict, setLocationDistrict] = useState<string>(farm?.locationDistrict || 'Tiruvannamalai');
   const [address, setAddress] = useState<string>(farm?.address || '');
+  const [logoUrl, setLogoUrl] = useState<string | null>(farm?.logoUrl || null);
+  const [bannerUrl, setBannerUrl] = useState<string | null>(farm?.bannerUrl || null);
 
+  const [uploadingLogo, setUploadingLogo] = useState<boolean>(false);
+  const [uploadingBanner, setUploadingBanner] = useState<boolean>(false);
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   if (!farm) return null;
+
+  const handleLogoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingLogo(true);
+    setErrorMsg(null);
+    try {
+      const url = await StorageService.uploadFarmAsset(file, farm.farmCode, 'logo');
+      setLogoUrl(url);
+    } catch (err: any) {
+      console.error('Failed to upload farm logo:', err);
+      setErrorMsg('Failed to upload farm logo image.');
+    } finally {
+      setUploadingLogo(false);
+    }
+  };
+
+  const handleBannerChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingBanner(true);
+    setErrorMsg(null);
+    try {
+      const url = await StorageService.uploadFarmAsset(file, farm.farmCode, 'banner');
+      setBannerUrl(url);
+    } catch (err: any) {
+      console.error('Failed to upload farm banner:', err);
+      setErrorMsg('Failed to upload farm banner image.');
+    } finally {
+      setUploadingBanner(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,10 +77,12 @@ export const FarmSettingsPage: React.FC = () => {
         contact_email: contactEmail.trim() || null,
         location_district: locationDistrict.trim(),
         address: address.trim() || null,
+        logo_url: logoUrl,
+        banner_url: bannerUrl,
       });
 
       await refreshProfile();
-      setSuccessMsg('Farm profile updated successfully!');
+      setSuccessMsg('Farm profile and branding assets updated successfully!');
       setTimeout(() => setSuccessMsg(null), 3000);
     } catch (err: any) {
       console.error('Failed to update farm settings:', err);
@@ -95,6 +134,81 @@ export const FarmSettingsPage: React.FC = () => {
                   <span>{errorMsg}</span>
                 </div>
               )}
+
+              {/* Branding Assets Upload Section */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-200">
+                {/* Logo Upload */}
+                <div className="space-y-2">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                    Farm Logo Emblem
+                  </label>
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-white overflow-hidden border border-slate-200 shadow-xs">
+                      {logoUrl ? (
+                        <img src={logoUrl} alt="Farm Logo Preview" className="h-full w-full object-cover" />
+                      ) : (
+                        <Building2 className="h-7 w-7 text-slate-400" />
+                      )}
+                    </div>
+                    <label className="cursor-pointer">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        isLoading={uploadingLogo}
+                        className="text-xs font-semibold gap-1.5 pointer-events-none"
+                      >
+                        <Upload className="h-3.5 w-3.5" />
+                        <span>Upload Logo</span>
+                      </Button>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleLogoChange}
+                        disabled={uploadingLogo}
+                      />
+                    </label>
+                  </div>
+                </div>
+
+                {/* Banner Upload */}
+                <div className="space-y-2">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                    Farm Cover Banner
+                  </label>
+                  <div className="flex flex-col gap-2">
+                    <div className="h-16 w-full rounded-xl bg-slate-200 overflow-hidden border border-slate-200">
+                      {bannerUrl ? (
+                        <img src={bannerUrl} alt="Farm Banner Preview" className="h-full w-full object-cover" />
+                      ) : (
+                        <div className="h-full w-full bg-gradient-to-r from-emerald-900 to-slate-900 flex items-center justify-center text-white/50 text-xs">
+                          <ImageIcon className="h-5 w-5 mr-1" /> No Banner Uploaded
+                        </div>
+                      )}
+                    </div>
+                    <label className="cursor-pointer">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        isLoading={uploadingBanner}
+                        className="text-xs font-semibold gap-1.5 w-full pointer-events-none"
+                      >
+                        <Upload className="h-3.5 w-3.5" />
+                        <span>Upload Banner</span>
+                      </Button>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleBannerChange}
+                        disabled={uploadingBanner}
+                      />
+                    </label>
+                  </div>
+                </div>
+              </div>
 
               <div className="space-y-1.5">
                 <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">

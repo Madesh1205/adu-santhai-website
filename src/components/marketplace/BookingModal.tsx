@@ -15,9 +15,10 @@ interface BookingModalProps {
   goat: Goat | null;
   isOpen: boolean;
   onClose: () => void;
+  onSuccess?: (result: BookingHoldResult) => void;
 }
 
-export const BookingModal: React.FC<BookingModalProps> = ({ goat, isOpen, onClose }) => {
+export const BookingModal: React.FC<BookingModalProps> = ({ goat, isOpen, onClose, onSuccess }) => {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
   const [customerNotes, setCustomerNotes] = useState<string>('');
@@ -45,6 +46,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({ goat, isOpen, onClos
       );
 
       setResult(bookingResult);
+      onSuccess?.(bookingResult);
 
       // Trigger celebratory confetti
       try {

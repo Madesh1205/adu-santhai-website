@@ -7,9 +7,10 @@ import { VerifiedBadge } from '@/components/common/VerifiedBadge';
 import { GoatCard } from '@/components/marketplace/GoatCard';
 import { GoatCardSkeleton } from '@/components/marketplace/GoatCardSkeleton';
 import { BookingModal } from '@/components/marketplace/BookingModal';
+import { FallbackGoatImage } from '@/components/common/FallbackGoatImage';
 import { GoatRepository } from '@/repositories/GoatRepository';
 import { FarmRepository } from '@/repositories/FarmRepository';
-import type { Goat, Farm } from '@/types';
+import type { Goat, Farm, Breed } from '@/types';
 import {
   Search,
   ShieldCheck,
@@ -20,45 +21,14 @@ import {
   Sparkles,
   PhoneCall,
   CheckCircle2,
+  Award,
 } from 'lucide-react';
-
-const POPULAR_BREEDS = [
-  {
-    name: 'Boer',
-    tagline: 'World-Class Meat Sires',
-    image: 'https://images.unsplash.com/photo-1524024973431-2ad916746881?auto=format&fit=crop&w=600&q=80',
-  },
-  {
-    name: 'Sirohi',
-    tagline: 'Hardy Commercial Breed',
-    image: 'https://images.unsplash.com/photo-1568644396922-5c3bfae12521?auto=format&fit=crop&w=600&q=80',
-  },
-  {
-    name: 'Tellicherry',
-    tagline: 'Prolific & High Milk',
-    image: 'https://images.unsplash.com/photo-1548767797-d8c844163c4c?auto=format&fit=crop&w=600&q=80',
-  },
-  {
-    name: 'Jamnapari',
-    tagline: 'Majestic Dual Purpose',
-    image: 'https://images.unsplash.com/photo-1527153857715-3908f2ae5e81?auto=format&fit=crop&w=600&q=80',
-  },
-  {
-    name: 'Kanni Adu',
-    tagline: 'Native Tamil Nadu Breed',
-    image: 'https://images.unsplash.com/photo-1535268647677-300dbf3d78d1?auto=format&fit=crop&w=600&q=80',
-  },
-  {
-    name: 'Barbari',
-    tagline: 'Ideal for Stall Feeding',
-    image: 'https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?auto=format&fit=crop&w=600&q=80',
-  },
-];
 
 export const HomePage: React.FC = () => {
   const navigate = useNavigate();
   const [featuredGoats, setFeaturedGoats] = useState<Goat[]>([]);
   const [farms, setFarms] = useState<Farm[]>([]);
+  const [breeds, setBreeds] = useState<Breed[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [selectedGoatForBooking, setSelectedGoatForBooking] = useState<Goat | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -66,12 +36,14 @@ export const HomePage: React.FC = () => {
   useEffect(() => {
     async function loadHomeData() {
       try {
-        const [goatsData, farmsData] = await Promise.all([
+        const [goatsData, farmsData, breedsData] = await Promise.all([
           GoatRepository.getFeaturedGoats(8),
           FarmRepository.getApprovedFarms(),
+          GoatRepository.getBreeds(),
         ]);
         setFeaturedGoats(goatsData);
         setFarms(farmsData.slice(0, 3));
+        setBreeds(breedsData);
       } catch (err) {
         console.error('Failed to load homepage content:', err);
       } finally {
@@ -89,6 +61,9 @@ export const HomePage: React.FC = () => {
       navigate('/marketplace');
     }
   };
+
+  const topGoatImage = featuredGoats.find((g) => g.primaryPhoto)?.primaryPhoto;
+  const heroBannerImage = farms.find((f) => f.bannerUrl)?.bannerUrl || topGoatImage;
 
   return (
     <>
@@ -159,11 +134,15 @@ export const HomePage: React.FC = () => {
             <div className="lg:col-span-5">
               <div className="relative mx-auto max-w-md lg:max-w-none">
                 <div className="relative aspect-4/3 sm:aspect-square overflow-hidden rounded-3xl border-2 border-slate-200/80 bg-slate-100 shadow-md">
-                  <img
-                    src="https://images.unsplash.com/photo-1524024973431-2ad916746881?auto=format&fit=crop&w=1000&q=80"
-                    alt="Verified breeding buck on Adu Santhai"
-                    className="h-full w-full object-cover"
-                  />
+                  {heroBannerImage ? (
+                    <img
+                      src={heroBannerImage}
+                      alt="Ammal Farm • Adu Santhai Official Farm Banner"
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <FallbackGoatImage breedName="Verified Livestock" />
+                  )}
 
                   {/* Floating Trust Card Overlay */}
                   <div className="absolute bottom-4 left-4 right-4 rounded-2xl bg-white/95 backdrop-blur-md p-3.5 border border-slate-200/80 shadow-md">
@@ -185,7 +164,7 @@ export const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* 2. TRUST INDICATORS (Section 8 Compact Cards) */}
+      {/* 2. TRUST INDICATORS */}
       <section className="py-8 sm:py-10 bg-white border-b border-slate-100">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -232,7 +211,7 @@ export const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* 3. POPULAR BREEDS */}
+      {/* 3. POPULAR BREEDS (Fetched directly from DB) */}
       <section className="py-14 sm:py-16 bg-white">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <SectionHeader
@@ -244,25 +223,29 @@ export const HomePage: React.FC = () => {
           />
 
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-            {POPULAR_BREEDS.map((breed) => (
+            {(breeds.length > 0 ? breeds : [
+              { id: '1', name: 'Tellicherry (Malabari)', primaryPurpose: 'MEAT_AND_MILK', description: 'High prolificacy native breed' },
+              { id: '2', name: 'Jamunapari', primaryPurpose: 'MILK_AND_MEAT', description: 'Majestic large dual purpose' },
+              { id: '3', name: 'Boer', primaryPurpose: 'MEAT', description: 'World-class meat sires' },
+              { id: '4', name: 'Sirohi', primaryPurpose: 'MEAT', description: 'Hardy commercial breed' },
+              { id: '5', name: 'Kanni Adu', primaryPurpose: 'MEAT', description: 'Native Tamil Nadu breed' },
+              { id: '6', name: 'Kodi Adu', primaryPurpose: 'MEAT', description: 'Tall hardy southern breed' },
+            ]).slice(0, 6).map((breed) => (
               <Link
-                key={breed.name}
+                key={breed.id || breed.name}
                 to={`/marketplace?breed=${encodeURIComponent(breed.name)}`}
-                className="group relative flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white transition-all duration-200 hover:border-emerald-700/50 hover:shadow-sm"
+                className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-slate-200 bg-white p-4 transition-all duration-200 hover:border-emerald-700/50 hover:shadow-sm"
               >
-                <div className="aspect-square w-full overflow-hidden bg-slate-100">
-                  <img
-                    src={breed.image}
-                    alt={breed.name}
-                    loading="lazy"
-                    className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                  />
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-800 border border-emerald-100 mb-3 group-hover:bg-emerald-800 group-hover:text-white transition-colors">
+                  <Award className="h-6 w-6" />
                 </div>
-                <div className="p-3 text-center">
+                <div>
                   <h4 className="font-bold text-sm text-slate-900 group-hover:text-emerald-800 transition-colors">
                     {breed.name}
                   </h4>
-                  <p className="text-[11px] text-slate-500 truncate mt-0.5">{breed.tagline}</p>
+                  <p className="text-[11px] text-slate-500 line-clamp-2 mt-1">
+                    {breed.description || breed.primaryPurpose || 'Verified Breed'}
+                  </p>
                 </div>
               </Link>
             ))}
@@ -363,7 +346,7 @@ export const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* 6. HOW IT WORKS (3 Simple Steps) */}
+      {/* 6. HOW IT WORKS */}
       <section id="how-it-works" className="py-14 sm:py-16 bg-slate-50/60 border-t border-slate-100">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <SectionHeader
@@ -407,44 +390,56 @@ export const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* 7. AMMAL FARM HERITAGE SECTION (Restrained Earth Gold <= 5%) */}
+      {/* 7. AMMAL FARM HERITAGE SECTION */}
       <section id="about" className="py-16 bg-white border-t border-slate-100">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="rounded-3xl border border-slate-200 bg-gradient-to-r from-emerald-50/50 via-white to-amber-50/20 p-8 sm:p-12">
-            <div className="max-w-3xl space-y-4">
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-[#92400E] border border-amber-200">
-                <span>HERITAGE • AMMAL FARM</span>
-              </div>
-
-              <h2 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight">
-                Empowering Goat Farmers with Direct Market Access
-              </h2>
-
-              <p className="text-sm sm:text-base text-slate-600 leading-relaxed">
-                Founded in Tiruvannamalai, <strong>Ammal Farm</strong> established Adu Santhai to eliminate exploitation by traditional middlemen. Every listing connects buyers directly to the breeder, guaranteeing true weights, honest health disclosure, and authentic breed genetics.
-              </p>
-
-              <div className="pt-2 flex flex-wrap gap-4 text-xs font-semibold text-slate-700">
-                <div className="flex items-center gap-1.5">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-800" />
-                  <span>Certified Animal Welfare</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-800" />
-                  <span>Fair Pricing for Breeders</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-800" />
-                  <span>Statewide Logistics Guidance</span>
+            <div className="flex flex-col md:flex-row items-center gap-8">
+              <div className="shrink-0">
+                <div className="h-32 w-32 sm:h-40 sm:w-40 rounded-3xl overflow-hidden bg-white shadow-md border-2 border-emerald-800/20 p-2">
+                  <img
+                    src="/logo.jpg"
+                    alt="Ammal Farm • Adu Santhai Official Emblem"
+                    className="h-full w-full object-contain"
+                  />
                 </div>
               </div>
 
-              <div className="pt-4">
-                <Link to="/register-farm">
-                  <Button variant="default" size="default" className="font-bold">
-                    Join as a Verified Partner Farm
-                  </Button>
-                </Link>
+              <div className="space-y-4">
+                <div className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-[#92400E] border border-amber-200">
+                  <span>HERITAGE • AMMAL FARM</span>
+                </div>
+
+                <h2 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight">
+                  Empowering Goat Farmers with Direct Market Access
+                </h2>
+
+                <p className="text-sm sm:text-base text-slate-600 leading-relaxed">
+                  Founded in Pernamallur, Tiruvannamalai (PIN 604503), <strong>Ammal Farm</strong> established Adu Santhai to eliminate exploitation by traditional middlemen. Every listing connects buyers directly to the breeder, guaranteeing true weights, honest health disclosure, and authentic breed genetics. Specializing in Nellore Judipi, Salem Black goats, country chicken, and ducks.
+                </p>
+
+                <div className="pt-2 flex flex-wrap gap-4 text-xs font-semibold text-slate-700">
+                  <div className="flex items-center gap-1.5">
+                    <CheckCircle2 className="h-4 w-4 text-emerald-800" />
+                    <span>Certified Animal Welfare</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <CheckCircle2 className="h-4 w-4 text-emerald-800" />
+                    <span>Fair Pricing for Breeders</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <CheckCircle2 className="h-4 w-4 text-emerald-800" />
+                    <span>Statewide Logistics Guidance</span>
+                  </div>
+                </div>
+
+                <div className="pt-4">
+                  <Link to="/register-farm">
+                    <Button variant="default" size="default" className="font-bold">
+                      Join as a Verified Partner Farm
+                    </Button>
+                  </Link>
+                </div>
               </div>
             </div>
           </div>

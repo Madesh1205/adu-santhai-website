@@ -18,26 +18,18 @@ export const LoginPage: React.FC = () => {
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [isUnconfirmed, setIsUnconfirmed] = useState<boolean>(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
-    setIsUnconfirmed(false);
 
     const { error: signInError } = await signInWithPassword(email, password);
 
     if (signInError) {
       setIsLoading(false);
       const errMsg = signInError.message || '';
-
-      if (errMsg.toLowerCase().includes('not confirmed') || errMsg.toLowerCase().includes('unconfirmed')) {
-        setIsUnconfirmed(true);
-        setError('Your email address has not been confirmed yet.');
-      } else {
-        setError(errMsg || 'Invalid email or password. Please try again.');
-      }
+      setError(errMsg || 'Invalid email or password. Please try again.');
     } else {
       navigate(redirectUrl, { replace: true });
     }
@@ -50,9 +42,15 @@ export const LoginPage: React.FC = () => {
       <div className="min-h-[75vh] flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-md space-y-6">
           <div className="text-center space-y-2">
-            <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-800 text-white font-serif text-2xl font-black shadow-xs">
-              ஆ
-            </div>
+            <Link to="/" className="inline-block">
+              <div className="inline-flex h-20 w-20 items-center justify-center rounded-2xl overflow-hidden bg-white shadow-sm border border-emerald-800/15 hover:border-emerald-800 transition-colors">
+                <img
+                  src="/logo.jpg"
+                  alt="Ammal Farm Adu Santhai"
+                  className="h-full w-full object-contain p-1"
+                />
+              </div>
+            </Link>
             <h1 className="text-2xl font-black text-slate-900 tracking-tight">
               Welcome to Adu Santhai
             </h1>
@@ -72,23 +70,9 @@ export const LoginPage: React.FC = () => {
             <form onSubmit={handleSubmit}>
               <CardContent className="space-y-4">
                 {error && (
-                  <div className="rounded-xl bg-red-50 p-3.5 border border-red-200 text-xs text-red-700 space-y-2">
-                    <div className="flex items-start gap-2">
-                      <AlertCircle className="h-4 w-4 shrink-0 text-red-600 mt-0.5" />
-                      <span>{error}</span>
-                    </div>
-
-                    {isUnconfirmed && (
-                      <div className="pt-1 border-t border-red-200/60 flex items-center justify-between">
-                        <span className="text-red-800 font-medium">Need another confirmation link?</span>
-                        <Link
-                          to={`/auth/verify-email?email=${encodeURIComponent(email)}`}
-                          className="font-bold underline text-red-900 hover:text-red-950"
-                        >
-                          Resend Email
-                        </Link>
-                      </div>
-                    )}
+                  <div className="rounded-xl bg-red-50 p-3.5 border border-red-200 text-xs text-red-700 flex items-start gap-2">
+                    <AlertCircle className="h-4 w-4 shrink-0 text-red-600 mt-0.5" />
+                    <span>{error}</span>
                   </div>
                 )}
 

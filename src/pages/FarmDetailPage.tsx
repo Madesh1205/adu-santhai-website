@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { SEOHead } from '@/components/common/SEOHead';
 import { FarmRepository } from '@/repositories/FarmRepository';
 import { GoatRepository } from '@/repositories/GoatRepository';
+import { ReviewRepository, type ReviewItem } from '@/repositories/ReviewRepository';
 import { GoatCard } from '@/components/marketplace/GoatCard';
 import { GoatCardSkeleton } from '@/components/marketplace/GoatCardSkeleton';
 import { BookingModal } from '@/components/marketplace/BookingModal';
@@ -10,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { VerifiedBadge } from '@/components/common/VerifiedBadge';
 import { EmptyState } from '@/components/common/EmptyState';
+import { formatDate } from '@/lib/utils';
 import type { Farm, Goat } from '@/types';
 import {
   Building2,
@@ -17,12 +19,14 @@ import {
   PhoneCall,
   MessageCircle,
   ChevronRight,
+  Star,
 } from 'lucide-react';
 
 export const FarmDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [farm, setFarm] = useState<Farm | null>(null);
   const [goats, setGoats] = useState<Goat[]>([]);
+  const [reviews, setReviews] = useState<ReviewItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [selectedGoatForBooking, setSelectedGoatForBooking] = useState<Goat | null>(null);
 
@@ -31,12 +35,14 @@ export const FarmDetailPage: React.FC = () => {
       if (!id) return;
       setLoading(true);
       try {
-        const [farmData, farmGoats] = await Promise.all([
+        const [farmData, farmGoats, farmReviews] = await Promise.all([
           FarmRepository.getFarmById(id),
           GoatRepository.getGoatsByFarm(id),
+          ReviewRepository.getFarmReviews(id),
         ]);
         setFarm(farmData);
         setGoats(farmGoats);
+        setReviews(farmReviews);
       } catch (err) {
         console.error('Failed to load farm profile:', err);
       } finally {
@@ -92,77 +98,123 @@ export const FarmDetailPage: React.FC = () => {
         </nav>
 
         {/* 1. FARM IDENTITY & HERO BANNER */}
-        <div className="relative overflow-hidden rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-xs">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-            <div className="flex items-start gap-4">
-              <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-800 border border-emerald-100 font-bold shadow-xs">
-                <Building2 className="h-8 w-8" />
+        <div className="relative overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xs">
+          {/* Top Banner Cover */}
+          <div className="relative h-48 sm:h-64 w-full overflow-hidden bg-gradient-to-r from-emerald-900 via-emerald-800 to-slate-900">
+            {farm.bannerUrl ? (
+              <img
+                src={farm.bannerUrl}
+                alt={`${farm.name} Banner`}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <div className="h-full w-full bg-gradient-to-r from-emerald-950 via-emerald-900 to-slate-900 p-6 flex items-end">
+                <span className="text-white/70 text-xs font-bold tracking-widest uppercase">
+                  Verified Partner Breeder • Tamil Nadu
+                </span>
               </div>
-
-              <div className="space-y-1.5">
-                <div className="flex flex-wrap items-center gap-2">
-                  <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-                    {farm.name}
-                  </h1>
-                  {farm.isAmmalOwnFarm ? (
-                    <Badge variant="earth" className="text-xs font-bold">
-                      CENTRAL HUB
-                    </Badge>
-                  ) : (
-                    <VerifiedBadge label="Verified Partner Farm" variant="default" />
-                  )}
-                  <span className="font-mono text-xs text-slate-400">#{farm.farmCode}</span>
-                </div>
-
-                {farm.tagline && (
-                  <p className="text-sm font-semibold text-emerald-800">{farm.tagline}</p>
-                )}
-
-                <div className="flex items-center gap-2 text-xs text-slate-500">
-                  <MapPin className="h-3.5 w-3.5 text-emerald-800 shrink-0" />
-                  <span>{farm.locationDistrict}, {farm.locationState || 'Tamil Nadu'}, India</span>
-                  <span className="text-slate-300">•</span>
-                  <span>{goats.length} active listings</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Direct Contact CTAs */}
-            <div className="flex flex-wrap gap-2.5 shrink-0">
-              {farm.contactPhone && (
-                <a
-                  href={`tel:${farm.contactPhone}`}
-                  className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-bold text-slate-700 shadow-xs hover:bg-slate-50 transition-colors"
-                >
-                  <PhoneCall className="h-4 w-4 text-emerald-800" />
-                  <span>Call Breeder</span>
-                </a>
-              )}
-
-              {farm.contactPhone && (
-                <a
-                  href={`https://wa.me/${farm.contactPhone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(
-                    `Hello ${farm.name}, I found your farm profile on Adu Santhai and would like to inquire about your goats.`
-                  )}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-50 px-4 py-2.5 text-xs font-bold text-emerald-900 border border-emerald-200 hover:bg-emerald-100 transition-colors"
-                >
-                  <MessageCircle className="h-4 w-4 text-emerald-800" />
-                  <span>WhatsApp</span>
-                </a>
-              )}
-            </div>
+            )}
           </div>
 
-          {/* Farm Bio & Health Protocol */}
-          {farm.description && (
-            <div className="mt-6 pt-6 border-t border-slate-100">
-              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed max-w-3xl">
-                {farm.description}
-              </p>
+          <div className="p-6 sm:p-8 pt-0">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 -mt-12 sm:-mt-16">
+              <div className="flex flex-col sm:flex-row sm:items-end gap-4">
+                {/* Farm Logo Badge */}
+                <div className="relative flex h-24 w-24 sm:h-28 sm:w-28 shrink-0 items-center justify-center rounded-2xl bg-white p-1 overflow-hidden border-4 border-white shadow-lg text-emerald-800 font-bold z-10">
+                  {farm.logoUrl ? (
+                    <img
+                      src={farm.logoUrl}
+                      alt={farm.name}
+                      className="h-full w-full object-cover rounded-xl"
+                    />
+                  ) : farm.isAmmalOwnFarm ? (
+                    <img
+                      src="/logo.jpg"
+                      alt={farm.name}
+                      className="h-full w-full object-cover rounded-xl"
+                    />
+                  ) : (
+                    <Building2 className="h-10 w-10 text-emerald-800" />
+                  )}
+                </div>
+
+                <div className="space-y-1 sm:mb-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+                      {farm.name}
+                    </h1>
+                    {farm.isAmmalOwnFarm ? (
+                      <Badge variant="earth" className="text-xs font-bold">
+                        CENTRAL HUB
+                      </Badge>
+                    ) : (
+                      <VerifiedBadge label="Verified Partner Farm" variant="default" />
+                    )}
+                    <span className="font-mono text-xs text-slate-400">#{farm.farmCode}</span>
+                  </div>
+
+                  {farm.tagline && (
+                    <p className="text-sm font-semibold text-emerald-800">{farm.tagline}</p>
+                  )}
+
+                  <div className="flex items-center gap-2 text-xs text-slate-500">
+                    <MapPin className="h-3.5 w-3.5 text-emerald-800 shrink-0" />
+                    <span>{farm.address || `${farm.locationDistrict}, ${farm.locationState || 'Tamil Nadu'}, India`}</span>
+                    <span className="text-slate-300">•</span>
+                    <span>{goats.length} active listings</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Direct Contact CTAs */}
+              <div className="flex flex-wrap gap-2.5 shrink-0">
+                {farm.isAmmalOwnFarm && (
+                  <a
+                    href="https://maps.app.goo.gl/qL8nLnxKZcsyj7xm8"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-bold text-emerald-900 shadow-xs hover:bg-slate-50 transition-colors"
+                  >
+                    <MapPin className="h-4 w-4 text-emerald-800" />
+                    <span>Google Maps</span>
+                  </a>
+                )}
+
+                {farm.contactPhone && (
+                  <a
+                    href={`tel:${farm.contactPhone}`}
+                    className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-bold text-slate-700 shadow-xs hover:bg-slate-50 transition-colors"
+                  >
+                    <PhoneCall className="h-4 w-4 text-emerald-800" />
+                    <span>Call Breeder</span>
+                  </a>
+                )}
+
+                {farm.contactPhone && (
+                  <a
+                    href={`https://wa.me/${farm.contactPhone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(
+                      `Hello ${farm.name}, I found your farm profile on Adu Santhai and would like to inquire about your goats.`
+                    )}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-50 px-4 py-2.5 text-xs font-bold text-emerald-900 border border-emerald-200 hover:bg-emerald-100 transition-colors"
+                  >
+                    <MessageCircle className="h-4 w-4 text-emerald-800" />
+                    <span>WhatsApp</span>
+                  </a>
+                )}
+              </div>
             </div>
-          )}
+
+            {/* Farm Bio & Health Protocol */}
+            {farm.description && (
+              <div className="mt-6 pt-6 border-t border-slate-100">
+                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed max-w-3xl">
+                  {farm.description}
+                </p>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* 2. LIVE HERD LISTINGS SECTION */}
@@ -198,6 +250,58 @@ export const FarmDetailPage: React.FC = () => {
                   goat={goat}
                   onOpenBookingModal={(g) => setSelectedGoatForBooking(g)}
                 />
+              ))}
+            </div>
+          )}
+        </section>
+
+        {/* 3. BREEDER REVIEWS & RATINGS */}
+        <section className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-xs space-y-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-xl font-bold text-slate-900">Breeder Feedback & Reputation</h2>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Verified customer reviews for livestock sourced from {farm.name}
+              </p>
+            </div>
+
+            <div className="flex items-center gap-1.5 bg-amber-50 border border-amber-200 px-3 py-1 rounded-xl">
+              <Star className="h-4 w-4 fill-amber-400 text-amber-500" />
+              <span className="text-sm font-black text-amber-900">
+                {reviews.length > 0
+                  ? (reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length).toFixed(1)
+                  : '5.0'}
+              </span>
+              <span className="text-xs text-amber-700">({reviews.length} reviews)</span>
+            </div>
+          </div>
+
+          {reviews.length === 0 ? (
+            <div className="rounded-2xl bg-slate-50 p-6 text-center border border-slate-100">
+              <p className="text-xs text-slate-500">
+                No reviews yet for this breeder. Complete a 24-hour hold reservation to submit verified buyer feedback.
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {reviews.map((r) => (
+                <div key={r.id} className="rounded-2xl bg-slate-50 p-4 border border-slate-100 space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-xs text-slate-900">{r.customerName}</span>
+                    <div className="flex items-center gap-0.5 text-amber-500">
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <Star
+                          key={i}
+                          className={`h-3 w-3 ${
+                            i < r.rating ? 'fill-amber-400 text-amber-500' : 'text-slate-300'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                  <p className="text-xs text-slate-600 leading-relaxed">{r.comment}</p>
+                  <span className="text-[10px] text-slate-400 block pt-1">{formatDate(r.createdAt)}</span>
+                </div>
               ))}
             </div>
           )}

@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { SEOHead } from '@/components/common/SEOHead';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { FarmRepository } from '@/repositories/FarmRepository';
 import type { UserRole } from '@/types';
 import {
@@ -15,10 +15,6 @@ import {
   Phone,
   Building2,
   ArrowRight,
-  CheckCircle2,
-  RefreshCw,
-  Send,
-  Shield,
 } from 'lucide-react';
 
 const TAMIL_NADU_DISTRICTS = [
@@ -40,10 +36,8 @@ const TAMIL_NADU_DISTRICTS = [
   'Chennai',
 ];
 
-const COOLDOWN_SECONDS = 60;
-
 export const RegisterPage: React.FC = () => {
-  const { signUp, resendVerificationEmail } = useAuth();
+  const { signUp } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const isFarmModeDefault = searchParams.get('type') === 'farm' || window.location.pathname === '/register-farm';
@@ -62,23 +56,6 @@ export const RegisterPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Email verification required state
-  const [isVerificationSent, setIsVerificationSent] = useState<boolean>(false);
-  const [resendCooldown, setResendCooldown] = useState<number>(0);
-  const [isResending, setIsResending] = useState<boolean>(false);
-  const [resendSuccess, setResendSuccess] = useState<boolean>(false);
-
-  // Resend cooldown timer
-  useEffect(() => {
-    if (resendCooldown <= 0) return;
-
-    const timer = setInterval(() => {
-      setResendCooldown((prev) => (prev <= 1 ? 0 : prev - 1));
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [resendCooldown]);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -86,7 +63,7 @@ export const RegisterPage: React.FC = () => {
 
     try {
       const cleanEmail = email.trim().toLowerCase();
-      const { error: signUpError, needsEmailVerification } = await signUp(
+      const { error: signUpError } = await signUp(
         cleanEmail,
         password,
         name,
@@ -98,7 +75,7 @@ export const RegisterPage: React.FC = () => {
         throw signUpError;
       }
 
-      // If user registering as Farm Admin, try creating farm record if user id available
+      // If user registering as Farm Admin, try creating farm record
       if (accountType === 'FARM_ADMIN') {
         try {
           const farmCode = `FARM-${Math.floor(100 + Math.random() * 900)}`;
@@ -117,17 +94,11 @@ export const RegisterPage: React.FC = () => {
         }
       }
 
-      // If email verification is required, show verification state
-      if (needsEmailVerification) {
-        setIsVerificationSent(true);
-        setResendCooldown(COOLDOWN_SECONDS);
+      // Immediate redirect after direct sign up & auto-login
+      if (accountType === 'FARM_ADMIN') {
+        navigate('/farm');
       } else {
-        // Direct sign-in without email confirmation
-        if (accountType === 'FARM_ADMIN') {
-          navigate('/farm');
-        } else {
-          navigate('/marketplace');
-        }
+        navigate('/marketplace');
       }
     } catch (err: any) {
       console.error('Registration failed:', err);
@@ -137,42 +108,11 @@ export const RegisterPage: React.FC = () => {
     }
   };
 
-  const handleResendVerification = async () => {
-    if (resendCooldown > 0 || isResending) return;
-
-    setIsResending(true);
-    setError(null);
-    setResendSuccess(false);
-
-    try {
-      const cleanEmail = email.trim().toLowerCase();
-      const { error: resendError } = await resendVerificationEmail(cleanEmail);
-
-      if (resendError) {
-        if (resendError.message?.toLowerCase().includes('rate')) {
-          setError('Rate limit reached. Please wait a minute before requesting another email.');
-        } else {
-          setError(resendError.message || 'Failed to resend verification email.');
-        }
-        return;
-      }
-
-      setResendSuccess(true);
-      setResendCooldown(COOLDOWN_SECONDS);
-    } catch (err: any) {
-      setError(err.message || 'Failed to resend verification email.');
-    } finally {
-      setIsResending(false);
-    }
-  };
-
   return (
     <>
       <SEOHead
         title={
-          isVerificationSent
-            ? 'Verify Email | Adu Santhai'
-            : accountType === 'FARM_ADMIN'
+          accountType === 'FARM_ADMIN'
             ? 'Partner Farm Registration'
             : 'Create Free Account | Adu Santhai'
         }
@@ -182,109 +122,30 @@ export const RegisterPage: React.FC = () => {
       <div className="min-h-[75vh] flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-lg space-y-6">
           <div className="text-center space-y-2">
-            <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-800 text-white font-serif text-2xl font-black shadow-xs">
-              ஆ
-            </div>
+            <Link to="/" className="inline-block">
+              <div className="inline-flex h-20 w-20 items-center justify-center rounded-2xl overflow-hidden bg-white shadow-sm border border-emerald-800/15 hover:border-emerald-800 transition-colors">
+                <img
+                  src="/logo.jpg"
+                  alt="Ammal Farm Adu Santhai"
+                  className="h-full w-full object-contain p-1"
+                />
+              </div>
+            </Link>
             <h1 className="text-2xl font-black text-slate-900 tracking-tight">
-              {isVerificationSent
-                ? 'Check Your Inbox'
-                : accountType === 'FARM_ADMIN'
+              {accountType === 'FARM_ADMIN'
                 ? 'Register Partner Farm'
                 : 'Join Adu Santhai'}
             </h1>
             <p className="text-xs text-slate-500 max-w-sm mx-auto">
-              {isVerificationSent
-                ? "We've sent a verification link to your email address."
-                : accountType === 'FARM_ADMIN'
+              {accountType === 'FARM_ADMIN'
                 ? "Join Ammal Farm's verified breeder network and showcase your goats directly to buyers."
                 : 'Connect directly with verified breeders and reserve livestock with 24-hour holds.'}
             </p>
           </div>
 
-          {isVerificationSent ? (
-            /* Email Verification Notice Screen */
-            <Card className="rounded-3xl border-slate-200 shadow-xs overflow-hidden">
-              <CardHeader className="text-center pb-2 pt-8">
-                <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100 text-emerald-800">
-                  <Mail className="h-7 w-7" />
-                </div>
-                <CardTitle className="text-xl font-black text-slate-900">
-                  Verify Your Email
-                </CardTitle>
-                <CardDescription className="text-xs text-slate-600 max-w-xs mx-auto mt-1">
-                  We've sent a verification link to your email address.
-                </CardDescription>
-              </CardHeader>
-
-              <CardContent className="space-y-4 py-4 text-center">
-                <div className="rounded-2xl bg-emerald-50 p-4 border border-emerald-100 text-xs text-emerald-900">
-                  <p className="font-semibold text-slate-700">Verification email sent to:</p>
-                  <p className="text-emerald-800 font-bold text-sm mt-0.5 break-all">{email}</p>
-                </div>
-
-                {resendSuccess && (
-                  <div className="flex items-center gap-2 rounded-xl bg-emerald-50 p-3 text-xs text-emerald-800 border border-emerald-200">
-                    <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" />
-                    <span>A new verification link has been sent to your email.</span>
-                  </div>
-                )}
-
-                {error && (
-                  <div className="flex items-start gap-2 rounded-xl bg-red-50 p-3 border border-red-200 text-xs text-red-700 text-left">
-                    <AlertCircle className="h-4 w-4 shrink-0 text-red-600 mt-0.5" />
-                    <span>{error}</span>
-                  </div>
-                )}
-
-                <div className="rounded-xl bg-slate-50 p-3.5 border border-slate-200 text-xs text-slate-600 space-y-1.5 text-left">
-                  <div className="flex items-center gap-1.5 font-bold text-slate-700">
-                    <Shield className="h-3.5 w-3.5 text-emerald-700" />
-                    <span>Next Steps:</span>
-                  </div>
-                  <ol className="list-decimal pl-4 space-y-1 text-slate-500">
-                    <li>Open your email inbox and look for the email from <strong>Adu Santhai</strong>.</li>
-                    <li>Click the <strong>Confirm your email</strong> link inside.</li>
-                    <li>You will be redirected back to the platform to start browsing or listing livestock.</li>
-                  </ol>
-                </div>
-              </CardContent>
-
-              <CardFooter className="flex flex-col gap-3 pb-8 pt-2">
-                <Button
-                  onClick={handleResendVerification}
-                  disabled={resendCooldown > 0 || isResending}
-                  isLoading={isResending}
-                  variant="outline"
-                  className="w-full h-11 rounded-xl font-bold border-slate-200 hover:bg-slate-50 text-slate-700"
-                >
-                  {resendCooldown > 0 ? (
-                    <span className="flex items-center gap-2">
-                      <RefreshCw className="h-4 w-4 animate-spin text-slate-400" />
-                      <span>Resend verification in {resendCooldown}s</span>
-                    </span>
-                  ) : (
-                    <span className="flex items-center gap-2">
-                      <Send className="h-4 w-4 text-emerald-700" />
-                      <span>Resend Verification Email</span>
-                    </span>
-                  )}
-                </Button>
-
-                <Button
-                  asChild
-                  className="w-full h-11 bg-emerald-800 hover:bg-emerald-900 text-white font-bold rounded-xl"
-                >
-                  <Link to="/login">
-                    <span>Back to Sign In</span>
-                    <ArrowRight className="h-4 w-4 ml-1.5" />
-                  </Link>
-                </Button>
-              </CardFooter>
-            </Card>
-          ) : (
-            /* Registration Form */
-            <>
-              {/* Account Type Selector Tabs */}
+          {/* Registration Form */}
+          <>
+            {/* Account Type Selector Tabs */}
               <div className="grid grid-cols-2 rounded-2xl bg-slate-100 p-1 text-xs font-bold border border-slate-200">
                 <button
                   type="button"
@@ -486,7 +347,6 @@ export const RegisterPage: React.FC = () => {
                 </form>
               </Card>
             </>
-          )}
         </div>
       </div>
     </>

@@ -118,7 +118,7 @@ export const AdminDashboard: React.FC = () => {
         </div>
 
         {/* Action Moderation Queues */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xs space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="font-bold text-slate-900 text-sm">Goat Listings Moderation</h3>
@@ -152,6 +152,38 @@ export const AdminDashboard: React.FC = () => {
           </div>
 
           <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xs space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="font-bold text-slate-900 text-sm">Platform Bookings & Holds</h3>
+              <Badge variant="reserved" className="text-[10px]">ORDERS</Badge>
+            </div>
+            <p className="text-xs text-slate-500 leading-relaxed">
+              Supervise statewide 24-hour reservation holds, release overdue reservations, and resolve completed orders.
+            </p>
+            <Link to="/admin/bookings">
+              <Button variant="outline" size="sm" className="w-full text-xs font-bold gap-1">
+                <span>Manage Bookings</span>
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Button>
+            </Link>
+          </div>
+
+          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xs space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="font-bold text-slate-900 text-sm">User & Account Access</h3>
+              <Badge variant="default" className="text-[10px]">ACCOUNTS</Badge>
+            </div>
+            <p className="text-xs text-slate-500 leading-relaxed">
+              Audit registered customer and breeder accounts, verify contact details, and handle account suspensions.
+            </p>
+            <Link to="/admin/users">
+              <Button variant="outline" size="sm" className="w-full text-xs font-bold gap-1">
+                <span>Manage Users</span>
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Button>
+            </Link>
+          </div>
+
+          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xs space-y-4 md:col-span-2 lg:col-span-1">
             <div className="flex items-center justify-between">
               <h3 className="font-bold text-slate-900 text-sm">Disputes & Buyer Reports</h3>
               <Badge variant="destructive" className="text-[10px]">FLAGS</Badge>

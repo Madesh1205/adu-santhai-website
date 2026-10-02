@@ -31,8 +31,14 @@ export const FarmAdminLayout: React.FC = () => {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-800 font-bold text-xl border border-emerald-100 shadow-xs">
-                <Building2 className="h-7 w-7" />
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-white overflow-hidden text-emerald-800 font-bold text-xl border border-slate-200 shadow-xs">
+                {farm?.logoUrl ? (
+                  <img src={farm.logoUrl} alt={farm.name} className="h-full w-full object-cover" />
+                ) : farm?.isAmmalOwnFarm ? (
+                  <img src="/logo.jpg" alt={farm.name} className="h-full w-full object-cover" />
+                ) : (
+                  <Building2 className="h-7 w-7 text-emerald-800" />
+                )}
               </div>
               <div>
                 <div className="flex items-center gap-2">

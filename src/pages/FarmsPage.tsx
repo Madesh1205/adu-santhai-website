@@ -118,28 +118,61 @@ export const FarmsPage: React.FC = () => {
             {filteredFarms.map((farm) => (
               <div
                 key={farm.id}
-                className="flex flex-col rounded-3xl border border-slate-200 bg-white p-6 shadow-xs transition-all duration-200 hover:border-emerald-700/40 hover:shadow-md"
+                className="flex flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xs transition-all duration-200 hover:border-emerald-700/40 hover:shadow-md group"
               >
-                <div className="flex items-start justify-between gap-3 mb-4">
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 border border-emerald-100 text-emerald-800 font-bold">
-                    <Building2 className="h-6 w-6" />
-                  </div>
-                  <div className="flex flex-wrap items-center gap-1.5 justify-end">
+                {/* Banner Strip */}
+                <div className="relative h-28 w-full overflow-hidden bg-gradient-to-r from-emerald-900 to-slate-800">
+                  {farm.bannerUrl ? (
+                    <img
+                      src={farm.bannerUrl}
+                      alt={farm.name}
+                      className="h-full w-full object-cover group-hover:scale-103 transition-transform duration-300"
+                    />
+                  ) : (
+                    <div className="h-full w-full bg-gradient-to-r from-emerald-900 via-emerald-800 to-slate-900" />
+                  )}
+                  <div className="absolute top-3 right-3 flex flex-wrap items-center gap-1.5 justify-end">
                     {farm.isAmmalOwnFarm ? (
-                      <Badge variant="earth" className="text-[10px] font-bold">
+                      <Badge variant="earth" className="text-[10px] font-bold shadow-xs">
                         CENTRAL HUB
                       </Badge>
                     ) : (
-                      <VerifiedBadge label="Verified" variant="subtle" />
+                      <VerifiedBadge label="Verified" variant="default" />
                     )}
-                    <span className="font-mono text-xs text-slate-400">#{farm.farmCode}</span>
+                    <span className="font-mono text-[10px] bg-black/40 text-white px-2 py-0.5 rounded-full backdrop-blur-xs">
+                      #{farm.farmCode}
+                    </span>
                   </div>
                 </div>
 
-                <h3 className="text-lg font-bold text-slate-900">{farm.name}</h3>
-                {farm.tagline && (
-                  <p className="text-xs text-emerald-800 font-medium mt-0.5">{farm.tagline}</p>
-                )}
+                <div className="p-6 pt-0 flex-1 flex flex-col">
+                  {/* Logo Avatar Badge */}
+                  <div className="relative flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-white p-0.5 overflow-hidden border-2 border-white shadow-md text-emerald-800 font-bold -mt-8 mb-3 z-10">
+                    {farm.logoUrl ? (
+                      <img
+                        src={farm.logoUrl}
+                        alt={farm.name}
+                        className="h-full w-full object-cover rounded-xl"
+                      />
+                    ) : farm.isAmmalOwnFarm ? (
+                      <img
+                        src="/logo.jpg"
+                        alt={farm.name}
+                        className="h-full w-full object-cover rounded-xl"
+                      />
+                    ) : (
+                      <Building2 className="h-8 w-8 text-emerald-800" />
+                    )}
+                  </div>
+
+                  <h3 className="text-lg font-bold text-slate-900">
+                    <Link to={`/farms/${farm.id}`} className="hover:text-emerald-800 transition-colors">
+                      {farm.name}
+                    </Link>
+                  </h3>
+                  {farm.tagline && (
+                    <p className="text-xs text-emerald-800 font-medium mt-0.5">{farm.tagline}</p>
+                  )}
 
                 <div className="mt-2 flex items-center gap-1.5 text-xs text-slate-500">
                   <MapPin className="h-3.5 w-3.5 text-slate-400 shrink-0" />
@@ -171,6 +204,7 @@ export const FarmsPage: React.FC = () => {
                   </Link>
                 </div>
               </div>
+            </div>
             ))}
           </div>
         )}

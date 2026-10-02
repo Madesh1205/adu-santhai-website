@@ -115,9 +115,15 @@ export const ResetPasswordPage: React.FC = () => {
       <div className="min-h-[75vh] flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-md space-y-6">
           <div className="text-center space-y-2">
-            <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-800 text-white font-serif text-2xl font-black shadow-xs">
-              ஆ
-            </div>
+            <Link to="/" className="inline-block">
+              <div className="inline-flex h-20 w-20 items-center justify-center rounded-2xl overflow-hidden bg-white shadow-sm border border-emerald-800/15 hover:border-emerald-800 transition-colors">
+                <img
+                  src="/logo.jpg"
+                  alt="Ammal Farm Adu Santhai"
+                  className="h-full w-full object-contain p-1"
+                />
+              </div>
+            </Link>
             <h1 className="text-2xl font-black text-slate-900 tracking-tight">
               Adu Santhai Account Security
             </h1>

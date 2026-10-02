@@ -16,13 +16,17 @@ import { GoatDetailPage } from '@/pages/GoatDetailPage';
 import { FarmsPage } from '@/pages/FarmsPage';
 import { FarmDetailPage } from '@/pages/FarmDetailPage';
 
+// Policy Pages
+import { PrivacyPolicyPage } from '@/pages/policy/PrivacyPolicyPage';
+import { TermsPage } from '@/pages/policy/TermsPage';
+import { RefundPolicyPage } from '@/pages/policy/RefundPolicyPage';
+
 // Auth Pages
 import { LoginPage } from '@/pages/auth/LoginPage';
 import { RegisterPage } from '@/pages/auth/RegisterPage';
 import { ForgotPasswordPage } from '@/pages/auth/ForgotPasswordPage';
 import { ResetPasswordPage } from '@/pages/auth/ResetPasswordPage';
 import { AuthCallbackPage } from '@/pages/auth/AuthCallbackPage';
-import { VerifyEmailPage } from '@/pages/auth/VerifyEmailPage';
 
 // Customer Pages
 import { MyBookingsPage } from '@/pages/customer/MyBookingsPage';
@@ -42,6 +46,8 @@ import { AdminDashboard } from '@/pages/admin/AdminDashboard';
 import { GoatModerationPage } from '@/pages/admin/GoatModerationPage';
 import { FarmModerationPage } from '@/pages/admin/FarmModerationPage';
 import { ReportsModerationPage } from '@/pages/admin/ReportsModerationPage';
+import { AdminBookingsPage } from '@/pages/admin/AdminBookingsPage';
+import { AdminUsersPage } from '@/pages/admin/AdminUsersPage';
 
 export const AppRouter: React.FC = () => {
   return (
@@ -53,6 +59,9 @@ export const AppRouter: React.FC = () => {
         <Route path="/goats/:id" element={<GoatDetailPage />} />
         <Route path="/farms" element={<FarmsPage />} />
         <Route path="/farms/:id" element={<FarmDetailPage />} />
+        <Route path="/privacy" element={<PrivacyPolicyPage />} />
+        <Route path="/terms" element={<TermsPage />} />
+        <Route path="/refund-policy" element={<RefundPolicyPage />} />
 
         {/* Auth Routes */}
         <Route path="/login" element={<LoginPage />} />
@@ -64,7 +73,7 @@ export const AppRouter: React.FC = () => {
         <Route path="/auth/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
-        <Route path="/auth/verify-email" element={<VerifyEmailPage />} />
+        <Route path="/auth/verify-email" element={<Navigate to="/login" replace />} />
         <Route path="/auth/callback" element={<AuthCallbackPage />} />
 
         {/* Customer Protected Routes */}
@@ -133,6 +142,8 @@ export const AppRouter: React.FC = () => {
         <Route path="dashboard" element={<AdminDashboard />} />
         <Route path="goats" element={<GoatModerationPage />} />
         <Route path="farms" element={<FarmModerationPage />} />
+        <Route path="bookings" element={<AdminBookingsPage />} />
+        <Route path="users" element={<AdminUsersPage />} />
         <Route path="reports" element={<ReportsModerationPage />} />
       </Route>
 

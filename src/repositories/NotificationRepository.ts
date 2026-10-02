@@ -77,4 +77,47 @@ export const NotificationRepository = {
       console.error('Error marking all notifications as read:', error);
     }
   },
+
+  /**
+   * Subscribes to real-time notifications for a user via Supabase Realtime channel.
+   * Returns an unsubscribe cleanup function.
+   */
+  subscribeToNotifications(
+    userId: string,
+    onNotification: (notification: AppNotification) => void
+  ): () => void {
+    const channelName = `realtime-notifications-${userId}-${Date.now()}`;
+    const channel = supabase
+      .channel(channelName)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'notifications',
+          filter: `user_id=eq.${userId}`,
+        },
+        (payload: any) => {
+          if (payload.new) {
+            const notif: AppNotification = {
+              id: payload.new.id,
+              userId: payload.new.user_id,
+              title: payload.new.title,
+              body: payload.new.body,
+              linkType: payload.new.link_type,
+              linkId: payload.new.link_id,
+              isRead: payload.new.is_read ?? false,
+              eventKey: payload.new.event_key,
+              createdAt: payload.new.created_at,
+            };
+            onNotification(notif);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  },
 };

@@ -29,7 +29,7 @@ export function mapGoatRow(row: GoatRow): Goat {
   });
 
   const photos = images.map((img) => resolveStorageUrl(img.image_url)).filter(Boolean);
-  const primaryPhoto = photos[0] || 'https://images.unsplash.com/photo-1524024973431-2ad916746881?auto=format&fit=crop&w=800&q=80';
+  const primaryPhoto = photos[0] || '';
   const discount = Number(row.discount_percentage ?? 0);
   const price = Number(row.price);
   const finalPrice = calculateFinalPrice(price, discount);
@@ -37,10 +37,10 @@ export function mapGoatRow(row: GoatRow): Goat {
   return {
     id: row.id,
     farmId: row.farm_id,
-    farmName: row.farms?.name ?? 'Ammal Farm',
-    farmCode: row.farms?.farm_code ?? 'FARM-001',
-    farmLocation: row.farms ? `${row.farms.location_district}, ${row.farms.location_state}` : 'Tiruvannamalai, Tamil Nadu',
-    farmContact: row.farms?.contact_phone ?? '+91 63808 98358',
+    farmName: row.farms?.name ?? 'Breeder Farm',
+    farmCode: row.farms?.farm_code ?? '',
+    farmLocation: row.farms ? `${row.farms.location_district}, ${row.farms.location_state}` : 'Tamil Nadu, India',
+    farmContact: row.farms?.contact_phone ?? '',
     name: row.name,
     breedId: row.breed_id,
     breedName: row.breed_name,
@@ -60,8 +60,8 @@ export function mapGoatRow(row: GoatRow): Goat {
     parentageMotherTag: row.parentage_mother_tag,
     isApprovedByAdmin: row.is_approved_by_admin,
     isFeatured: row.is_featured,
-    rating: Number(row.rating ?? 5.0),
-    reviewCount: Number(row.review_count ?? 0),
+    rating: Number((row as any).rating ?? 5.0),
+    reviewCount: Number((row as any).review_count ?? 0),
     goatCode: row.goat_code,
     photos,
     primaryPhoto,
@@ -140,7 +140,7 @@ export const GoatRepository = {
           query = query.order('age_months', { ascending: true });
           break;
         case 'top_rated':
-          query = query.order('rating', { ascending: false });
+          query = query.order('is_featured', { ascending: false }).order('created_at', { ascending: false });
           break;
         case 'newest':
         default:

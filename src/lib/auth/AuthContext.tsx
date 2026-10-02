@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, useMemo, useCallback } from 'react';
 import type { User, Session } from '@supabase/supabase-js';
-import { supabase } from '@/lib/supabase/client';
+import { supabase, resolveStorageUrl, BUCKET_GOAT_IMAGES } from '@/lib/supabase/client';
 import { getAuthCallbackUrl } from '@/lib/auth/authConfig';
 import type { UserProfile, Farm, UserRole } from '@/types';
 
@@ -29,7 +29,26 @@ interface AuthContextType {
   updatePassword: (password: string) => Promise<{ error: Error | null }>;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const defaultAuthContext: AuthContextType = {
+  user: null,
+  session: null,
+  profile: null,
+  farm: null,
+  isLoading: true,
+  isCustomer: false,
+  isFarmAdmin: false,
+  isSuperAdmin: false,
+  isEmailVerified: false,
+  signInWithPassword: async () => ({ error: new Error('AuthProvider not initialized') }),
+  signUp: async () => ({ error: new Error('AuthProvider not initialized') }),
+  signOut: async () => {},
+  refreshProfile: async () => {},
+  resendVerificationEmail: async () => ({ error: new Error('AuthProvider not initialized') }),
+  sendPasswordResetEmail: async () => ({ error: new Error('AuthProvider not initialized') }),
+  updatePassword: async () => ({ error: new Error('AuthProvider not initialized') }),
+};
+
+const AuthContext = createContext<AuthContextType>(defaultAuthContext);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -80,10 +99,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             status: farmResult.status,
             isAmmalOwnFarm: farmResult.is_ammal_own_farm ?? false,
             verifiedAt: farmResult.verified_at,
-            rating: Number(farmResult.rating ?? 5.0),
-            reviewCount: Number(farmResult.review_count ?? 0),
-            logoUrl: farmResult.logo_url,
-            bannerUrl: farmResult.banner_url,
+            rating: Number((farmResult as any).rating ?? 5.0),
+            reviewCount: Number((farmResult as any).review_count ?? 0),
+            logoUrl: farmResult.logo_url ? resolveStorageUrl(farmResult.logo_url, BUCKET_GOAT_IMAGES) : null,
+            bannerUrl: farmResult.banner_url ? resolveStorageUrl(farmResult.banner_url, BUCKET_GOAT_IMAGES) : null,
             goatListingLimit: Number(farmResult.goat_listing_limit ?? 2),
             farmCode: farmResult.farm_code,
             createdAt: farmResult.created_at,
@@ -93,9 +112,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         const userProfile: UserProfile = {
           id: profileData.id,
-          email: profileData.email,
-          name: profileData.name,
-          phone: profileData.phone,
+          email: profileData.email || currentUser?.email || '',
+          name: (profileData as any).full_name || (profileData as any).name || currentUser?.user_metadata?.full_name || currentUser?.user_metadata?.name || 'User',
+          phone: profileData.phone || '',
           role: profileData.role,
           farmId: farmData?.id ?? null,
           avatarUrl: profileData.avatar_url,
@@ -141,6 +160,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   useEffect(() => {
+    // 0. Auto-redirect if URL hash or search contains password recovery tokens
+    const hash = window.location.hash.substring(1);
+    const search = window.location.search.substring(1);
+    const isRecovery =
+      hash.includes('type=recovery') ||
+      search.includes('type=recovery') ||
+      search.includes('next=/auth/reset-password') ||
+      hash.includes('next=/auth/reset-password');
+
+    if (
+      isRecovery &&
+      !window.location.pathname.includes('/auth/reset-password') &&
+      !window.location.pathname.includes('/reset-password')
+    ) {
+      window.location.href = '/auth/reset-password' + window.location.search + window.location.hash;
+      return;
+    }
+
     // Initial active session check
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
@@ -150,6 +187,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } else {
         setIsLoading(false);
       }
+    }).catch((err) => {
+      console.error('Error getting session:', err);
+      setIsLoading(false);
     });
 
     // Realtime auth state listener
@@ -157,7 +197,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setSession(newSession);
       setUser(newSession?.user ?? null);
 
-      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
+      if (event === 'PASSWORD_RECOVERY') {
+        if (
+          !window.location.pathname.includes('/auth/reset-password') &&
+          !window.location.pathname.includes('/reset-password')
+        ) {
+          window.location.href = '/auth/reset-password';
+        }
+      } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
         if (newSession?.user) {
           await fetchProfileAndFarm(newSession.user.id, newSession.user);
         }
@@ -205,13 +252,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const cleanEmail = email.trim().toLowerCase();
       const cleanPhone = phone.trim();
-      const callbackUrl = getAuthCallbackUrl();
 
       const { data, error } = await supabase.auth.signUp({
         email: cleanEmail,
         password,
         options: {
-          emailRedirectTo: callbackUrl,
           data: {
             name: name.trim(),
             phone: cleanPhone,
@@ -222,19 +267,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) return { error };
 
-      // Determine if email verification is required
-      // When Supabase email confirmation is enabled, session is null or email_confirmed_at is null
-      const needsEmailVerification = !data.session || !data.user?.email_confirmed_at;
-
       if (data.user) {
-        // Attempt to upsert to profiles table if session exists or backend allows
         try {
           await supabase
             .from('profiles')
             .upsert({
               id: data.user.id,
               email: cleanEmail,
-              name: name.trim(),
+              full_name: name.trim(),
               phone: cleanPhone,
               role,
             });
@@ -242,12 +282,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           console.warn('Profile sync notice:', profileErr.message);
         }
 
-        if (data.session) {
+        // If session was not automatically provided on signup, perform immediate sign-in
+        if (!data.session) {
+          const { error: signInErr } = await supabase.auth.signInWithPassword({
+            email: cleanEmail,
+            password,
+          });
+          if (!signInErr) {
+            const { data: refreshedSession } = await supabase.auth.getSession();
+            if (refreshedSession.session?.user) {
+              await fetchProfileAndFarm(refreshedSession.session.user.id, refreshedSession.session.user);
+            }
+          }
+        } else {
           await fetchProfileAndFarm(data.user.id, data.user);
         }
       }
 
-      return { data, error: null, needsEmailVerification };
+      return { data, error: null, needsEmailVerification: false };
     } catch (err) {
       return { error: err as Error };
     }
@@ -284,8 +336,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const sendPasswordResetEmail = useCallback(async (email: string) => {
     try {
       const cleanEmail = email.trim().toLowerCase();
-      // Direct the reset email to /auth/callback with next=/auth/reset-password
-      // or to /auth/reset-password directly
       const resetRedirectUrl = getAuthCallbackUrl('/auth/reset-password');
 
       const { error } = await supabase.auth.resetPasswordForEmail(cleanEmail, {
@@ -345,8 +395,5 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
 export function useAuth(): AuthContextType {
   const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
+  return context || defaultAuthContext;
 }

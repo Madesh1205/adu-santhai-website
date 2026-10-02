@@ -5,12 +5,14 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { PriceDisplay } from '@/components/common/PriceDisplay';
 import { VerifiedBadge } from '@/components/common/VerifiedBadge';
+import { FallbackGoatImage } from '@/components/common/FallbackGoatImage';
 import { StickyActionBar } from '@/components/common/StickyActionBar';
 import { BookingModal } from '@/components/marketplace/BookingModal';
 import { ReportModal } from '@/components/marketplace/ReportModal';
 import { GoatCard } from '@/components/marketplace/GoatCard';
 import { GoatRepository } from '@/repositories/GoatRepository';
 import { WishlistRepository } from '@/repositories/WishlistRepository';
+import { ReviewRepository, type ReviewItem } from '@/repositories/ReviewRepository';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { formatCurrency, formatAge, formatDate } from '@/lib/utils';
 import type { Goat } from '@/types';
@@ -25,6 +27,7 @@ import {
   CheckCircle2,
   Calendar,
   Info,
+  Star,
 } from 'lucide-react';
 
 export const GoatDetailPage: React.FC = () => {
@@ -36,20 +39,27 @@ export const GoatDetailPage: React.FC = () => {
   const [relatedGoats, setRelatedGoats] = useState<Goat[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [activePhoto, setActivePhoto] = useState<string>('');
+  const [imgError, setImgError] = useState<boolean>(false);
   const [isSaved, setIsSaved] = useState<boolean>(false);
   const [showBookingModal, setShowBookingModal] = useState<boolean>(false);
   const [showReportModal, setShowReportModal] = useState<boolean>(false);
   const [copySuccess, setCopySuccess] = useState<boolean>(false);
+  const [reviews, setReviews] = useState<ReviewItem[]>([]);
 
   useEffect(() => {
     async function loadGoat() {
       if (!id) return;
       setLoading(true);
       try {
-        const data = await GoatRepository.getGoatById(id);
+        const [data, reviewList] = await Promise.all([
+          GoatRepository.getGoatById(id),
+          ReviewRepository.getGoatReviews(id),
+        ]);
+
         if (data) {
           setGoat(data);
           setActivePhoto(data.primaryPhoto);
+          setReviews(reviewList);
 
           // Fetch related goats from the same breed or farm
           const related = await GoatRepository.getApprovedGoats({ breed: data.breedName });
@@ -171,15 +181,16 @@ export const GoatDetailPage: React.FC = () => {
           {/* LEFT: Large Interactive Image Gallery (7 Cols) */}
           <div className="lg:col-span-7 space-y-4">
             <div className="relative aspect-4/3 w-full overflow-hidden rounded-3xl border border-slate-200 bg-slate-100 shadow-xs">
-              <img
-                src={activePhoto || goat.primaryPhoto}
-                alt={goat.name}
-                className="h-full w-full object-cover"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src =
-                    'https://images.unsplash.com/photo-1524024973431-2ad916746881?auto=format&fit=crop&w=800&q=80';
-                }}
-              />
+              {(activePhoto || goat.primaryPhoto) && !imgError ? (
+                <img
+                  src={activePhoto || goat.primaryPhoto}
+                  alt={goat.name}
+                  className="h-full w-full object-cover"
+                  onError={() => setImgError(true)}
+                />
+              ) : (
+                <FallbackGoatImage breedName={goat.breedName} goatCode={goat.goatCode} />
+              )}
 
               {/* Status Badges Overlays */}
               <div className="absolute left-4 top-4 flex flex-wrap gap-2">
@@ -238,7 +249,10 @@ export const GoatDetailPage: React.FC = () => {
                   <button
                     key={idx}
                     type="button"
-                    onClick={() => setActivePhoto(photoUrl)}
+                    onClick={() => {
+                      setActivePhoto(photoUrl);
+                      setImgError(false);
+                    }}
                     className={`relative h-20 w-24 shrink-0 overflow-hidden rounded-2xl border-2 transition-all cursor-pointer ${
                       activePhoto === photoUrl
                         ? 'border-emerald-800 ring-2 ring-emerald-700/20'
@@ -387,7 +401,7 @@ export const GoatDetailPage: React.FC = () => {
         <section className="mt-12 rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-xs">
           <h2 className="text-lg font-bold text-slate-900 mb-6">Specifications & Health Records</h2>
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 sm:gap-6">
             <div className="rounded-2xl bg-slate-50 p-4 border border-slate-100">
               <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">
                 Age
@@ -421,6 +435,18 @@ export const GoatDetailPage: React.FC = () => {
               </span>
               <span className="text-base font-bold text-slate-900 mt-1 block">
                 {goat.breedName}
+              </span>
+            </div>
+
+            <div className="rounded-2xl bg-slate-50 p-4 border border-slate-100">
+              <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">
+                Horn Status
+              </span>
+              <span className="text-base font-bold text-slate-900 mt-1 block">
+                {(goat.description || '').toLowerCase().includes('polled') ||
+                (goat.description || '').toLowerCase().includes('hornless')
+                  ? 'Polled'
+                  : 'Horned'}
               </span>
             </div>
           </div>
@@ -466,6 +492,57 @@ export const GoatDetailPage: React.FC = () => {
             </p>
           </section>
         )}
+
+        {/* REVIEWS & VERIFIED RATINGS SECTION */}
+        <section className="mt-8 rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-xs">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="text-lg font-bold text-slate-900">Buyer Reviews & Ratings</h2>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Verified feedback from farmers and buyers across Tamil Nadu
+              </p>
+            </div>
+            <div className="flex items-center gap-1.5 bg-amber-50 border border-amber-200 px-3 py-1 rounded-xl">
+              <Star className="h-4 w-4 fill-amber-400 text-amber-500" />
+              <span className="text-sm font-black text-amber-900">
+                {reviews.length > 0
+                  ? (reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length).toFixed(1)
+                  : '5.0'}
+              </span>
+              <span className="text-xs text-amber-700">({reviews.length} reviews)</span>
+            </div>
+          </div>
+
+          {reviews.length === 0 ? (
+            <div className="rounded-2xl bg-slate-50 p-6 text-center border border-slate-100">
+              <p className="text-xs text-slate-500">
+                No customer reviews have been submitted for this listing yet. Buy with confidence through our 24-hour hold reservation system.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {reviews.map((r) => (
+                <div key={r.id} className="rounded-2xl bg-slate-50 p-4 border border-slate-100 space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-xs text-slate-900">{r.customerName}</span>
+                    <div className="flex items-center gap-0.5 text-amber-500">
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <Star
+                          key={i}
+                          className={`h-3 w-3 ${
+                            i < r.rating ? 'fill-amber-400 text-amber-500' : 'text-slate-300'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                  <p className="text-xs text-slate-600 leading-relaxed">{r.comment}</p>
+                  <span className="text-[10px] text-slate-400 block pt-1">{formatDate(r.createdAt)}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
 
         {/* RELATED GOATS */}
         {relatedGoats.length > 0 && (

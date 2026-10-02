@@ -50,10 +50,17 @@ export const Footer: React.FC = () => {
           {/* Col 1: Brand & Bio */}
           <div className="md:col-span-1 space-y-4">
             <div className="flex items-center gap-2.5">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-800 text-white font-serif text-lg font-black">
-                ஆ
+              <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl overflow-hidden bg-white shadow-xs border border-slate-200">
+                <img
+                  src="/logo.jpg"
+                  alt="Ammal Farm Adu Santhai"
+                  className="h-full w-full object-contain p-0.5"
+                />
               </div>
-              <span className="font-black text-slate-900 text-lg tracking-tight">ADU SANTHAI</span>
+              <div className="flex flex-col">
+                <span className="font-black text-slate-900 text-lg tracking-tight leading-none">ADU SANTHAI</span>
+                <span className="text-[10px] font-bold text-emerald-800 tracking-wider uppercase mt-0.5">Ammal Farm</span>
+              </div>
             </div>
             <p className="text-xs leading-relaxed text-slate-500">
               Tamil Nadu's premier direct marketplace for verified goats, associated with <strong>Ammal Farm</strong>. Connecting breeders, farmers, and buyers with complete transparency.
@@ -61,7 +68,15 @@ export const Footer: React.FC = () => {
             <div className="pt-2 text-xs space-y-2.5 text-slate-600">
               <div className="flex items-center gap-2">
                 <MapPin className="h-4 w-4 text-emerald-800 shrink-0" />
-                <span>Tiruvannamalai, Tamil Nadu, India</span>
+                <a
+                  href="https://maps.app.goo.gl/qL8nLnxKZcsyj7xm8"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-emerald-800 transition-colors"
+                  title="View Farm Location on Google Maps"
+                >
+                  Rusha Post, Kollimedu, Chennangkuppam, K.V. Kuppam, Vellore - 632209, TN
+                </a>
               </div>
               <div className="flex items-center gap-2">
                 <Phone className="h-4 w-4 text-emerald-800 shrink-0" />
@@ -71,8 +86,8 @@ export const Footer: React.FC = () => {
               </div>
               <div className="flex items-center gap-2">
                 <Mail className="h-4 w-4 text-emerald-800 shrink-0" />
-                <a href="mailto:contact@ammalfarm.live" className="hover:text-emerald-800 transition-colors">
-                  contact@ammalfarm.live
+                <a href="mailto:contact@ammalfarm.dpdns.org" className="hover:text-emerald-800 transition-colors">
+                  contact@ammalfarm.dpdns.org
                 </a>
               </div>
             </div>
@@ -159,22 +174,28 @@ export const Footer: React.FC = () => {
             <p className="text-xs text-slate-500 leading-relaxed mb-4">
               Every goat is backed by real breeder identification, transparent pricing, and direct farmer communication.
             </p>
-            <div className="rounded-2xl bg-white p-4 border border-slate-200 shadow-xs">
+            <Link
+              to="/farms"
+              className="block rounded-2xl bg-white p-4 border border-slate-200 shadow-xs hover:border-emerald-700/50 hover:shadow-sm transition-all group"
+            >
               <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-800">
                 Primary Partner Hub
               </span>
-              <h6 className="font-extrabold text-slate-900 text-sm mt-0.5">Ammal Farm (FARM-001)</h6>
-              <p className="text-xs text-slate-500 mt-0.5">Tiruvannamalai Hub</p>
-            </div>
+              <h6 className="font-extrabold text-slate-900 text-sm mt-0.5 group-hover:text-emerald-800 transition-colors">
+                Ammal Farm (FARM-001) →
+              </h6>
+              <p className="text-xs text-slate-500 mt-0.5">K.V. Kuppam, Vellore - 632209</p>
+            </Link>
           </div>
         </div>
 
         {/* Bottom Bar */}
-        <div className="pt-8 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-400 gap-4">
+        <div className="pt-8 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-4">
           <p>© {new Date().getFullYear()} Adu Santhai • Ammal Farm. All rights reserved.</p>
-          <div className="flex items-center gap-6">
-            <span>Direct Farm Sourcing</span>
-            <span>Zero Middlemen</span>
+          <div className="flex flex-wrap items-center gap-4 sm:gap-6 font-medium">
+            <Link to="/privacy" className="hover:text-emerald-800 transition-colors">Privacy Policy</Link>
+            <Link to="/terms" className="hover:text-emerald-800 transition-colors">Terms & Conditions</Link>
+            <Link to="/refund-policy" className="hover:text-emerald-800 transition-colors">Refund & Cancellation</Link>
           </div>
         </div>
       </div>

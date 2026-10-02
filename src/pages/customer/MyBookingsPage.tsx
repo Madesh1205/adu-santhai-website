@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { SEOHead } from '@/components/common/SEOHead';
 import { BookingRepository } from '@/repositories/BookingRepository';
+import { DEFAULT_GOAT_IMAGE_FALLBACK } from '@/components/common/FallbackGoatImage';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -139,7 +140,7 @@ export const MyBookingsPage: React.FC = () => {
                     {/* Goat Identity */}
                     <div className="flex items-start gap-4">
                       <img
-                        src={b.goatPhoto || 'https://images.unsplash.com/photo-1524024973431-2ad916746881?auto=format&fit=crop&w=400&q=80'}
+                        src={b.goatPhoto || DEFAULT_GOAT_IMAGE_FALLBACK}
                         alt={b.goatName || 'Reserved Goat'}
                         className="h-20 w-20 rounded-2xl object-cover bg-slate-100 shrink-0 border border-slate-200"
                       />

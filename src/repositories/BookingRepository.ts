@@ -37,7 +37,7 @@ export function mapBookingRow(row: BookingRow): Booking {
     goatBreed: row.goats?.breed_name ?? '',
     goatPhoto: photo,
     farmId: row.farm_id,
-    farmName: row.farms?.name ?? 'Ammal Farm',
+    farmName: row.farms?.name ?? 'Breeder Farm',
     farmCode: row.farms?.farm_code ?? '',
     farmContact: row.farms?.contact_phone ?? '',
     customerId: row.customer_id,

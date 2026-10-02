@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { PriceDisplay } from '@/components/common/PriceDisplay';
 import { VerifiedBadge } from '@/components/common/VerifiedBadge';
+import { FallbackGoatImage } from '@/components/common/FallbackGoatImage';
 import { formatAge } from '@/lib/utils';
 import { Heart, Building2 } from 'lucide-react';
 import { useAuth } from '@/lib/auth/AuthContext';
@@ -27,6 +28,7 @@ export const GoatCard: React.FC<GoatCardProps> = ({
   const navigate = useNavigate();
   const [saved, setSaved] = useState<boolean>(isWishlisted);
   const [isTogglingWishlist, setIsTogglingWishlist] = useState<boolean>(false);
+  const [imgError, setImgError] = useState<boolean>(false);
 
   const handleWishlistClick = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -64,16 +66,17 @@ export const GoatCard: React.FC<GoatCardProps> = ({
     <div className="group relative flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white transition-all duration-200 hover:border-emerald-700/40 hover:shadow-md">
       {/* 1. DOMINANT IMAGE CONTAINER */}
       <Link to={`/goats/${goat.id}`} className="relative aspect-4/3 w-full overflow-hidden bg-slate-100 block">
-        <img
-          src={goat.primaryPhoto}
-          alt={goat.name}
-          loading="lazy"
-          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-103"
-          onError={(e) => {
-            (e.target as HTMLImageElement).src =
-              'https://images.unsplash.com/photo-1524024973431-2ad916746881?auto=format&fit=crop&w=800&q=80';
-          }}
-        />
+        {goat.primaryPhoto && !imgError ? (
+          <img
+            src={goat.primaryPhoto}
+            alt={goat.name}
+            loading="lazy"
+            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-103"
+            onError={() => setImgError(true)}
+          />
+        ) : (
+          <FallbackGoatImage breedName={goat.breedName} goatCode={goat.goatCode} />
+        )}
 
         {/* Status Overlays */}
         <div className="absolute left-3 top-3 flex flex-wrap gap-1.5">

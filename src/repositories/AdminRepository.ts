@@ -1,7 +1,8 @@
 import { supabase } from '@/lib/supabase/client';
-import type { PlatformStats, Goat, Farm } from '@/types';
+import type { PlatformStats, Goat, Farm, Booking, BookingStatus, UserProfile, UserRole } from '@/types';
 import { mapGoatRow } from './GoatRepository';
 import { mapFarmRow } from './FarmRepository';
+import { mapBookingRow } from './BookingRepository';
 
 export const AdminRepository = {
   /**
@@ -211,6 +212,153 @@ export const AdminRepository = {
 
     if (error) {
       console.error('Error updating farm quota:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Fetches all platform bookings for the Super Admin management console.
+   */
+  async getAllBookings(statusFilter?: BookingStatus | 'ALL'): Promise<Booking[]> {
+    let query = supabase
+      .from('bookings')
+      .select(`
+        *,
+        goats (
+          id, name, goat_code, breed_name,
+          goat_images (image_url, is_primary)
+        ),
+        farms (
+          id, name, farm_code, contact_phone
+        ),
+        profiles:customer_id (
+          id, name, phone, email
+        )
+      `)
+      .order('created_at', { ascending: false });
+
+    if (statusFilter && statusFilter !== 'ALL') {
+      query = query.eq('status', statusFilter);
+    }
+
+    const { data, error } = await query;
+    if (error) {
+      console.error('Error fetching admin bookings:', error);
+      throw error;
+    }
+
+    return (data || []).map(mapBookingRow);
+  },
+
+  /**
+   * Super Admin override for booking status.
+   */
+  async updateBookingStatusAdmin(
+    bookingId: string,
+    status: BookingStatus,
+    adminNotes?: string
+  ): Promise<void> {
+    const updates: any = {
+      status,
+      admin_notes: adminNotes,
+      updated_at: new Date().toISOString(),
+    };
+
+    if (status === 'CONFIRMED') updates.confirmed_at = new Date().toISOString();
+    if (status === 'COMPLETED') updates.completed_at = new Date().toISOString();
+    if (status === 'CANCELLED') updates.cancelled_at = new Date().toISOString();
+
+    const { data: updatedBooking, error } = await supabase
+      .from('bookings')
+      .update(updates)
+      .eq('id', bookingId)
+      .select('goat_id')
+      .single();
+
+    if (error) {
+      console.error('Error updating booking status by admin:', error);
+      throw error;
+    }
+
+    // Release goat if cancelled or expired
+    if (updatedBooking?.goat_id) {
+      if (status === 'CANCELLED' || status === 'EXPIRED') {
+        await supabase
+          .from('goats')
+          .update({ status: 'AVAILABLE' })
+          .eq('id', updatedBooking.goat_id);
+      } else if (status === 'COMPLETED') {
+        await supabase
+          .from('goats')
+          .update({ status: 'SOLD' })
+          .eq('id', updatedBooking.goat_id);
+      } else if (status === 'CONFIRMED') {
+        await supabase
+          .from('goats')
+          .update({ status: 'CONFIRMED' })
+          .eq('id', updatedBooking.goat_id);
+      }
+    }
+  },
+
+  /**
+   * Triggers the database RPC to release overdue holds (> 24 hours).
+   */
+  async expireOverdueBookings(): Promise<number> {
+    const { data, error } = await (supabase.rpc as any)('expire_overdue_bookings');
+    if (error) {
+      console.warn('RPC expire_overdue_bookings notice:', error);
+      return 0;
+    }
+    return Number(data ?? 0);
+  },
+
+  /**
+   * Fetches all registered user profiles for Super Admin moderation.
+   */
+  async getAllProfiles(roleFilter?: UserRole | 'ALL'): Promise<UserProfile[]> {
+    let query = supabase
+      .from('profiles')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (roleFilter && roleFilter !== 'ALL') {
+      query = query.eq('role', roleFilter);
+    }
+
+    const { data, error } = await query;
+    if (error) {
+      console.error('Error fetching profiles:', error);
+      throw error;
+    }
+
+    return (data || []).map((row: any) => ({
+      id: row.id,
+      email: row.email,
+      name: row.name || 'Anonymous User',
+      phone: row.phone || '',
+      role: row.role,
+      farmId: row.farm_id,
+      avatarUrl: row.avatar_url,
+      isSuspended: Boolean(row.is_suspended),
+      createdAt: row.created_at,
+    }));
+  },
+
+  /**
+   * Suspends or restores a customer or breeder account.
+   */
+  async toggleUserSuspension(userId: string, isSuspended: boolean): Promise<void> {
+    const { error } = await supabase
+      .from('profiles')
+      .update({
+        is_suspended: isSuspended,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', userId);
+
+    if (error) {
+      console.error('Error toggling user suspension:', error);
       throw error;
     }
   },

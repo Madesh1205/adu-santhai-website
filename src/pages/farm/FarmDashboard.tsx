@@ -87,6 +87,67 @@ export const FarmDashboard: React.FC = () => {
           </Link>
         </div>
 
+        {/* Farm Branding Cover Banner Card */}
+        <div className="relative overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xs">
+          <div className="relative h-32 sm:h-44 w-full overflow-hidden bg-gradient-to-r from-emerald-900 to-slate-900">
+            {farm.bannerUrl ? (
+              <img
+                src={farm.bannerUrl}
+                alt={farm.name}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <div className="h-full w-full bg-gradient-to-r from-emerald-950 via-emerald-800 to-slate-900 p-4 flex items-end">
+                <span className="text-white/70 text-xs font-semibold uppercase tracking-wider">
+                  Partner Breeder Portal • {farm.locationDistrict}
+                </span>
+              </div>
+            )}
+          </div>
+          <div className="p-5 pt-0 flex flex-col sm:flex-row sm:items-end justify-between gap-4 -mt-8 sm:-mt-10">
+            <div className="flex items-end gap-3 z-10">
+              <div className="relative flex h-16 w-16 sm:h-20 sm:w-20 shrink-0 items-center justify-center rounded-2xl bg-white p-0.5 overflow-hidden border-2 border-white shadow-md text-emerald-800 font-bold">
+                {farm.logoUrl ? (
+                  <img
+                    src={farm.logoUrl}
+                    alt={farm.name}
+                    className="h-full w-full object-cover rounded-xl"
+                  />
+                ) : farm.isAmmalOwnFarm ? (
+                  <img
+                    src="/logo.jpg"
+                    alt={farm.name}
+                    className="h-full w-full object-cover rounded-xl"
+                  />
+                ) : (
+                  <Building2 className="h-8 w-8 text-emerald-800" />
+                )}
+              </div>
+              <div className="mb-0.5">
+                <h3 className="text-lg sm:text-xl font-bold text-slate-900 leading-tight">
+                  {farm.name}
+                </h3>
+                {farm.tagline && (
+                  <p className="text-xs text-emerald-800 font-semibold">{farm.tagline}</p>
+                )}
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Link to="/farm/settings">
+                <Button variant="outline" size="sm" className="text-xs font-semibold">
+                  Manage Branding
+                </Button>
+              </Link>
+              <Link to={`/farms/${farm.id}`} target="_blank">
+                <Button variant="secondary" size="sm" className="text-xs font-semibold">
+                  Public Profile ↗
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+
         {/* Metrics KPI Grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-xs">

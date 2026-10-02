@@ -52,6 +52,7 @@ export const GoatFormPage: React.FC = () => {
   const [parentageFatherTag, setParentageFatherTag] = useState<string>('');
   const [parentageMotherTag, setParentageMotherTag] = useState<string>('');
   const [status, setStatus] = useState<GoatStatus>('AVAILABLE');
+  const [hornStatus, setHornStatus] = useState<'HORNED' | 'POLLED' | 'DEHORNED'>('HORNED');
   const [photos, setPhotos] = useState<string[]>([]);
 
   useEffect(() => {
@@ -141,6 +142,13 @@ export const GoatFormPage: React.FC = () => {
     setErrorMsg(null);
 
     try {
+      let finalDescription = description.trim();
+      if (hornStatus === 'POLLED' && !finalDescription.toLowerCase().includes('polled')) {
+        finalDescription = finalDescription ? `${finalDescription}\n[Horn Status: Polled / Naturally Hornless]` : '[Horn Status: Polled / Naturally Hornless]';
+      } else if (hornStatus === 'DEHORNED' && !finalDescription.toLowerCase().includes('dehorned')) {
+        finalDescription = finalDescription ? `${finalDescription}\n[Horn Status: Dehorned / Disbudded]` : '[Horn Status: Dehorned / Disbudded]';
+      }
+
       const goatPayload: any = {
         farm_id: farm.id,
         name: name.trim(),
@@ -153,17 +161,14 @@ export const GoatFormPage: React.FC = () => {
         purpose,
         price: Number(price),
         discount_percentage: Number(discountPercentage),
-        description: description.trim() || null,
+        description: finalDescription || null,
         vaccination_status: vaccinationStatus.trim() || null,
         dewormed_date: dewormedDate || null,
         parentage_father_tag: parentageFatherTag.trim() || null,
         parentage_mother_tag: parentageMotherTag.trim() || null,
         status,
-        photos,
         is_featured: false,
       };
-
-      delete goatPayload.photos;
 
       if (isEditMode && id) {
         await GoatRepository.updateGoatListing(id, goatPayload, photos);
@@ -386,7 +391,7 @@ export const GoatFormPage: React.FC = () => {
                 />
               </div>
 
-              <div className="space-y-1.5 sm:col-span-2">
+              <div className="space-y-1.5">
                 <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
                   Primary Purpose <span className="text-red-500">*</span>
                 </label>
@@ -400,6 +405,21 @@ export const GoatFormPage: React.FC = () => {
                   <option value="MILK">MILK (Dairy Goat)</option>
                   <option value="SHOW">SHOW (Exhibition / Beauty)</option>
                   <option value="PET">PET (Farm Pet)</option>
+                </select>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                  Horn Status
+                </label>
+                <select
+                  value={hornStatus}
+                  onChange={(e) => setHornStatus(e.target.value as any)}
+                  className="w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-800 h-11"
+                >
+                  <option value="HORNED">HORNED (Traditional Horns)</option>
+                  <option value="POLLED">POLLED (Naturally Hornless)</option>
+                  <option value="DEHORNED">DEHORNED (Disbudded)</option>
                 </select>
               </div>
             </CardContent>
