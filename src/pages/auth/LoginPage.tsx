@@ -5,7 +5,7 @@ import { SEOHead } from '@/components/common/SEOHead';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { AlertCircle, Lock, Mail, ArrowRight } from 'lucide-react';
+import { AlertCircle, Lock, Mail, ArrowRight, Eye, EyeOff } from 'lucide-react';
 
 export const LoginPage: React.FC = () => {
   const { signInWithPassword } = useAuth();
@@ -15,19 +15,29 @@ export const LoginPage: React.FC = () => {
 
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
+  const [showPassword, setShowPassword] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [isUnconfirmed, setIsUnconfirmed] = useState<boolean>(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
+    setIsUnconfirmed(false);
 
     const { error: signInError } = await signInWithPassword(email, password);
 
     if (signInError) {
       setIsLoading(false);
-      setError(signInError.message || 'Invalid email or password. Please try again.');
+      const errMsg = signInError.message || '';
+
+      if (errMsg.toLowerCase().includes('not confirmed') || errMsg.toLowerCase().includes('unconfirmed')) {
+        setIsUnconfirmed(true);
+        setError('Your email address has not been confirmed yet.');
+      } else {
+        setError(errMsg || 'Invalid email or password. Please try again.');
+      }
     } else {
       navigate(redirectUrl, { replace: true });
     }
@@ -62,9 +72,23 @@ export const LoginPage: React.FC = () => {
             <form onSubmit={handleSubmit}>
               <CardContent className="space-y-4">
                 {error && (
-                  <div className="flex items-start gap-2 rounded-xl bg-red-50 p-3 border border-red-200 text-xs text-red-700">
-                    <AlertCircle className="h-4 w-4 shrink-0 text-red-600 mt-0.5" />
-                    <span>{error}</span>
+                  <div className="rounded-xl bg-red-50 p-3.5 border border-red-200 text-xs text-red-700 space-y-2">
+                    <div className="flex items-start gap-2">
+                      <AlertCircle className="h-4 w-4 shrink-0 text-red-600 mt-0.5" />
+                      <span>{error}</span>
+                    </div>
+
+                    {isUnconfirmed && (
+                      <div className="pt-1 border-t border-red-200/60 flex items-center justify-between">
+                        <span className="text-red-800 font-medium">Need another confirmation link?</span>
+                        <Link
+                          to={`/auth/verify-email?email=${encodeURIComponent(email)}`}
+                          className="font-bold underline text-red-900 hover:text-red-950"
+                        >
+                          Resend Email
+                        </Link>
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -102,13 +126,21 @@ export const LoginPage: React.FC = () => {
                     <Lock className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
                     <Input
                       id="password"
-                      type="password"
+                      type={showPassword ? 'text' : 'password'}
                       placeholder="••••••••"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="pl-10 h-11 text-sm rounded-xl"
+                      className="pl-10 pr-10 h-11 text-sm rounded-xl"
                       required
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3.5 top-3 text-slate-400 hover:text-slate-600 focus:outline-none cursor-pointer"
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
                   </div>
                 </div>
 
@@ -125,11 +157,19 @@ export const LoginPage: React.FC = () => {
                   </Button>
                 </div>
 
-                <div className="text-center pt-2 text-xs text-slate-500">
-                  Don't have an account?{' '}
-                  <Link to="/register" className="font-bold text-emerald-800 hover:underline">
-                    Create free account
-                  </Link>
+                <div className="text-center pt-2 text-xs text-slate-500 space-y-1">
+                  <div>
+                    Don't have an account?{' '}
+                    <Link to="/register" className="font-bold text-emerald-800 hover:underline">
+                      Create free account
+                    </Link>
+                  </div>
+                  <div>
+                    Need to confirm your email?{' '}
+                    <Link to="/auth/verify-email" className="font-semibold text-slate-600 hover:underline">
+                      Verify email
+                    </Link>
+                  </div>
                 </div>
               </CardContent>
             </form>

@@ -20,6 +20,9 @@ import { FarmDetailPage } from '@/pages/FarmDetailPage';
 import { LoginPage } from '@/pages/auth/LoginPage';
 import { RegisterPage } from '@/pages/auth/RegisterPage';
 import { ForgotPasswordPage } from '@/pages/auth/ForgotPasswordPage';
+import { ResetPasswordPage } from '@/pages/auth/ResetPasswordPage';
+import { AuthCallbackPage } from '@/pages/auth/AuthCallbackPage';
+import { VerifyEmailPage } from '@/pages/auth/VerifyEmailPage';
 
 // Customer Pages
 import { MyBookingsPage } from '@/pages/customer/MyBookingsPage';
@@ -53,9 +56,16 @@ export const AppRouter: React.FC = () => {
 
         {/* Auth Routes */}
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/auth/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/auth/register" element={<RegisterPage />} />
         <Route path="/register-farm" element={<RegisterPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/auth/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
+        <Route path="/auth/verify-email" element={<VerifyEmailPage />} />
+        <Route path="/auth/callback" element={<AuthCallbackPage />} />
 
         {/* Customer Protected Routes */}
         <Route
