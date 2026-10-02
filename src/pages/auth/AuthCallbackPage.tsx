@@ -6,7 +6,7 @@ import { sanitizeRedirectUrl } from '@/lib/auth/authConfig';
 import { SEOHead } from '@/components/common/SEOHead';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
-import { CheckCircle2, AlertCircle, ArrowRight, RefreshCw, Mail, Lock } from 'lucide-react';
+import { CheckCircle2, AlertCircle, ArrowRight, RefreshCw, Lock, LogIn } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 type CallbackStatus = 'processing' | 'verified' | 'recovery' | 'error';
@@ -248,9 +248,9 @@ export const AuthCallbackPage: React.FC = () => {
                     variant="default"
                     className="w-full h-11 bg-emerald-800 hover:bg-emerald-900 text-white font-bold rounded-xl"
                   >
-                    <Link to="/auth/verify-email">
-                      <Mail className="h-4 w-4 mr-2" />
-                      <span>Resend Verification Email</span>
+                    <Link to="/login">
+                      <LogIn className="h-4 w-4 mr-2" />
+                      <span>Back to Sign In</span>
                     </Link>
                   </Button>
 

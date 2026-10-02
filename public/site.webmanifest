@@ -1,0 +1,24 @@
+{
+  "name": "Adu Santhai – Goat Marketplace Platform | Ammal Farm",
+  "short_name": "Adu Santhai",
+  "description": "Tamil Nadu's premier verified goat marketplace platform associated with Ammal Farm. Browse certified breeds, reserve healthy goats with 24-hour holds, and connect with trusted breeders.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#065f46",
+  "theme_color": "#065f46",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/logo.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any"
+    }
+  ]
+}

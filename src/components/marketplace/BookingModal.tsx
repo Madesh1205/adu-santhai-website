@@ -150,7 +150,6 @@ export const BookingModal: React.FC<BookingModalProps> = ({ goat, isOpen, onClos
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between">
                 <h4 className="font-bold text-slate-900 truncate text-sm">{goat.name}</h4>
-                <span className="font-mono text-[11px] text-slate-400">#{goat.goatCode}</span>
               </div>
               <p className="text-xs text-slate-500 mt-0.5">
                 {goat.breedName} • {goat.gender} • {formatAge(goat.ageMonths)} • {goat.weightKg} kg

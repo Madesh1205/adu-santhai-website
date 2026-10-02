@@ -39,7 +39,7 @@ export const Footer: React.FC = () => {
             <div>
               <h4 className="font-bold text-slate-900 text-base">Verified Health & Specs</h4>
               <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                Transparent vaccination records, deworming history, and verified breeder profiles.
+                Transparent weight specs, deworming history, and verified breeder profiles.
               </p>
             </div>
           </div>

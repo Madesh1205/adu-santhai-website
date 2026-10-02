@@ -39,7 +39,7 @@ export const ReviewRepository = {
           is_verified_purchase,
           created_at,
           profiles:customer_id (
-            name
+            full_name
           )
         `)
         .eq('goat_id', goatId)
@@ -56,7 +56,7 @@ export const ReviewRepository = {
         goatId: r.goat_id,
         farmId: r.farm_id,
         customerId: r.customer_id,
-        customerName: r.profiles?.name || 'Verified Buyer',
+        customerName: r.profiles?.full_name || r.profiles?.name || 'Verified Buyer',
         rating: Number(r.rating || 5),
         comment: r.comment,
         isVerifiedPurchase: Boolean(r.is_verified_purchase),
@@ -84,7 +84,7 @@ export const ReviewRepository = {
           is_verified_purchase,
           created_at,
           profiles:customer_id (
-            name
+            full_name
           )
         `)
         .eq('farm_id', farmId)
@@ -98,7 +98,7 @@ export const ReviewRepository = {
         goatId: r.goat_id,
         farmId: r.farm_id,
         customerId: r.customer_id,
-        customerName: r.profiles?.name || 'Verified Buyer',
+        customerName: r.profiles?.full_name || r.profiles?.name || 'Verified Buyer',
         rating: Number(r.rating || 5),
         comment: r.comment,
         isVerifiedPurchase: Boolean(r.is_verified_purchase),

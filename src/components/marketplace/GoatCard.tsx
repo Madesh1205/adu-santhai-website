@@ -118,7 +118,6 @@ export const GoatCard: React.FC<GoatCardProps> = ({
         {/* Verification indicator */}
         <div className="flex items-center justify-between gap-2 mb-1.5">
           <VerifiedBadge label="Verified" variant="subtle" />
-          <span className="font-mono text-[11px] text-slate-400">#{goat.goatCode}</span>
         </div>
 
         {/* Goat Name */}

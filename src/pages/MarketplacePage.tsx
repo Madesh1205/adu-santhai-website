@@ -11,7 +11,7 @@ import { GoatRepository } from '@/repositories/GoatRepository';
 import { FarmRepository } from '@/repositories/FarmRepository';
 import { WishlistRepository } from '@/repositories/WishlistRepository';
 import { useAuth } from '@/lib/auth/AuthContext';
-import type { Goat, GoatFilterCriteria, Breed, Farm, GoatGender, GoatPurpose, SortOption } from '@/types';
+import type { Goat, GoatFilterCriteria, Breed, Farm, GoatGender, SortOption } from '@/types';
 import {
   Search,
   SlidersHorizontal,
@@ -62,12 +62,8 @@ export const MarketplacePage: React.FC = () => {
   const [selectedGender, setSelectedGender] = useState<GoatGender | 'ALL'>(
     (searchParams.get('gender') as GoatGender) || 'ALL'
   );
-  const [selectedPurpose, setSelectedPurpose] = useState<GoatPurpose | 'ALL'>(
-    (searchParams.get('purpose') as GoatPurpose) || 'ALL'
-  );
   const [selectedDistrict, setSelectedDistrict] = useState<string>(searchParams.get('district') || 'ALL');
   const [selectedFarmId, setSelectedFarmId] = useState<string>(searchParams.get('farmId') || 'ALL');
-  const [selectedHornStatus, setSelectedHornStatus] = useState<string>(searchParams.get('horn') || 'ALL');
   const [verifiedOnly, setVerifiedOnly] = useState<boolean>(searchParams.get('verified') === 'true');
   const [minPrice, setMinPrice] = useState<string>(searchParams.get('minPrice') || '');
   const [maxPrice, setMaxPrice] = useState<string>(searchParams.get('maxPrice') || '');
@@ -107,7 +103,6 @@ export const MarketplacePage: React.FC = () => {
   useEffect(() => {
     if (searchParams.get('q') !== null) setSearchQuery(searchParams.get('q') || '');
     if (searchParams.get('breed') !== null) setSelectedBreed(searchParams.get('breed') || 'ALL');
-    if (searchParams.get('purpose') !== null) setSelectedPurpose((searchParams.get('purpose') as GoatPurpose) || 'ALL');
     if (searchParams.get('farmId') !== null) setSelectedFarmId(searchParams.get('farmId') || 'ALL');
   }, [searchParams]);
 
@@ -118,7 +113,6 @@ export const MarketplacePage: React.FC = () => {
         searchQuery: searchQuery.trim() || undefined,
         breed: selectedBreed !== 'ALL' ? selectedBreed : undefined,
         gender: selectedGender !== 'ALL' ? selectedGender : undefined,
-        purpose: selectedPurpose !== 'ALL' ? selectedPurpose : undefined,
         locationDistrict: selectedDistrict !== 'ALL' ? selectedDistrict : undefined,
         farmId: selectedFarmId !== 'ALL' ? selectedFarmId : undefined,
         minPrice: minPrice ? Number(minPrice) : undefined,
@@ -132,21 +126,7 @@ export const MarketplacePage: React.FC = () => {
 
       const data = await GoatRepository.getApprovedGoats(criteria);
 
-      // Client-side horn status and verification filter refinement
-      let filtered = data;
-      if (selectedHornStatus !== 'ALL') {
-        filtered = filtered.filter((g) => {
-          const desc = (g.description || '').toLowerCase();
-          if (selectedHornStatus === 'POLLED') {
-            return desc.includes('polled') || desc.includes('hornless') || desc.includes('dehorned');
-          } else if (selectedHornStatus === 'HORNED') {
-            return !desc.includes('polled') && !desc.includes('hornless');
-          }
-          return true;
-        });
-      }
-
-      setGoats(filtered);
+      setGoats(data);
       setVisibleCount(ITEMS_PER_PAGE);
     } catch (err) {
       console.error('Failed to query goats:', err);
@@ -157,10 +137,8 @@ export const MarketplacePage: React.FC = () => {
     searchQuery,
     selectedBreed,
     selectedGender,
-    selectedPurpose,
     selectedDistrict,
     selectedFarmId,
-    selectedHornStatus,
     minPrice,
     maxPrice,
     minWeight,
@@ -178,10 +156,8 @@ export const MarketplacePage: React.FC = () => {
     setSearchQuery('');
     setSelectedBreed('ALL');
     setSelectedGender('ALL');
-    setSelectedPurpose('ALL');
     setSelectedDistrict('ALL');
     setSelectedFarmId('ALL');
-    setSelectedHornStatus('ALL');
     setVerifiedOnly(false);
     setMinPrice('');
     setMaxPrice('');
@@ -196,10 +172,8 @@ export const MarketplacePage: React.FC = () => {
   const activeFilterCount = [
     selectedBreed !== 'ALL',
     selectedGender !== 'ALL',
-    selectedPurpose !== 'ALL',
     selectedDistrict !== 'ALL',
     selectedFarmId !== 'ALL',
-    selectedHornStatus !== 'ALL',
     verifiedOnly,
     minPrice !== '',
     maxPrice !== '',
@@ -287,48 +261,7 @@ export const MarketplacePage: React.FC = () => {
         )}
       </div>
 
-      {/* 2. Purpose Filter */}
-      <div className="space-y-2 pt-3 border-t border-slate-100">
-        <button
-          type="button"
-          onClick={() => toggleSection('purpose')}
-          className="flex w-full items-center justify-between text-xs font-bold uppercase tracking-wider text-slate-700 cursor-pointer"
-        >
-          <span>Purpose</span>
-          <ChevronDown
-            className={`h-4 w-4 text-slate-400 transition-transform ${
-              openSections.purpose ? 'rotate-180' : ''
-            }`}
-          />
-        </button>
-
-        {openSections.purpose && (
-          <div className="grid grid-cols-2 gap-1.5 pt-1">
-            {[
-              { label: 'All', value: 'ALL' },
-              { label: 'Breeding', value: 'BREEDING' },
-              { label: 'Meat', value: 'MEAT' },
-              { label: 'Milk', value: 'MILK' },
-              { label: 'Show', value: 'SHOW' },
-              { label: 'Pet', value: 'PET' },
-            ].map((item) => (
-              <button
-                key={item.value}
-                onClick={() => setSelectedPurpose(item.value as any)}
-                className={`rounded-lg py-1.5 px-2 text-xs font-semibold text-center transition-colors cursor-pointer border ${
-                  selectedPurpose === item.value
-                    ? 'border-emerald-700 bg-emerald-50 text-emerald-900 font-bold'
-                    : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
-                }`}
-              >
-                {item.label}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* 3. Gender Filter */}
+      {/* 2. Gender Filter */}
       <div className="space-y-2 pt-3 border-t border-slate-100">
         <button
           type="button"
@@ -364,32 +297,6 @@ export const MarketplacePage: React.FC = () => {
             ))}
           </div>
         )}
-      </div>
-
-      {/* 4. Horn Status Filter */}
-      <div className="space-y-2 pt-3 border-t border-slate-100">
-        <span className="text-xs font-bold uppercase tracking-wider text-slate-700 block">
-          Horn Status
-        </span>
-        <div className="grid grid-cols-3 gap-1.5 pt-1">
-          {[
-            { label: 'All', value: 'ALL' },
-            { label: 'Horned', value: 'HORNED' },
-            { label: 'Polled', value: 'POLLED' },
-          ].map((h) => (
-            <button
-              key={h.value}
-              onClick={() => setSelectedHornStatus(h.value)}
-              className={`rounded-lg py-1.5 text-xs font-semibold text-center transition-colors cursor-pointer border ${
-                selectedHornStatus === h.value
-                  ? 'border-emerald-700 bg-emerald-50 text-emerald-900 font-bold'
-                  : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
-              }`}
-            >
-              {h.label}
-            </button>
-          ))}
-        </div>
       </div>
 
       {/* 5. Age Group Range */}
@@ -642,7 +549,7 @@ export const MarketplacePage: React.FC = () => {
                 <option value="price_high_low">Price: High to Low</option>
                 <option value="weight_heaviest">Heaviest First</option>
                 <option value="age_youngest">Youngest First</option>
-                <option value="top_rated">Top Rated & Featured</option>
+                <option value="top_rated">Featured First</option>
               </select>
             </div>
           </div>
@@ -684,7 +591,7 @@ export const MarketplacePage: React.FC = () => {
                 <option value="price_high_low">Price: High to Low</option>
                 <option value="weight_heaviest">Weight: Heaviest First</option>
                 <option value="age_youngest">Age: Youngest First</option>
-                <option value="top_rated">Top Rated & Featured</option>
+                <option value="top_rated">Featured First</option>
               </select>
             </div>
           </div>

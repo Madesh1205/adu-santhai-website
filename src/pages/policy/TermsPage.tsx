@@ -40,7 +40,7 @@ export const TermsPage: React.FC = () => {
               <ul className="list-disc pl-6 space-y-2 text-slate-600">
                 <li><strong>Verification Requirement:</strong> Partner farms must complete farm registration and admin verification before goat listings become active on the public marketplace.</li>
                 <li><strong>Listing Fee Waiving:</strong> Ammal Farm (`FARM-001`, `is_ammal_own_farm`) is the central platform hub and receives automatic listing fee waivers. Partner farms adhere to standard listing fee terms.</li>
-                <li><strong>Accurate Livestock Data:</strong> Farm admins guarantee that all goat details (breed, age, weight, health, gender, horn status, price, photos) represent actual animals available for physical inspection and purchase.</li>
+                <li><strong>Accurate Livestock Data:</strong> Farm admins guarantee that all goat details (breed, age, weight, health, gender, price, photos) represent actual animals available for physical inspection and purchase.</li>
               </ul>
             </section>
 

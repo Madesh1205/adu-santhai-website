@@ -52,7 +52,7 @@ export const RefundPolicyPage: React.FC = () => {
                 <CheckCircle2 className="h-5 w-5 text-emerald-800" /> 3. Direct Inspection Upon Delivery
               </h2>
               <p>
-                Because livestock health depends on physical inspection, final payment and animal pickup occur directly at the partner farm or upon agreed delivery. Buyers are advised to inspect health records, vaccination history, and physical condition before final settlement.
+                Because livestock health depends on physical inspection, final payment and animal pickup occur directly at the partner farm or upon agreed delivery. Buyers are advised to inspect health records, deworming history, and physical condition before final settlement.
               </p>
             </section>
 

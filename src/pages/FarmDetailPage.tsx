@@ -3,7 +3,6 @@ import { useParams, Link } from 'react-router-dom';
 import { SEOHead } from '@/components/common/SEOHead';
 import { FarmRepository } from '@/repositories/FarmRepository';
 import { GoatRepository } from '@/repositories/GoatRepository';
-import { ReviewRepository, type ReviewItem } from '@/repositories/ReviewRepository';
 import { GoatCard } from '@/components/marketplace/GoatCard';
 import { GoatCardSkeleton } from '@/components/marketplace/GoatCardSkeleton';
 import { BookingModal } from '@/components/marketplace/BookingModal';
@@ -11,7 +10,6 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { VerifiedBadge } from '@/components/common/VerifiedBadge';
 import { EmptyState } from '@/components/common/EmptyState';
-import { formatDate } from '@/lib/utils';
 import type { Farm, Goat } from '@/types';
 import {
   Building2,
@@ -19,14 +17,12 @@ import {
   PhoneCall,
   MessageCircle,
   ChevronRight,
-  Star,
 } from 'lucide-react';
 
 export const FarmDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [farm, setFarm] = useState<Farm | null>(null);
   const [goats, setGoats] = useState<Goat[]>([]);
-  const [reviews, setReviews] = useState<ReviewItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [selectedGoatForBooking, setSelectedGoatForBooking] = useState<Goat | null>(null);
 
@@ -35,14 +31,12 @@ export const FarmDetailPage: React.FC = () => {
       if (!id) return;
       setLoading(true);
       try {
-        const [farmData, farmGoats, farmReviews] = await Promise.all([
+        const [farmData, farmGoats] = await Promise.all([
           FarmRepository.getFarmById(id),
           GoatRepository.getGoatsByFarm(id),
-          ReviewRepository.getFarmReviews(id),
         ]);
         setFarm(farmData);
         setGoats(farmGoats);
-        setReviews(farmReviews);
       } catch (err) {
         console.error('Failed to load farm profile:', err);
       } finally {
@@ -250,58 +244,6 @@ export const FarmDetailPage: React.FC = () => {
                   goat={goat}
                   onOpenBookingModal={(g) => setSelectedGoatForBooking(g)}
                 />
-              ))}
-            </div>
-          )}
-        </section>
-
-        {/* 3. BREEDER REVIEWS & RATINGS */}
-        <section className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-xs space-y-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-xl font-bold text-slate-900">Breeder Feedback & Reputation</h2>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Verified customer reviews for livestock sourced from {farm.name}
-              </p>
-            </div>
-
-            <div className="flex items-center gap-1.5 bg-amber-50 border border-amber-200 px-3 py-1 rounded-xl">
-              <Star className="h-4 w-4 fill-amber-400 text-amber-500" />
-              <span className="text-sm font-black text-amber-900">
-                {reviews.length > 0
-                  ? (reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length).toFixed(1)
-                  : '5.0'}
-              </span>
-              <span className="text-xs text-amber-700">({reviews.length} reviews)</span>
-            </div>
-          </div>
-
-          {reviews.length === 0 ? (
-            <div className="rounded-2xl bg-slate-50 p-6 text-center border border-slate-100">
-              <p className="text-xs text-slate-500">
-                No reviews yet for this breeder. Complete a 24-hour hold reservation to submit verified buyer feedback.
-              </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {reviews.map((r) => (
-                <div key={r.id} className="rounded-2xl bg-slate-50 p-4 border border-slate-100 space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-xs text-slate-900">{r.customerName}</span>
-                    <div className="flex items-center gap-0.5 text-amber-500">
-                      {Array.from({ length: 5 }).map((_, i) => (
-                        <Star
-                          key={i}
-                          className={`h-3 w-3 ${
-                            i < r.rating ? 'fill-amber-400 text-amber-500' : 'text-slate-300'
-                          }`}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                  <p className="text-xs text-slate-600 leading-relaxed">{r.comment}</p>
-                  <span className="text-[10px] text-slate-400 block pt-1">{formatDate(r.createdAt)}</span>
-                </div>
               ))}
             </div>
           )}

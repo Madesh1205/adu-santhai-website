@@ -150,9 +150,8 @@ export const MyBookingsPage: React.FC = () => {
                             to={`/goats/${b.goatId}`}
                             className="font-bold text-base text-slate-900 hover:text-emerald-800 transition-colors"
                           >
-                            {b.goatName || `Goat #${b.goatCode}`}
+                            {b.goatName || 'Reserved Goat'}
                           </Link>
-                          <span className="font-mono text-xs text-slate-400">#{b.goatCode}</span>
                         </div>
 
                         <p className="text-xs text-slate-500">

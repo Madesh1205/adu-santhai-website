@@ -18,7 +18,8 @@ type BookingRow = Database['public']['Tables']['bookings']['Row'] & {
   } | null;
   profiles?: {
     id: string;
-    name: string;
+    full_name?: string;
+    name?: string;
     phone: string;
     email: string;
   } | null;
@@ -41,7 +42,7 @@ export function mapBookingRow(row: BookingRow): Booking {
     farmCode: row.farms?.farm_code ?? '',
     farmContact: row.farms?.contact_phone ?? '',
     customerId: row.customer_id,
-    customerName: row.profiles?.name ?? 'Customer',
+    customerName: row.profiles?.full_name || row.profiles?.name || 'Customer',
     customerPhone: row.profiles?.phone ?? '',
     customerEmail: row.profiles?.email ?? '',
     status: row.status,
@@ -148,7 +149,7 @@ export const BookingRepository = {
           id, name, farm_code, contact_phone
         ),
         profiles:customer_id (
-          id, name, phone, email
+          id, full_name, phone, email
         )
       `)
       .eq('farm_id', farmId)

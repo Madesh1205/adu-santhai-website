@@ -2,32 +2,56 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://adusanthai.ammalfarm.dpdns.org/</loc>
+    <lastmod>2026-10-02</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://adusanthai.ammalfarm.dpdns.org/marketplace</loc>
+    <lastmod>2026-10-02</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://adusanthai.ammalfarm.dpdns.org/farms</loc>
+    <lastmod>2026-10-02</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://adusanthai.ammalfarm.dpdns.org/about</loc>
+    <loc>https://adusanthai.ammalfarm.dpdns.org/privacy</loc>
+    <lastmod>2026-10-02</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
+    <priority>0.4</priority>
   </url>
   <url>
-    <loc>https://adusanthai.ammalfarm.dpdns.org/how-it-works</loc>
+    <loc>https://adusanthai.ammalfarm.dpdns.org/terms</loc>
+    <lastmod>2026-10-02</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.4</priority>
+  </url>
+  <url>
+    <loc>https://adusanthai.ammalfarm.dpdns.org/refund-policy</loc>
+    <lastmod>2026-10-02</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.4</priority>
+  </url>
+  <url>
+    <loc>https://adusanthai.ammalfarm.dpdns.org/register</loc>
+    <lastmod>2026-10-02</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://adusanthai.ammalfarm.dpdns.org/contact</loc>
+    <loc>https://adusanthai.ammalfarm.dpdns.org/login</loc>
+    <lastmod>2026-10-02</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://adusanthai.ammalfarm.dpdns.org/forgot-password</loc>
+    <lastmod>2026-10-02</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.3</priority>
   </url>
 </urlset>

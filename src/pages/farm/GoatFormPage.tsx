@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { PriceDisplay } from '@/components/common/PriceDisplay';
-import type { Breed, GoatGender, GoatPurpose, GoatStatus } from '@/types';
+import type { Breed, GoatGender, GoatStatus } from '@/types';
 import { calculateFinalPrice } from '@/types';
 import {
   Upload,
@@ -43,16 +43,13 @@ export const GoatFormPage: React.FC = () => {
   const [gender, setGender] = useState<GoatGender>('MALE');
   const [ageMonths, setAgeMonths] = useState<number>(12);
   const [weightKg, setWeightKg] = useState<number>(35);
-  const [purpose, setPurpose] = useState<GoatPurpose>('BREEDING');
   const [price, setPrice] = useState<number>(25000);
   const [discountPercentage, setDiscountPercentage] = useState<number>(0);
   const [description, setDescription] = useState<string>('');
-  const [vaccinationStatus, setVaccinationStatus] = useState<string>('Fully Vaccinated (ET, PPR, FMD)');
   const [dewormedDate, setDewormedDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [parentageFatherTag, setParentageFatherTag] = useState<string>('');
   const [parentageMotherTag, setParentageMotherTag] = useState<string>('');
   const [status, setStatus] = useState<GoatStatus>('AVAILABLE');
-  const [hornStatus, setHornStatus] = useState<'HORNED' | 'POLLED' | 'DEHORNED'>('HORNED');
   const [photos, setPhotos] = useState<string[]>([]);
 
   useEffect(() => {
@@ -72,11 +69,9 @@ export const GoatFormPage: React.FC = () => {
             setGender(goat.gender);
             setAgeMonths(goat.ageMonths);
             setWeightKg(goat.weightKg);
-            setPurpose(goat.purpose);
             setPrice(goat.price);
             setDiscountPercentage(goat.discountPercentage);
             setDescription(goat.description || '');
-            setVaccinationStatus(goat.vaccinationStatus || '');
             setDewormedDate(goat.dewormedDate || '');
             setParentageFatherTag(goat.parentageFatherTag || '');
             setParentageMotherTag(goat.parentageMotherTag || '');
@@ -143,11 +138,6 @@ export const GoatFormPage: React.FC = () => {
 
     try {
       let finalDescription = description.trim();
-      if (hornStatus === 'POLLED' && !finalDescription.toLowerCase().includes('polled')) {
-        finalDescription = finalDescription ? `${finalDescription}\n[Horn Status: Polled / Naturally Hornless]` : '[Horn Status: Polled / Naturally Hornless]';
-      } else if (hornStatus === 'DEHORNED' && !finalDescription.toLowerCase().includes('dehorned')) {
-        finalDescription = finalDescription ? `${finalDescription}\n[Horn Status: Dehorned / Disbudded]` : '[Horn Status: Dehorned / Disbudded]';
-      }
 
       const goatPayload: any = {
         farm_id: farm.id,
@@ -158,11 +148,10 @@ export const GoatFormPage: React.FC = () => {
         gender,
         age_months: Number(ageMonths),
         weight_kg: Number(weightKg),
-        purpose,
+        purpose: 'BREEDING',
         price: Number(price),
         discount_percentage: Number(discountPercentage),
         description: finalDescription || null,
-        vaccination_status: vaccinationStatus.trim() || null,
         dewormed_date: dewormedDate || null,
         parentage_father_tag: parentageFatherTag.trim() || null,
         parentage_mother_tag: parentageMotherTag.trim() || null,
@@ -390,38 +379,6 @@ export const GoatFormPage: React.FC = () => {
                   className="h-11 rounded-xl"
                 />
               </div>
-
-              <div className="space-y-1.5">
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
-                  Primary Purpose <span className="text-red-500">*</span>
-                </label>
-                <select
-                  value={purpose}
-                  onChange={(e) => setPurpose(e.target.value as GoatPurpose)}
-                  className="w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-800 h-11"
-                >
-                  <option value="BREEDING">BREEDING (Stud Stock & Foundation Does)</option>
-                  <option value="MEAT">MEAT (Commercial / Festival / Santhai)</option>
-                  <option value="MILK">MILK (Dairy Goat)</option>
-                  <option value="SHOW">SHOW (Exhibition / Beauty)</option>
-                  <option value="PET">PET (Farm Pet)</option>
-                </select>
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
-                  Horn Status
-                </label>
-                <select
-                  value={hornStatus}
-                  onChange={(e) => setHornStatus(e.target.value as any)}
-                  className="w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-800 h-11"
-                >
-                  <option value="HORNED">HORNED (Traditional Horns)</option>
-                  <option value="POLLED">POLLED (Naturally Hornless)</option>
-                  <option value="DEHORNED">DEHORNED (Disbudded)</option>
-                </select>
-              </div>
             </CardContent>
           </Card>
 
@@ -491,18 +448,6 @@ export const GoatFormPage: React.FC = () => {
               </div>
             </CardHeader>
             <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
-                  Vaccination Status
-                </label>
-                <Input
-                  placeholder="e.g. PPR, ET, Goat Pox done"
-                  value={vaccinationStatus}
-                  onChange={(e) => setVaccinationStatus(e.target.value)}
-                  className="h-11 rounded-xl"
-                />
-              </div>
-
               <div className="space-y-1.5">
                 <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
                   Last Dewormed Date

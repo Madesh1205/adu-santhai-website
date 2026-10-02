@@ -131,21 +131,21 @@ export const HomePage: React.FC = () => {
             </div>
 
             {/* Right Visual (5 Cols) */}
-            <div className="lg:col-span-5">
-              <div className="relative mx-auto max-w-md lg:max-w-none">
-                <div className="relative aspect-4/3 sm:aspect-square overflow-hidden rounded-3xl border-2 border-slate-200/80 bg-slate-100 shadow-md">
+            <div className="lg:col-span-5 w-full">
+              <div className="relative mx-auto w-full">
+                <div className="relative w-full h-64 sm:h-80 md:h-[380px] lg:h-[460px] xl:h-[500px] overflow-hidden rounded-3xl border-2 border-slate-200/80 bg-slate-100 shadow-md group transition-all">
                   {heroBannerImage ? (
                     <img
                       src={heroBannerImage}
                       alt="Ammal Farm • Adu Santhai Official Farm Banner"
-                      className="h-full w-full object-cover"
+                      className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
                   ) : (
                     <FallbackGoatImage breedName="Verified Livestock" />
                   )}
 
                   {/* Floating Trust Card Overlay */}
-                  <div className="absolute bottom-4 left-4 right-4 rounded-2xl bg-white/95 backdrop-blur-md p-3.5 border border-slate-200/80 shadow-md">
+                  <div className="absolute bottom-3 sm:bottom-4 left-3 sm:left-4 right-3 sm:right-4 rounded-2xl bg-white/95 backdrop-blur-md p-3 sm:p-3.5 border border-slate-200/80 shadow-md">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <VerifiedBadge label="Verified Sires" variant="default" />
@@ -153,7 +153,7 @@ export const HomePage: React.FC = () => {
                       </div>
                       <span className="text-xs font-bold text-emerald-800">100% Direct</span>
                     </div>
-                    <p className="text-[11px] text-slate-500 mt-1">
+                    <p className="text-[11px] text-slate-500 mt-1 hidden sm:block">
                       Direct breeder verification, authentic parentage, and zero commissions.
                     </p>
                   </div>
@@ -244,7 +244,7 @@ export const HomePage: React.FC = () => {
                     {breed.name}
                   </h4>
                   <p className="text-[11px] text-slate-500 line-clamp-2 mt-1">
-                    {breed.description || breed.primaryPurpose || 'Verified Breed'}
+                    {breed.description || 'Verified Breed'}
                   </p>
                 </div>
               </Link>
@@ -363,7 +363,7 @@ export const HomePage: React.FC = () => {
               </div>
               <h4 className="font-bold text-base text-slate-900">Browse & Select</h4>
               <p className="text-xs text-slate-500 leading-relaxed">
-                Filter by breed, weight, age, and purpose. Review health certifications, parent ear tags, and high-resolution photos.
+                Filter by breed, weight, gender, and age. Review parent ear tags and high-resolution photos.
               </p>
             </div>
 
@@ -415,7 +415,7 @@ export const HomePage: React.FC = () => {
                 </h2>
 
                 <p className="text-sm sm:text-base text-slate-600 leading-relaxed">
-                  Founded in Pernamallur, Tiruvannamalai (PIN 604503), <strong>Ammal Farm</strong> established Adu Santhai to eliminate exploitation by traditional middlemen. Every listing connects buyers directly to the breeder, guaranteeing true weights, honest health disclosure, and authentic breed genetics. Specializing in Nellore Judipi, Salem Black goats, country chicken, and ducks.
+                  Based in Rusha Post, Kollimedu, Chennangkuppam, K.V. Kuppam, Vellore (PIN 632209), <strong>Ammal Farm</strong> established Adu Santhai to eliminate exploitation by traditional middlemen. Every listing connects buyers directly to the breeder, guaranteeing true weights, honest health disclosure, and authentic breed genetics. Specializing in Nellore Judipi, Salem Black goats, country chicken, and ducks.
                 </p>
 
                 <div className="pt-2 flex flex-wrap gap-4 text-xs font-semibold text-slate-700">

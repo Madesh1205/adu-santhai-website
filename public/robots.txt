@@ -3,17 +3,18 @@ Allow: /
 Allow: /marketplace
 Allow: /goats/*
 Allow: /farms/*
-Allow: /breeds/*
-Allow: /about
-Allow: /how-it-works
-Allow: /contact
+Allow: /privacy
+Allow: /terms
+Allow: /refund-policy
+Allow: /login
+Allow: /register
 
-# Protect private account and administrative portals
+# Disallow private user account and admin management portals
 Disallow: /profile
 Disallow: /bookings/*
 Disallow: /wishlist
 Disallow: /notifications
-Disallow: /farm-admin/*
+Disallow: /farm/*
 Disallow: /admin/*
 
 Sitemap: https://adusanthai.ammalfarm.dpdns.org/sitemap.xml

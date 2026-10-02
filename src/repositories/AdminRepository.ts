@@ -232,7 +232,7 @@ export const AdminRepository = {
           id, name, farm_code, contact_phone
         ),
         profiles:customer_id (
-          id, name, phone, email
+          id, full_name, phone, email
         )
       `)
       .order('created_at', { ascending: false });

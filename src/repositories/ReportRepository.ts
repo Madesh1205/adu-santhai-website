@@ -36,7 +36,7 @@ export const ReportRepository = {
       .select(`
         *,
         profiles:reporter_id (
-          name
+          full_name
         )
       `)
       .order('created_at', { ascending: false });
@@ -49,7 +49,7 @@ export const ReportRepository = {
     return (data || []).map((row: any) => ({
       id: row.id,
       reporterId: row.reporter_id,
-      reporterName: row.profiles?.name || 'Anonymous',
+      reporterName: row.profiles?.full_name || row.profiles?.name || 'Anonymous',
       targetType: row.target_type,
       targetId: row.target_id,
       reason: row.reason,

@@ -12,7 +12,6 @@ import { ReportModal } from '@/components/marketplace/ReportModal';
 import { GoatCard } from '@/components/marketplace/GoatCard';
 import { GoatRepository } from '@/repositories/GoatRepository';
 import { WishlistRepository } from '@/repositories/WishlistRepository';
-import { ReviewRepository, type ReviewItem } from '@/repositories/ReviewRepository';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { formatCurrency, formatAge, formatDate } from '@/lib/utils';
 import type { Goat } from '@/types';
@@ -24,10 +23,8 @@ import {
   Building2,
   Clock,
   ChevronRight,
-  CheckCircle2,
   Calendar,
   Info,
-  Star,
 } from 'lucide-react';
 
 export const GoatDetailPage: React.FC = () => {
@@ -44,22 +41,17 @@ export const GoatDetailPage: React.FC = () => {
   const [showBookingModal, setShowBookingModal] = useState<boolean>(false);
   const [showReportModal, setShowReportModal] = useState<boolean>(false);
   const [copySuccess, setCopySuccess] = useState<boolean>(false);
-  const [reviews, setReviews] = useState<ReviewItem[]>([]);
 
   useEffect(() => {
     async function loadGoat() {
       if (!id) return;
       setLoading(true);
       try {
-        const [data, reviewList] = await Promise.all([
-          GoatRepository.getGoatById(id),
-          ReviewRepository.getGoatReviews(id),
-        ]);
+        const data = await GoatRepository.getGoatById(id);
 
         if (data) {
           setGoat(data);
           setActivePhoto(data.primaryPhoto);
-          setReviews(reviewList);
 
           // Fetch related goats from the same breed or farm
           const related = await GoatRepository.getApprovedGoats({ breed: data.breedName });
@@ -100,12 +92,35 @@ export const GoatDetailPage: React.FC = () => {
   };
 
   const handleShare = async () => {
+    if (!goat) return;
     const url = window.location.href;
-    if (navigator.share) {
+    const shareTitle = `${goat.name} - ${goat.breedName} Goat | Ammal Farm Adu Santhai`;
+    const shareText = `Check out ${goat.name} (${goat.breedName}, ${goat.gender}, ${goat.weightKg} kg) priced at ₹${(goat.finalPrice || goat.price).toLocaleString('en-IN')} on Adu Santhai!\nDirect Farm: ${goat.farmName}`;
+
+    if (navigator.share && goat.primaryPhoto) {
+      try {
+        const response = await fetch(goat.primaryPhoto);
+        const blob = await response.blob();
+        const file = new File([blob], `${goat.name.replace(/\s+/g, '_')}.jpg`, {
+          type: blob.type || 'image/jpeg',
+        });
+
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            title: shareTitle,
+            text: `${shareText}\n${url}`,
+            files: [file],
+          });
+          return;
+        }
+      } catch (e) {
+        console.warn('Web Share API file attachment fallback:', e);
+      }
+
       try {
         await navigator.share({
-          title: goat?.name || 'Adu Santhai Goat Listing',
-          text: `Check out this ${goat?.breedName} goat (${goat?.weightKg} kg) on Adu Santhai!`,
+          title: shareTitle,
+          text: `${shareText}\nPhoto: ${goat.primaryPhoto}`,
           url,
         });
         return;
@@ -113,7 +128,8 @@ export const GoatDetailPage: React.FC = () => {
         // Fallback to clipboard
       }
     }
-    navigator.clipboard.writeText(url);
+
+    navigator.clipboard.writeText(`${shareText}\nPhoto: ${goat.primaryPhoto}\n${url}`);
     setCopySuccess(true);
     setTimeout(() => setCopySuccess(false), 2000);
   };
@@ -156,7 +172,7 @@ export const GoatDetailPage: React.FC = () => {
     <>
       <SEOHead
         title={`${goat.name} (${goat.breedName}) | Adu Santhai`}
-        description={`Buy ${goat.breedName} goat #${goat.goatCode} (${goat.weightKg} kg, ${formatAge(goat.ageMonths)}) from ${goat.farmName}. Price: ${formatCurrency(goat.finalPrice)}. Reserve with 24h hold.`}
+        description={`Buy ${goat.breedName} goat (${goat.weightKg} kg, ${formatAge(goat.ageMonths)}) from ${goat.farmName}. Price: ${formatCurrency(goat.finalPrice)}. Reserve with 24h hold.`}
         image={goat.primaryPhoto}
         path={`/goats/${goat.id}`}
         type="product"
@@ -272,10 +288,9 @@ export const GoatDetailPage: React.FC = () => {
 
           {/* RIGHT: Flagship Conversion & Specifications Card (5 Cols) */}
           <div className="lg:col-span-5 rounded-3xl border border-slate-200 bg-white p-6 sm:p-7 shadow-xs space-y-6 lg:sticky lg:top-24">
-            {/* Header: Verified + Ear Tag */}
+            {/* Header: Verified */}
             <div className="flex items-center justify-between gap-2 pb-3 border-b border-slate-100">
               <VerifiedBadge label="Adu Santhai Verified" variant="default" />
-              <span className="font-mono text-xs text-slate-400">Ear Tag #{goat.goatCode}</span>
             </div>
 
             {/* Title & Key Line */}
@@ -287,8 +302,6 @@ export const GoatDetailPage: React.FC = () => {
                 <span className="text-emerald-800 font-bold">{goat.breedName}</span>
                 {' • '}
                 <span>{goat.gender}</span>
-                {' • '}
-                <span>{goat.purpose}</span>
               </p>
             </div>
 
@@ -437,32 +450,10 @@ export const GoatDetailPage: React.FC = () => {
                 {goat.breedName}
               </span>
             </div>
-
-            <div className="rounded-2xl bg-slate-50 p-4 border border-slate-100">
-              <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">
-                Horn Status
-              </span>
-              <span className="text-base font-bold text-slate-900 mt-1 block">
-                {(goat.description || '').toLowerCase().includes('polled') ||
-                (goat.description || '').toLowerCase().includes('hornless')
-                  ? 'Polled'
-                  : 'Horned'}
-              </span>
-            </div>
           </div>
 
           {/* Health & Lineage Badges Row */}
-          <div className="mt-6 pt-6 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4 text-emerald-800 shrink-0" />
-              <span className="text-slate-600">
-                Vaccination Status:{' '}
-                <strong className={goat.vaccinationStatus ? 'text-emerald-800' : 'text-slate-700'}>
-                  {goat.vaccinationStatus ? 'Up to date' : 'Pending verification'}
-                </strong>
-              </span>
-            </div>
-
+          <div className="mt-6 pt-6 border-t border-slate-100 flex flex-wrap gap-4 text-xs">
             {goat.dewormedDate && (
               <div className="flex items-center gap-2">
                 <Calendar className="h-4 w-4 text-emerald-800 shrink-0" />
@@ -492,57 +483,6 @@ export const GoatDetailPage: React.FC = () => {
             </p>
           </section>
         )}
-
-        {/* REVIEWS & VERIFIED RATINGS SECTION */}
-        <section className="mt-8 rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-xs">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h2 className="text-lg font-bold text-slate-900">Buyer Reviews & Ratings</h2>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Verified feedback from farmers and buyers across Tamil Nadu
-              </p>
-            </div>
-            <div className="flex items-center gap-1.5 bg-amber-50 border border-amber-200 px-3 py-1 rounded-xl">
-              <Star className="h-4 w-4 fill-amber-400 text-amber-500" />
-              <span className="text-sm font-black text-amber-900">
-                {reviews.length > 0
-                  ? (reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length).toFixed(1)
-                  : '5.0'}
-              </span>
-              <span className="text-xs text-amber-700">({reviews.length} reviews)</span>
-            </div>
-          </div>
-
-          {reviews.length === 0 ? (
-            <div className="rounded-2xl bg-slate-50 p-6 text-center border border-slate-100">
-              <p className="text-xs text-slate-500">
-                No customer reviews have been submitted for this listing yet. Buy with confidence through our 24-hour hold reservation system.
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {reviews.map((r) => (
-                <div key={r.id} className="rounded-2xl bg-slate-50 p-4 border border-slate-100 space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-xs text-slate-900">{r.customerName}</span>
-                    <div className="flex items-center gap-0.5 text-amber-500">
-                      {Array.from({ length: 5 }).map((_, i) => (
-                        <Star
-                          key={i}
-                          className={`h-3 w-3 ${
-                            i < r.rating ? 'fill-amber-400 text-amber-500' : 'text-slate-300'
-                          }`}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                  <p className="text-xs text-slate-600 leading-relaxed">{r.comment}</p>
-                  <span className="text-[10px] text-slate-400 block pt-1">{formatDate(r.createdAt)}</span>
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
 
         {/* RELATED GOATS */}
         {relatedGoats.length > 0 && (

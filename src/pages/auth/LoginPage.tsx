@@ -141,17 +141,11 @@ export const LoginPage: React.FC = () => {
                   </Button>
                 </div>
 
-                <div className="text-center pt-2 text-xs text-slate-500 space-y-1">
+                <div className="text-center pt-2 text-xs text-slate-500">
                   <div>
                     Don't have an account?{' '}
                     <Link to="/register" className="font-bold text-emerald-800 hover:underline">
                       Create free account
-                    </Link>
-                  </div>
-                  <div>
-                    Need to confirm your email?{' '}
-                    <Link to="/auth/verify-email" className="font-semibold text-slate-600 hover:underline">
-                      Verify email
                     </Link>
                   </div>
                 </div>

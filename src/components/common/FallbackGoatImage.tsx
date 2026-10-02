@@ -10,7 +10,6 @@ interface FallbackGoatImageProps {
 export const FallbackGoatImage: React.FC<FallbackGoatImageProps> = ({
   className = 'h-full w-full',
   breedName,
-  goatCode,
 }) => {
   return (
     <div className={`flex flex-col items-center justify-center bg-slate-100 text-slate-400 p-4 select-none ${className}`}>
@@ -19,7 +18,6 @@ export const FallbackGoatImage: React.FC<FallbackGoatImageProps> = ({
       </div>
       <span className="text-xs font-bold text-slate-600">Photo Pending</span>
       {breedName && <span className="text-[11px] text-slate-500 mt-0.5">{breedName}</span>}
-      {goatCode && <span className="font-mono text-[10px] text-slate-400 mt-0.5">#{goatCode}</span>}
     </div>
   );
 };

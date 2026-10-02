@@ -33,7 +33,7 @@ export const PrivacyPolicyPage: React.FC = () => {
               </p>
               <ul className="list-disc pl-6 space-y-2 text-slate-600">
                 <li><strong>Account Data:</strong> Name, email address, phone number, and account role (Customer, Farm Admin, Super Admin).</li>
-                <li><strong>Farm Listing Data:</strong> Farm name, district, location address, contact phone, goat breed specifications, age, weight, health/vaccination status, and uploaded livestock images.</li>
+                <li><strong>Farm Listing Data:</strong> Farm name, district, location address, contact phone, goat breed specifications, age, weight, health/deworming status, and uploaded livestock images.</li>
                 <li><strong>Booking & Reservation Records:</strong> Goat reservation timestamp, booking status, 24-hour hold window tracking, and farm contact records.</li>
               </ul>
             </section>

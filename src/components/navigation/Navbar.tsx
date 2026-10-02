@@ -139,7 +139,7 @@ export const Navbar: React.FC = () => {
           </Link>
 
           {/* Desktop Navigation Links */}
-          <nav className="hidden md:flex items-center gap-1">
+          <nav className="hidden lg:flex items-center gap-1">
             {navLinks.map((link) => {
               const isActive = location.pathname === link.path;
               return (
@@ -351,7 +351,7 @@ export const Navbar: React.FC = () => {
           <button
             type="button"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden flex h-10 w-10 items-center justify-center rounded-xl text-slate-700 hover:bg-slate-100 cursor-pointer"
+            className="lg:hidden flex h-10 w-10 items-center justify-center rounded-xl text-slate-700 hover:bg-slate-100 cursor-pointer"
             aria-label="Open menu"
           >
             {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -361,7 +361,7 @@ export const Navbar: React.FC = () => {
 
       {/* Mobile Menu Dropdown */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-t border-slate-200 bg-white px-4 py-4 space-y-2">
+        <div className="lg:hidden border-t border-slate-200 bg-white px-4 py-4 space-y-2">
           {navLinks.map((link) => (
             <Link
               key={link.label}
