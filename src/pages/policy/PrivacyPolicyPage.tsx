@@ -69,7 +69,7 @@ export const PrivacyPolicyPage: React.FC = () => {
                 <p className="font-bold">Ammal Farm • Adu Santhai Support</p>
                 <p>Address: Rusha Post, Kollimedu, Chennangkuppam, K.V. Kuppam Taluk, Vellore District, Tamil Nadu - 632209, India</p>
                 <p>Google Maps: <a href="https://maps.app.goo.gl/qL8nLnxKZcsyj7xm8" target="_blank" rel="noopener noreferrer" className="underline font-semibold text-emerald-800">View Ammal Farm Location</a></p>
-                <p>Email: contact@ammalfarm.dpdns.org (Support: support@ammalfarm.dpdns.org) | Phone: +91 63808 98358</p>
+                <p>Email: ammalfarm@gmail.com | Phone: +91 63808 98358</p>
               </div>
             </section>
           </div>

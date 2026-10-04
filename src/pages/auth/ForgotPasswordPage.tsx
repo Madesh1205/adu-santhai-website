@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { SEOHead } from '@/components/common/SEOHead';
 import { Button } from '@/components/ui/button';
@@ -62,6 +63,25 @@ export const ForgotPasswordPage: React.FC = () => {
 
     try {
       const cleanEmail = email.trim().toLowerCase();
+
+      // 1. Check if user exists in the database profiles
+      const { data: userProfile, error: profileError } = await supabase
+        .from('profiles')
+        .select('id, email')
+        .ilike('email', cleanEmail)
+        .maybeSingle();
+
+      if (profileError) {
+        console.warn('Profile existence check note:', profileError);
+      }
+
+      if (!userProfile) {
+        setError('No registered account was found with this email address. Please check your spelling or sign up for a new account.');
+        setIsLoading(false);
+        return;
+      }
+
+      // 2. User exists: send password reset link
       const { error: resetError } = await sendPasswordResetEmail(cleanEmail);
 
       if (resetError) {
@@ -133,7 +153,7 @@ export const ForgotPasswordPage: React.FC = () => {
                       <span>Security Notice:</span>
                     </div>
                     <ul className="list-disc pl-4 space-y-1 text-slate-500">
-                      <li>The reset link expires after 1 hour.</li>
+                      <li>The reset link expires after 15 minutes.</li>
                       <li>Never share this link with anyone.</li>
                       <li>Check your spam or junk folder if you don't receive it shortly.</li>
                     </ul>

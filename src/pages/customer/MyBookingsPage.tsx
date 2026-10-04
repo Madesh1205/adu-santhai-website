@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { SEOHead } from '@/components/common/SEOHead';
+import { Breadcrumb } from '@/components/common/Breadcrumb';
 import { BookingRepository } from '@/repositories/BookingRepository';
 import { DEFAULT_GOAT_IMAGE_FALLBACK } from '@/components/common/FallbackGoatImage';
 import { useAuth } from '@/lib/auth/AuthContext';
@@ -99,7 +100,9 @@ export const MyBookingsPage: React.FC = () => {
     <>
       <SEOHead title="My Goat Reservations | Adu Santhai" path="/my-bookings" />
 
-      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-8">
+      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
+        <Breadcrumb items={[{ label: 'Account', href: '/profile' }, { label: 'My Reservations' }]} />
+
         <div className="pb-6 border-b border-slate-200">
           <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
             My Goat Reservations

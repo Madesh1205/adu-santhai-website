@@ -19,7 +19,7 @@ import {
   ArrowLeft,
   Image as ImageIcon,
   DollarSign,
-  HeartPulse,
+  FileText,
   Layers,
 } from 'lucide-react';
 
@@ -46,9 +46,6 @@ export const GoatFormPage: React.FC = () => {
   const [price, setPrice] = useState<number>(25000);
   const [discountPercentage, setDiscountPercentage] = useState<number>(0);
   const [description, setDescription] = useState<string>('');
-  const [dewormedDate, setDewormedDate] = useState<string>(new Date().toISOString().split('T')[0]);
-  const [parentageFatherTag, setParentageFatherTag] = useState<string>('');
-  const [parentageMotherTag, setParentageMotherTag] = useState<string>('');
   const [status, setStatus] = useState<GoatStatus>('AVAILABLE');
   const [photos, setPhotos] = useState<string[]>([]);
 
@@ -72,9 +69,6 @@ export const GoatFormPage: React.FC = () => {
             setPrice(goat.price);
             setDiscountPercentage(goat.discountPercentage);
             setDescription(goat.description || '');
-            setDewormedDate(goat.dewormedDate || '');
-            setParentageFatherTag(goat.parentageFatherTag || '');
-            setParentageMotherTag(goat.parentageMotherTag || '');
             setStatus(goat.status);
             setPhotos(goat.photos);
           }
@@ -152,9 +146,9 @@ export const GoatFormPage: React.FC = () => {
         price: Number(price),
         discount_percentage: Number(discountPercentage),
         description: finalDescription || null,
-        dewormed_date: dewormedDate || null,
-        parentage_father_tag: parentageFatherTag.trim() || null,
-        parentage_mother_tag: parentageMotherTag.trim() || null,
+        dewormed_date: null,
+        parentage_father_tag: null,
+        parentage_mother_tag: null,
         status,
         is_featured: false,
       };
@@ -439,57 +433,21 @@ export const GoatFormPage: React.FC = () => {
             </CardContent>
           </Card>
 
-          {/* Section 4: Health & Lineage */}
+          {/* Section 4: Breeder Description / Notes */}
           <Card className="rounded-3xl border-slate-200 shadow-xs">
             <CardHeader className="pb-3">
               <div className="flex items-center gap-2 text-emerald-800">
-                <HeartPulse className="h-4 w-4" />
-                <CardTitle className="text-base">Health Records & Parentage</CardTitle>
+                <FileText className="h-4 w-4" />
+                <CardTitle className="text-base">Breeder Description / Detailed Notes</CardTitle>
               </div>
             </CardHeader>
-            <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <CardContent className="space-y-4">
               <div className="space-y-1.5">
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
-                  Last Dewormed Date
-                </label>
-                <Input
-                  type="date"
-                  value={dewormedDate}
-                  onChange={(e) => setDewormedDate(e.target.value)}
-                  className="h-11 rounded-xl"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
-                  Sire (Father Tag #)
-                </label>
-                <Input
-                  placeholder="Optional ear tag ID"
-                  value={parentageFatherTag}
-                  onChange={(e) => setParentageFatherTag(e.target.value)}
-                  className="h-11 rounded-xl"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
-                  Dam (Mother Tag #)
-                </label>
-                <Input
-                  placeholder="Optional ear tag ID"
-                  value={parentageMotherTag}
-                  onChange={(e) => setParentageMotherTag(e.target.value)}
-                  className="h-11 rounded-xl"
-                />
-              </div>
-
-              <div className="space-y-1.5 sm:col-span-2">
                 <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
                   Breeder Description / Detailed Notes
                 </label>
                 <Textarea
-                  placeholder="Describe bloodline, temperament, feeding regimen, milk yield, or mating history..."
+                  placeholder="Describe temperament, feeding regimen, milk yield, or mating history..."
                   rows={4}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}

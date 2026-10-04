@@ -10,7 +10,7 @@ import { BookingModal } from '@/components/marketplace/BookingModal';
 import { FallbackGoatImage } from '@/components/common/FallbackGoatImage';
 import { GoatRepository } from '@/repositories/GoatRepository';
 import { FarmRepository } from '@/repositories/FarmRepository';
-import type { Goat, Farm, Breed } from '@/types';
+import type { Goat, Farm } from '@/types';
 import {
   Search,
   ShieldCheck,
@@ -21,14 +21,12 @@ import {
   Sparkles,
   PhoneCall,
   CheckCircle2,
-  Award,
 } from 'lucide-react';
 
 export const HomePage: React.FC = () => {
   const navigate = useNavigate();
   const [featuredGoats, setFeaturedGoats] = useState<Goat[]>([]);
   const [farms, setFarms] = useState<Farm[]>([]);
-  const [breeds, setBreeds] = useState<Breed[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [selectedGoatForBooking, setSelectedGoatForBooking] = useState<Goat | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -36,14 +34,12 @@ export const HomePage: React.FC = () => {
   useEffect(() => {
     async function loadHomeData() {
       try {
-        const [goatsData, farmsData, breedsData] = await Promise.all([
+        const [goatsData, farmsData] = await Promise.all([
           GoatRepository.getFeaturedGoats(8),
           FarmRepository.getApprovedFarms(),
-          GoatRepository.getBreeds(),
         ]);
         setFeaturedGoats(goatsData);
         setFarms(farmsData.slice(0, 3));
-        setBreeds(breedsData);
       } catch (err) {
         console.error('Failed to load homepage content:', err);
       } finally {
@@ -211,48 +207,6 @@ export const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* 3. POPULAR BREEDS (Fetched directly from DB) */}
-      <section className="py-14 sm:py-16 bg-white">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <SectionHeader
-            badge="Certified Breeds"
-            title="Popular Goat Breeds"
-            description="Explore authentic bloodlines suitable for commercial meat production, dairy yield, or stud breeding."
-            actionLabel="View all breeds"
-            actionHref="/marketplace"
-          />
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-            {(breeds.length > 0 ? breeds : [
-              { id: '1', name: 'Tellicherry (Malabari)', primaryPurpose: 'MEAT_AND_MILK', description: 'High prolificacy native breed' },
-              { id: '2', name: 'Jamunapari', primaryPurpose: 'MILK_AND_MEAT', description: 'Majestic large dual purpose' },
-              { id: '3', name: 'Boer', primaryPurpose: 'MEAT', description: 'World-class meat sires' },
-              { id: '4', name: 'Sirohi', primaryPurpose: 'MEAT', description: 'Hardy commercial breed' },
-              { id: '5', name: 'Kanni Adu', primaryPurpose: 'MEAT', description: 'Native Tamil Nadu breed' },
-              { id: '6', name: 'Kodi Adu', primaryPurpose: 'MEAT', description: 'Tall hardy southern breed' },
-            ]).slice(0, 6).map((breed) => (
-              <Link
-                key={breed.id || breed.name}
-                to={`/marketplace?breed=${encodeURIComponent(breed.name)}`}
-                className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-slate-200 bg-white p-4 transition-all duration-200 hover:border-emerald-700/50 hover:shadow-sm"
-              >
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-800 border border-emerald-100 mb-3 group-hover:bg-emerald-800 group-hover:text-white transition-colors">
-                  <Award className="h-6 w-6" />
-                </div>
-                <div>
-                  <h4 className="font-bold text-sm text-slate-900 group-hover:text-emerald-800 transition-colors">
-                    {breed.name}
-                  </h4>
-                  <p className="text-[11px] text-slate-500 line-clamp-2 mt-1">
-                    {breed.description || 'Verified Breed'}
-                  </p>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* 4. FEATURED GOATS */}
       <section className="py-14 sm:py-16 bg-slate-50/60 border-y border-slate-100">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -308,7 +262,6 @@ export const HomePage: React.FC = () => {
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <VerifiedBadge label="Verified Breeder" variant="default" />
-                    <span className="font-mono text-xs text-slate-400">#{farm.farmCode}</span>
                   </div>
 
                   <div>

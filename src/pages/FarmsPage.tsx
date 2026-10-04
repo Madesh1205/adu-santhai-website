@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { SEOHead } from '@/components/common/SEOHead';
+import { Breadcrumb } from '@/components/common/Breadcrumb';
 import { FarmRepository } from '@/repositories/FarmRepository';
 import type { Farm } from '@/types';
 import { Button } from '@/components/ui/button';
@@ -55,6 +56,8 @@ export const FarmsPage: React.FC = () => {
       />
 
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        <Breadcrumb items={[{ label: 'Verified Breeder Network' }]} className="mb-4" />
+
         {/* Header Row */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-200">
           <div>
@@ -139,9 +142,6 @@ export const FarmsPage: React.FC = () => {
                     ) : (
                       <VerifiedBadge label="Verified" variant="default" />
                     )}
-                    <span className="font-mono text-[10px] bg-black/40 text-white px-2 py-0.5 rounded-full backdrop-blur-xs">
-                      #{farm.farmCode}
-                    </span>
                   </div>
                 </div>
 

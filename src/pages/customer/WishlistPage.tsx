@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { SEOHead } from '@/components/common/SEOHead';
+import { Breadcrumb } from '@/components/common/Breadcrumb';
 import { WishlistRepository } from '@/repositories/WishlistRepository';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { GoatCard } from '@/components/marketplace/GoatCard';
@@ -45,6 +46,8 @@ export const WishlistPage: React.FC = () => {
       <SEOHead title="Saved Goats Wishlist | Adu Santhai" path="/wishlist" />
 
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
+        <Breadcrumb items={[{ label: 'Saved Wishlist' }]} />
+
         <div className="flex items-center justify-between pb-6 border-b border-slate-200">
           <div>
             <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">

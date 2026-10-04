@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { SEOHead } from '@/components/common/SEOHead';
+import { Breadcrumb } from '@/components/common/Breadcrumb';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { PriceDisplay } from '@/components/common/PriceDisplay';
@@ -13,7 +14,7 @@ import { GoatCard } from '@/components/marketplace/GoatCard';
 import { GoatRepository } from '@/repositories/GoatRepository';
 import { WishlistRepository } from '@/repositories/WishlistRepository';
 import { useAuth } from '@/lib/auth/AuthContext';
-import { formatCurrency, formatAge, formatDate } from '@/lib/utils';
+import { formatCurrency, formatAge } from '@/lib/utils';
 import type { Goat } from '@/types';
 import {
   Heart,
@@ -22,9 +23,6 @@ import {
   MessageCircle,
   Building2,
   Clock,
-  ChevronRight,
-  Calendar,
-  Info,
 } from 'lucide-react';
 
 export const GoatDetailPage: React.FC = () => {
@@ -180,17 +178,14 @@ export const GoatDetailPage: React.FC = () => {
 
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 sm:py-8 pb-28 lg:pb-12">
         {/* Breadcrumb Navigation */}
-        <nav className="flex items-center gap-1.5 text-xs text-slate-500 mb-6 flex-wrap">
-          <Link to="/" className="hover:text-emerald-800 transition-colors">Home</Link>
-          <ChevronRight className="h-3 w-3 text-slate-400" />
-          <Link to="/marketplace" className="hover:text-emerald-800 transition-colors">Marketplace</Link>
-          <ChevronRight className="h-3 w-3 text-slate-400" />
-          <Link to={`/marketplace?breed=${encodeURIComponent(goat.breedName)}`} className="hover:text-emerald-800 transition-colors">
-            {goat.breedName}
-          </Link>
-          <ChevronRight className="h-3 w-3 text-slate-400" />
-          <span className="font-semibold text-slate-800 truncate max-w-[200px]">{goat.name}</span>
-        </nav>
+        <Breadcrumb
+          items={[
+            { label: 'Marketplace', href: '/marketplace' },
+            { label: goat.breedName, href: `/marketplace?breed=${encodeURIComponent(goat.breedName)}` },
+            { label: goat.name },
+          ]}
+          className="mb-6"
+        />
 
         {/* TOP FLAGSHIP PRODUCT SECTION (Split 7 / 5) */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
@@ -412,7 +407,7 @@ export const GoatDetailPage: React.FC = () => {
 
         {/* DETAILED SPECIFICATIONS SECTION */}
         <section className="mt-12 rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-xs">
-          <h2 className="text-lg font-bold text-slate-900 mb-6">Specifications & Health Records</h2>
+          <h2 className="text-lg font-bold text-slate-900 mb-6">Livestock Specifications</h2>
 
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 sm:gap-6">
             <div className="rounded-2xl bg-slate-50 p-4 border border-slate-100">
@@ -450,27 +445,6 @@ export const GoatDetailPage: React.FC = () => {
                 {goat.breedName}
               </span>
             </div>
-          </div>
-
-          {/* Health & Lineage Badges Row */}
-          <div className="mt-6 pt-6 border-t border-slate-100 flex flex-wrap gap-4 text-xs">
-            {goat.dewormedDate && (
-              <div className="flex items-center gap-2">
-                <Calendar className="h-4 w-4 text-emerald-800 shrink-0" />
-                <span className="text-slate-600">
-                  Last Dewormed: <strong>{formatDate(goat.dewormedDate)}</strong>
-                </span>
-              </div>
-            )}
-
-            {goat.parentageFatherTag && (
-              <div className="flex items-center gap-2">
-                <Info className="h-4 w-4 text-emerald-800 shrink-0" />
-                <span className="text-slate-600">
-                  Sire Tag: <strong>{goat.parentageFatherTag}</strong>
-                </span>
-              </div>
-            )}
           </div>
         </section>
 

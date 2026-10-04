@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { SEOHead } from '@/components/common/SEOHead';
+import { Breadcrumb } from '@/components/common/Breadcrumb';
 import { FarmRepository } from '@/repositories/FarmRepository';
 import { GoatRepository } from '@/repositories/GoatRepository';
 import { GoatCard } from '@/components/marketplace/GoatCard';
@@ -16,7 +17,6 @@ import {
   MapPin,
   PhoneCall,
   MessageCircle,
-  ChevronRight,
 } from 'lucide-react';
 
 export const FarmDetailPage: React.FC = () => {
@@ -83,13 +83,12 @@ export const FarmDetailPage: React.FC = () => {
 
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-10">
         {/* Breadcrumb Navigation */}
-        <nav className="flex items-center gap-1.5 text-xs text-slate-500">
-          <Link to="/" className="hover:text-emerald-800 transition-colors">Home</Link>
-          <ChevronRight className="h-3 w-3 text-slate-400" />
-          <Link to="/farms" className="hover:text-emerald-800 transition-colors">Farms</Link>
-          <ChevronRight className="h-3 w-3 text-slate-400" />
-          <span className="font-semibold text-slate-800 truncate">{farm.name}</span>
-        </nav>
+        <Breadcrumb
+          items={[
+            { label: 'Farms', href: '/farms' },
+            { label: farm.name },
+          ]}
+        />
 
         {/* 1. FARM IDENTITY & HERO BANNER */}
         <div className="relative overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xs">
@@ -144,7 +143,6 @@ export const FarmDetailPage: React.FC = () => {
                     ) : (
                       <VerifiedBadge label="Verified Partner Farm" variant="default" />
                     )}
-                    <span className="font-mono text-xs text-slate-400">#{farm.farmCode}</span>
                   </div>
 
                   {farm.tagline && (

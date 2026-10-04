@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { SEOHead } from '@/components/common/SEOHead';
+import { Breadcrumb } from '@/components/common/Breadcrumb';
 import { GoatCard } from '@/components/marketplace/GoatCard';
 import { GoatCardSkeleton } from '@/components/marketplace/GoatCardSkeleton';
 import { BookingModal } from '@/components/marketplace/BookingModal';
@@ -514,6 +515,14 @@ export const MarketplacePage: React.FC = () => {
       />
 
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        <Breadcrumb
+          items={[
+            { label: 'Marketplace', href: selectedBreed !== 'ALL' ? '/marketplace' : undefined },
+            ...(selectedBreed !== 'ALL' ? [{ label: selectedBreed }] : []),
+          ]}
+          className="mb-4"
+        />
+
         {/* Marketplace Title & Search Bar */}
         <div className="mb-6 space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">

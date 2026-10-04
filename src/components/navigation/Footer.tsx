@@ -86,47 +86,42 @@ export const Footer: React.FC = () => {
               </div>
               <div className="flex items-center gap-2">
                 <Mail className="h-4 w-4 text-emerald-800 shrink-0" />
-                <a href="mailto:contact@ammalfarm.dpdns.org" className="hover:text-emerald-800 transition-colors">
-                  contact@ammalfarm.dpdns.org
+                <a href="mailto:ammalfarm@gmail.com" className="hover:text-emerald-800 transition-colors">
+                  ammalfarm@gmail.com
                 </a>
               </div>
             </div>
           </div>
 
-          {/* Col 2: Featured Breeds */}
+          {/* Col 2: Marketplace Highlights */}
           <div>
-            <h5 className="font-bold text-slate-900 text-xs uppercase tracking-wider mb-4">
-              Featured Breeds
+            <h5 className="font-bold text-slate-900 dark:text-slate-100 text-xs uppercase tracking-wider mb-4">
+              Livestock Categories
             </h5>
-            <ul className="space-y-2 text-xs text-slate-500">
+            <ul className="space-y-2 text-xs text-slate-500 dark:text-slate-400">
               <li>
-                <Link to="/marketplace?breed=Boer" className="hover:text-emerald-800 transition-colors">
-                  Boer (Heavy Meat Sires)
+                <Link to="/marketplace" className="hover:text-emerald-800 dark:hover:text-emerald-400 transition-colors">
+                  Meat Sires & Breeding Bucks
                 </Link>
               </li>
               <li>
-                <Link to="/marketplace?breed=Sirohi" className="hover:text-emerald-800 transition-colors">
-                  Sirohi (Hardy Commercial Breed)
+                <Link to="/marketplace" className="hover:text-emerald-800 dark:hover:text-emerald-400 transition-colors">
+                  Commercial Does & Nannies
                 </Link>
               </li>
               <li>
-                <Link to="/marketplace?breed=Tellicherry" className="hover:text-emerald-800 transition-colors">
-                  Tellicherry / Malabari
+                <Link to="/marketplace" className="hover:text-emerald-800 dark:hover:text-emerald-400 transition-colors">
+                  Verified Native Breeds
                 </Link>
               </li>
               <li>
-                <Link to="/marketplace?breed=Jamnapari" className="hover:text-emerald-800 transition-colors">
-                  Jamnapari (Dual Purpose)
+                <Link to="/farms" className="hover:text-emerald-800 dark:hover:text-emerald-400 transition-colors">
+                  Ammal Farm Direct Stock
                 </Link>
               </li>
               <li>
-                <Link to="/marketplace?breed=Kanni" className="hover:text-emerald-800 transition-colors">
-                  Kanni Adu & Native Breeds
-                </Link>
-              </li>
-              <li>
-                <Link to="/marketplace?breed=Barbari" className="hover:text-emerald-800 transition-colors">
-                  Barbari (Stall-fed Dairy)
+                <Link to="/register-farm" className="hover:text-emerald-800 dark:hover:text-emerald-400 transition-colors">
+                  Partner Breeder Program
                 </Link>
               </li>
             </ul>

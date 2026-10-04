@@ -72,7 +72,7 @@ export const TermsPage: React.FC = () => {
               </p>
               <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200 text-xs text-slate-700 space-y-1">
                 <p className="font-bold">Ammal Farm • Adu Santhai Governance</p>
-                <p>Email: contact@ammalfarm.dpdns.org | Support: support@ammalfarm.dpdns.org</p>
+                <p>Email: ammalfarm@gmail.com</p>
               </div>
             </section>
           </div>

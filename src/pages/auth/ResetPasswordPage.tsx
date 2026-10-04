@@ -6,7 +6,10 @@ import { SEOHead } from '@/components/common/SEOHead';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
-import { Lock, Eye, EyeOff, CheckCircle2, AlertCircle, ArrowRight, ShieldCheck } from 'lucide-react';
+import { Lock, Eye, EyeOff, CheckCircle2, AlertCircle, ArrowRight, ShieldCheck, Clock } from 'lucide-react';
+
+const RESET_EXPIRATION_SECONDS = 15 * 60; // 15 Minutes
+const STORAGE_RESET_KEY = 'adu_santhai_reset_session_start_v1';
 
 export const ResetPasswordPage: React.FC = () => {
   const navigate = useNavigate();
@@ -19,6 +22,9 @@ export const ResetPasswordPage: React.FC = () => {
 
   const [isVerifyingSession, setIsVerifyingSession] = useState<boolean>(true);
   const [hasValidSession, setHasValidSession] = useState<boolean>(false);
+  const [isExpired, setIsExpired] = useState<boolean>(false);
+  const [timeLeft, setTimeLeft] = useState<number>(RESET_EXPIRATION_SECONDS);
+
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [isSuccess, setIsSuccess] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -26,7 +32,32 @@ export const ResetPasswordPage: React.FC = () => {
   // Password validation rules
   const isMinLength = password.length >= 6;
   const isMatching = password.length > 0 && password === confirmPassword;
-  const isFormValid = isMinLength && isMatching;
+  const isFormValid = isMinLength && isMatching && timeLeft > 0 && !isExpired;
+
+  // Initialize or check 15-minute session start time
+  const initializeSessionTimer = () => {
+    let startTimeStr = sessionStorage.getItem(STORAGE_RESET_KEY);
+    let startTime = startTimeStr ? parseInt(startTimeStr, 10) : 0;
+
+    if (!startTime || Number.isNaN(startTime)) {
+      startTime = Date.now();
+      sessionStorage.setItem(STORAGE_RESET_KEY, startTime.toString());
+    }
+
+    const elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
+    const remaining = RESET_EXPIRATION_SECONDS - elapsedSeconds;
+
+    if (remaining <= 0) {
+      setIsExpired(true);
+      setHasValidSession(false);
+      sessionStorage.removeItem(STORAGE_RESET_KEY);
+      signOut().catch(() => {});
+    } else {
+      setTimeLeft(remaining);
+      setHasValidSession(true);
+    }
+    setIsVerifyingSession(false);
+  };
 
   useEffect(() => {
     const verifyRecoverySession = async () => {
@@ -38,8 +69,7 @@ export const ResetPasswordPage: React.FC = () => {
         if (code) {
           const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
           if (!exchangeError && data.session) {
-            setHasValidSession(true);
-            setIsVerifyingSession(false);
+            initializeSessionTimer();
             return;
           }
         }
@@ -47,16 +77,14 @@ export const ResetPasswordPage: React.FC = () => {
         // 2. Check if active session exists
         const { data: { session } } = await supabase.auth.getSession();
         if (session) {
-          setHasValidSession(true);
-          setIsVerifyingSession(false);
+          initializeSessionTimer();
           return;
         }
 
         // 3. Listen for auth state change in case of implicit hash processing
         const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
           if (event === 'PASSWORD_RECOVERY' || (session && (event === 'SIGNED_IN' || event === 'USER_UPDATED'))) {
-            setHasValidSession(true);
-            setIsVerifyingSession(false);
+            initializeSessionTimer();
           }
         });
 
@@ -78,8 +106,41 @@ export const ResetPasswordPage: React.FC = () => {
     verifyRecoverySession();
   }, []);
 
+  // 15-Minute Expiration Countdown Loop
+  useEffect(() => {
+    if (!hasValidSession || isSuccess || isExpired) return;
+
+    const interval = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          setIsExpired(true);
+          setHasValidSession(false);
+          sessionStorage.removeItem(STORAGE_RESET_KEY);
+          signOut().catch(() => {});
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [hasValidSession, isSuccess, isExpired, signOut]);
+
+  const formatTimeLeft = (seconds: number) => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m}:${s < 10 ? '0' : ''}${s}`;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (timeLeft <= 0 || isExpired) {
+      setError('Password reset session has expired (15-minute limit exceeded). Please request a new link.');
+      setIsExpired(true);
+      setHasValidSession(false);
+      return;
+    }
+
     if (!isFormValid) return;
 
     setIsSubmitting(true);
@@ -92,6 +153,8 @@ export const ResetPasswordPage: React.FC = () => {
         throw updateError;
       }
 
+      sessionStorage.removeItem(STORAGE_RESET_KEY);
+
       // Security practice: sign out the recovery session so user logs in cleanly with new credentials
       try {
         await signOut();
@@ -102,7 +165,7 @@ export const ResetPasswordPage: React.FC = () => {
       setIsSuccess(true);
     } catch (err: any) {
       console.error('Password reset failure:', err);
-      setError(err.message || 'Failed to update password. Your reset link may have expired.');
+      setError(err.message || 'Failed to update password. Your reset session may have expired.');
     } finally {
       setIsSubmitting(false);
     }
@@ -177,23 +240,23 @@ export const ResetPasswordPage: React.FC = () => {
                   </Button>
                 </CardFooter>
               </>
-            ) : !hasValidSession ? (
+            ) : !hasValidSession || isExpired ? (
               <>
                 <CardHeader className="text-center pb-2 pt-8">
                   <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-amber-100 text-amber-700">
                     <AlertCircle className="h-8 w-8" />
                   </div>
                   <CardTitle className="text-xl font-bold text-slate-900">
-                    Invalid or Expired Link
+                    Link Expired or Invalid
                   </CardTitle>
                   <CardDescription className="text-xs text-slate-500 max-w-xs mx-auto mt-1">
-                    This password reset link is invalid, already used, or has expired.
+                    This password reset link is invalid, already used, or has expired after the 15-minute security limit.
                   </CardDescription>
                 </CardHeader>
 
                 <CardContent className="py-4 space-y-3">
                   <div className="rounded-xl bg-slate-50 border border-slate-200 p-4 text-xs text-slate-600 leading-relaxed">
-                    Password reset tokens are single-use and time-limited for the safety of your farm account. Please generate a fresh link.
+                    Password reset tokens are single-use and strictly limited to 15 minutes for the safety of your farm account. Please generate a fresh link.
                   </div>
                 </CardContent>
 
@@ -233,6 +296,21 @@ export const ResetPasswordPage: React.FC = () => {
 
                 <form onSubmit={handleSubmit}>
                   <CardContent className="space-y-4">
+                    {/* 15-Min Expiration Countdown Badge */}
+                    <div className={`flex items-center justify-between rounded-xl px-3.5 py-2.5 border text-xs font-medium ${
+                      timeLeft <= 120
+                        ? 'bg-red-50 border-red-200 text-red-800 animate-pulse'
+                        : 'bg-amber-50 border-amber-200/90 text-amber-900'
+                    }`}>
+                      <div className="flex items-center gap-1.5 font-semibold">
+                        <Clock className="h-4 w-4 shrink-0 text-amber-700" />
+                        <span>Reset Session Expires In:</span>
+                      </div>
+                      <span className="font-mono font-extrabold text-sm tracking-wide">
+                        {formatTimeLeft(timeLeft)}
+                      </span>
+                    </div>
+
                     {error && (
                       <div className="flex items-start gap-2 rounded-xl bg-red-50 p-3 border border-red-200 text-xs text-red-700">
                         <AlertCircle className="h-4 w-4 shrink-0 text-red-600 mt-0.5" />
