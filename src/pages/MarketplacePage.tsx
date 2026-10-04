@@ -13,6 +13,8 @@ import { FarmRepository } from '@/repositories/FarmRepository';
 import { WishlistRepository } from '@/repositories/WishlistRepository';
 import { useAuth } from '@/lib/auth/AuthContext';
 import type { Goat, GoatFilterCriteria, Breed, Farm, GoatGender, SortOption } from '@/types';
+import { useLocation } from '@/lib/location/LocationContext';
+import { FarmMapView } from '@/components/location/FarmMapView';
 import {
   Search,
   SlidersHorizontal,
@@ -21,6 +23,9 @@ import {
   ChevronDown,
   Check,
   ArrowRight,
+  MapPin,
+  Map,
+  List,
 } from 'lucide-react';
 
 const TAMIL_NADU_DISTRICTS = [
@@ -47,6 +52,14 @@ const ITEMS_PER_PAGE = 12;
 export const MarketplacePage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useAuth();
+  const {
+    userDistrict,
+    userDistrictLabel,
+    locationFilter,
+    setLocationFilter,
+    openSelector,
+    getFarmRelevance,
+  } = useLocation();
 
   const [goats, setGoats] = useState<Goat[]>([]);
   const [breeds, setBreeds] = useState<Breed[]>([]);
@@ -56,6 +69,7 @@ export const MarketplacePage: React.FC = () => {
   const [showMobileFilter, setShowMobileFilter] = useState<boolean>(false);
   const [selectedGoatForBooking, setSelectedGoatForBooking] = useState<Goat | null>(null);
   const [visibleCount, setVisibleCount] = useState<number>(ITEMS_PER_PAGE);
+  const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
 
   // Filter criteria states initialized from searchParams
   const [searchQuery, setSearchQuery] = useState<string>(searchParams.get('q') || '');
@@ -93,10 +107,12 @@ export const MarketplacePage: React.FC = () => {
 
   // Load breeds, farms, and wishlist
   useEffect(() => {
-    GoatRepository.getBreeds().then(setBreeds);
-    FarmRepository.getApprovedFarms().then(setFarms);
+    GoatRepository.getBreeds().then(setBreeds).catch(() => setBreeds([]));
+    FarmRepository.getApprovedFarms().then(setFarms).catch(() => setFarms([]));
     if (user) {
-      WishlistRepository.getWishlistGoatIds(user.id).then(setWishlistGoatIds);
+      WishlistRepository.getWishlistGoatIds(user.id)
+        .then(setWishlistGoatIds)
+        .catch(() => setWishlistGoatIds([]));
     }
   }, [user]);
 
@@ -125,7 +141,34 @@ export const MarketplacePage: React.FC = () => {
         sortBy,
       };
 
-      const data = await GoatRepository.getApprovedGoats(criteria);
+      let data = await GoatRepository.getApprovedGoats(criteria);
+
+      // Filter by District Location Relevance
+      if (userDistrict && locationFilter !== 'ALL') {
+        data = data.filter((g) => {
+          const rel = getFarmRelevance(g.farmLocation);
+          if (locationFilter === 'IN_DISTRICT') return rel === 'IN_DISTRICT';
+          if (locationFilter === 'NEARBY_DISTRICT')
+            return rel === 'IN_DISTRICT' || rel === 'NEARBY_DISTRICT';
+          return true;
+        });
+      }
+
+      // Prioritize results by District Relevance rank first
+      if (userDistrict) {
+        const relevanceRank = {
+          IN_DISTRICT: 1,
+          NEARBY_DISTRICT: 2,
+          OTHER_LOCATION: 3,
+          UNKNOWN: 4,
+        };
+
+        data = [...data].sort((a, b) => {
+          const relA = getFarmRelevance(a.farmLocation);
+          const relB = getFarmRelevance(b.farmLocation);
+          return relevanceRank[relA] - relevanceRank[relB];
+        });
+      }
 
       setGoats(data);
       setVisibleCount(ITEMS_PER_PAGE);
@@ -147,6 +190,9 @@ export const MarketplacePage: React.FC = () => {
     minAge,
     maxAge,
     sortBy,
+    userDistrict,
+    locationFilter,
+    getFarmRelevance,
   ]);
 
   useEffect(() => {
@@ -214,6 +260,62 @@ export const MarketplacePage: React.FC = () => {
             <RotateCcw className="h-3 w-3" /> Reset
           </button>
         )}
+      </div>
+
+      {/* 0. LOCATION RELEVANCE FILTER */}
+      <div className="space-y-2 pb-4 border-b border-slate-100">
+        <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-slate-700">
+          <span className="flex items-center gap-1.5">
+            <MapPin className="h-3.5 w-3.5 text-emerald-800" />
+            <span>Location Discovery</span>
+          </span>
+          <button
+            type="button"
+            onClick={openSelector}
+            className="text-[10px] text-emerald-800 hover:underline font-bold"
+          >
+            Change
+          </button>
+        </div>
+
+        <div className="space-y-1.5 pt-1">
+          <button
+            type="button"
+            onClick={openSelector}
+            className="w-full text-left rounded-xl bg-emerald-50/80 border border-emerald-200/80 p-2.5 text-xs flex items-center justify-between"
+          >
+            <div>
+              <span className="text-[10px] text-emerald-800 uppercase font-bold block">
+                Looking from
+              </span>
+              <span className="font-bold text-slate-900">{userDistrictLabel}</span>
+            </div>
+            <span className="text-[11px] font-bold text-emerald-800 underline">Switch</span>
+          </button>
+
+          {[
+            { label: 'All locations (Tamil Nadu)', value: 'ALL' },
+            { label: `In my district (${userDistrict || 'Vellore'})`, value: 'IN_DISTRICT' },
+            { label: 'Nearby districts', value: 'NEARBY_DISTRICT' },
+          ].map((option) => {
+            const isSelected = locationFilter === option.value;
+            return (
+              <button
+                key={option.label}
+                type="button"
+                onClick={() => setLocationFilter(option.value as any)}
+                className={`flex w-full items-center justify-between rounded-xl px-2.5 py-2 text-xs font-semibold transition-colors cursor-pointer ${
+                  isSelected
+                    ? 'bg-emerald-800 text-white font-bold shadow-2xs'
+                    : 'bg-slate-50 text-slate-700 hover:bg-slate-100'
+                }`}
+              >
+                <span>{option.label}</span>
+                {isSelected && <Check className="h-3.5 w-3.5 text-white" />}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* 1. Breed Filter */}
@@ -586,6 +688,35 @@ export const MarketplacePage: React.FC = () => {
               )}
             </div>
 
+            {/* View Mode Toggle (List vs Map) */}
+            <div className="flex items-center gap-1 rounded-xl bg-slate-100 p-1 border border-slate-200 shrink-0">
+              <button
+                type="button"
+                onClick={() => setViewMode('list')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  viewMode === 'list'
+                    ? 'bg-white text-emerald-800 shadow-2xs font-bold'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <List className="h-3.5 w-3.5" />
+                <span>List</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setViewMode('map')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  viewMode === 'map'
+                    ? 'bg-white text-emerald-800 shadow-2xs font-bold'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <Map className="h-3.5 w-3.5" />
+                <span>Map View</span>
+              </button>
+            </div>
+
             {/* Desktop Sort Dropdown */}
             <div className="hidden lg:flex items-center gap-2 shrink-0">
               <span className="text-xs font-semibold text-slate-500">Sort by:</span>
@@ -632,8 +763,16 @@ export const MarketplacePage: React.FC = () => {
               )}
             </div>
 
-            {/* Loading Skeleton State */}
-            {loading ? (
+            {/* Results Grid / Map View */}
+            {viewMode === 'map' ? (
+              <div className="space-y-4">
+                <div className="rounded-2xl bg-emerald-50 p-4 border border-emerald-200 flex items-center justify-between text-xs text-emerald-900 font-semibold">
+                  <span>🗺️ Showing partner goat farms on interactive map. Click a farm marker to view inventory.</span>
+                  {userDistrict && <span>📍 Prioritizing farms near {userDistrictLabel}</span>}
+                </div>
+                <FarmMapView farms={farms} />
+              </div>
+            ) : loading ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
                 {Array.from({ length: 6 }).map((_, i) => (
                   <GoatCardSkeleton key={i} />

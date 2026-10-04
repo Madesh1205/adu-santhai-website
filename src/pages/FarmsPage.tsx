@@ -8,6 +8,11 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { VerifiedBadge } from '@/components/common/VerifiedBadge';
 import { EmptyState } from '@/components/common/EmptyState';
+import { useLocation } from '@/lib/location/LocationContext';
+import { formatDistrictLabel } from '@/lib/location/locationUtils';
+import { LocationPill } from '@/components/location/LocationPill';
+import { LocationRelevanceBadge } from '@/components/location/LocationRelevanceBadge';
+import { FarmMapView } from '@/components/location/FarmMapView';
 import {
   Building2,
   MapPin,
@@ -16,12 +21,16 @@ import {
   ArrowRight,
   PlusCircle,
   X,
+  Map,
+  List,
 } from 'lucide-react';
 
 export const FarmsPage: React.FC = () => {
+  const { userDistrict, userDistrictLabel, getFarmRelevance } = useLocation();
   const [farms, setFarms] = useState<Farm[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
 
   useEffect(() => {
     async function loadFarms() {
@@ -37,15 +46,34 @@ export const FarmsPage: React.FC = () => {
     loadFarms();
   }, []);
 
-  const filteredFarms = farms.filter((f) => {
-    if (!searchQuery.trim()) return true;
-    const term = searchQuery.toLowerCase();
-    return (
-      f.name.toLowerCase().includes(term) ||
-      f.locationDistrict.toLowerCase().includes(term) ||
-      f.farmCode.toLowerCase().includes(term)
-    );
-  });
+  const sortedFilteredFarms = React.useMemo(() => {
+    let result = farms.filter((f) => {
+      if (!searchQuery.trim()) return true;
+      const term = searchQuery.toLowerCase();
+      return (
+        f.name.toLowerCase().includes(term) ||
+        f.locationDistrict.toLowerCase().includes(term) ||
+        f.farmCode.toLowerCase().includes(term)
+      );
+    });
+
+    if (userDistrict) {
+      const relevanceRank = {
+        IN_DISTRICT: 1,
+        NEARBY_DISTRICT: 2,
+        OTHER_LOCATION: 3,
+        UNKNOWN: 4,
+      };
+
+      result = [...result].sort((a, b) => {
+        const relA = getFarmRelevance(a.locationDistrict);
+        const relB = getFarmRelevance(b.locationDistrict);
+        return relevanceRank[relA] - relevanceRank[relB];
+      });
+    }
+
+    return result;
+  }, [farms, searchQuery, userDistrict, getFarmRelevance]);
 
   return (
     <>
@@ -69,7 +97,34 @@ export const FarmsPage: React.FC = () => {
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
+            <LocationPill variant="compact" />
+
+            {/* List vs Map View Toggle */}
+            <div className="flex items-center gap-1 rounded-xl bg-slate-100 p-1 border border-slate-200">
+              <button
+                type="button"
+                onClick={() => setViewMode('list')}
+                className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  viewMode === 'list' ? 'bg-white text-emerald-800 shadow-2xs' : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <List className="h-3.5 w-3.5" />
+                <span>List</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setViewMode('map')}
+                className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  viewMode === 'map' ? 'bg-white text-emerald-800 shadow-2xs' : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <Map className="h-3.5 w-3.5" />
+                <span>Map</span>
+              </button>
+            </div>
+
             <div className="relative w-full sm:w-64">
               <Search className="absolute left-3.5 top-2.5 h-4 w-4 text-slate-400" />
               <input
@@ -99,14 +154,22 @@ export const FarmsPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Farms Grid */}
-        {loading ? (
+        {/* Farms Grid or Map View */}
+        {viewMode === 'map' ? (
+          <div className="mt-8 space-y-4">
+            <div className="rounded-2xl bg-emerald-50 p-4 border border-emerald-200 flex items-center justify-between text-xs text-emerald-900 font-semibold">
+              <span>🗺️ Interactive breeder farms map across Tamil Nadu. Click any farm marker to preview.</span>
+              {userDistrict && <span>📍 Prioritizing farms near {userDistrictLabel}</span>}
+            </div>
+            <FarmMapView farms={sortedFilteredFarms} />
+          </div>
+        ) : loading ? (
           <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[1, 2, 3, 4, 5, 6].map((i) => (
               <div key={i} className="h-64 rounded-3xl bg-slate-100 animate-pulse" />
             ))}
           </div>
-        ) : filteredFarms.length === 0 ? (
+        ) : sortedFilteredFarms.length === 0 ? (
           <div className="mt-8">
             <EmptyState
               icon={Building2}
@@ -118,66 +181,73 @@ export const FarmsPage: React.FC = () => {
           </div>
         ) : (
           <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredFarms.map((farm) => (
-              <div
-                key={farm.id}
-                className="flex flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xs transition-all duration-200 hover:border-emerald-700/40 hover:shadow-md group"
-              >
-                {/* Banner Strip */}
-                <div className="relative h-28 w-full overflow-hidden bg-gradient-to-r from-emerald-900 to-slate-800">
-                  {farm.bannerUrl ? (
-                    <img
-                      src={farm.bannerUrl}
-                      alt={farm.name}
-                      className="h-full w-full object-cover group-hover:scale-103 transition-transform duration-300"
-                    />
-                  ) : (
-                    <div className="h-full w-full bg-gradient-to-r from-emerald-900 via-emerald-800 to-slate-900" />
-                  )}
-                  <div className="absolute top-3 right-3 flex flex-wrap items-center gap-1.5 justify-end">
-                    {farm.isAmmalOwnFarm ? (
-                      <Badge variant="earth" className="text-[10px] font-bold shadow-xs">
-                        CENTRAL HUB
-                      </Badge>
-                    ) : (
-                      <VerifiedBadge label="Verified" variant="default" />
-                    )}
-                  </div>
-                </div>
-
-                <div className="p-6 pt-0 flex-1 flex flex-col">
-                  {/* Logo Avatar Badge */}
-                  <div className="relative flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-white p-0.5 overflow-hidden border-2 border-white shadow-md text-emerald-800 font-bold -mt-8 mb-3 z-10">
-                    {farm.logoUrl ? (
+            {sortedFilteredFarms.map((farm) => {
+              return (
+                <div
+                  key={farm.id}
+                  className="flex flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xs transition-all duration-200 hover:border-emerald-700/40 hover:shadow-md group"
+                >
+                  {/* Banner Strip */}
+                  <div className="relative h-28 w-full overflow-hidden bg-gradient-to-r from-emerald-900 to-slate-800">
+                    {farm.bannerUrl ? (
                       <img
-                        src={farm.logoUrl}
+                        src={farm.bannerUrl}
                         alt={farm.name}
-                        className="h-full w-full object-cover rounded-xl"
-                      />
-                    ) : farm.isAmmalOwnFarm ? (
-                      <img
-                        src="/logo.jpg"
-                        alt={farm.name}
-                        className="h-full w-full object-cover rounded-xl"
+                        className="h-full w-full object-cover group-hover:scale-103 transition-transform duration-300"
                       />
                     ) : (
-                      <Building2 className="h-8 w-8 text-emerald-800" />
+                      <div className="h-full w-full bg-gradient-to-r from-emerald-900 via-emerald-800 to-slate-900" />
                     )}
+                    <div className="absolute top-3 right-3 flex flex-wrap items-center gap-1.5 justify-end">
+                      {farm.isAmmalOwnFarm ? (
+                        <Badge variant="earth" className="text-[10px] font-bold shadow-xs">
+                          CENTRAL HUB
+                        </Badge>
+                      ) : (
+                        <VerifiedBadge label="Verified" variant="default" />
+                      )}
+                    </div>
                   </div>
 
-                  <h3 className="text-lg font-bold text-slate-900">
-                    <Link to={`/farms/${farm.id}`} className="hover:text-emerald-800 transition-colors">
-                      {farm.name}
-                    </Link>
-                  </h3>
-                  {farm.tagline && (
-                    <p className="text-xs text-emerald-800 font-medium mt-0.5">{farm.tagline}</p>
-                  )}
+                  <div className="p-6 pt-0 flex-1 flex flex-col">
+                    {/* Logo Avatar Badge */}
+                    <div className="relative flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-white p-0.5 overflow-hidden border-2 border-white shadow-md text-emerald-800 font-bold -mt-8 mb-3 z-10">
+                      {farm.logoUrl ? (
+                        <img
+                          src={farm.logoUrl}
+                          alt={farm.name}
+                          className="h-full w-full object-cover rounded-xl"
+                        />
+                      ) : farm.isAmmalOwnFarm ? (
+                        <img
+                          src="/logo.jpg"
+                          alt={farm.name}
+                          className="h-full w-full object-cover rounded-xl"
+                        />
+                      ) : (
+                        <Building2 className="h-8 w-8 text-emerald-800" />
+                      )}
+                    </div>
 
-                <div className="mt-2 flex items-center gap-1.5 text-xs text-slate-500">
-                  <MapPin className="h-3.5 w-3.5 text-slate-400 shrink-0" />
-                  <span className="truncate">{farm.locationDistrict}, {farm.locationState}</span>
-                </div>
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <h3 className="text-lg font-bold text-slate-900">
+                          <Link to={`/farms/${farm.id}`} className="hover:text-emerald-800 transition-colors">
+                            {farm.name}
+                          </Link>
+                        </h3>
+                        {farm.tagline && (
+                          <p className="text-xs text-emerald-800 font-medium mt-0.5">{farm.tagline}</p>
+                        )}
+                      </div>
+
+                      <LocationRelevanceBadge relevance={getFarmRelevance(farm.locationDistrict)} />
+                    </div>
+
+                    <div className="mt-2 flex items-center gap-1.5 text-xs text-slate-500 font-semibold">
+                      <MapPin className="h-3.5 w-3.5 text-emerald-800 shrink-0" />
+                      <span className="truncate">{formatDistrictLabel(farm.locationDistrict)}</span>
+                    </div>
 
                 <p className="mt-3 text-xs text-slate-600 line-clamp-3 leading-relaxed">
                   {farm.description || 'Verified livestock breeding facility specializing in certified pedigree and meat goats.'}
@@ -205,8 +275,9 @@ export const FarmsPage: React.FC = () => {
                 </div>
               </div>
             </div>
-            ))}
-          </div>
+          );
+        })}
+      </div>
         )}
       </div>
     </>

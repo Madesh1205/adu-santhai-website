@@ -14,6 +14,9 @@ import { GoatCard } from '@/components/marketplace/GoatCard';
 import { GoatRepository } from '@/repositories/GoatRepository';
 import { WishlistRepository } from '@/repositories/WishlistRepository';
 import { useAuth } from '@/lib/auth/AuthContext';
+import { useLocation } from '@/lib/location/LocationContext';
+import { formatDistrictLabel } from '@/lib/location/locationUtils';
+import { LocationRelevanceBadge } from '@/components/location/LocationRelevanceBadge';
 import { formatCurrency, formatAge } from '@/lib/utils';
 import type { Goat } from '@/types';
 import {
@@ -29,6 +32,7 @@ export const GoatDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { getFarmRelevance } = useLocation();
 
   const [goat, setGoat] = useState<Goat | null>(null);
   const [relatedGoats, setRelatedGoats] = useState<Goat[]>([]);
@@ -367,12 +371,15 @@ export const GoatDetailPage: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <h4 className="font-bold text-sm text-slate-900">{goat.farmName}</h4>
-                  <p className="text-xs text-slate-500">{goat.farmLocation || 'Tamil Nadu, India'}</p>
+                  <p className="text-xs text-slate-500 font-semibold mb-1">
+                    📍 {formatDistrictLabel(goat.farmLocation)}
+                  </p>
+                  <LocationRelevanceBadge relevance={getFarmRelevance(goat.farmLocation)} />
                 </div>
 
                 <Link
                   to={`/farms/${goat.farmId}`}
-                  className="text-xs font-bold text-emerald-800 hover:underline"
+                  className="text-xs font-bold text-emerald-800 hover:underline shrink-0"
                 >
                   View Farm →
                 </Link>

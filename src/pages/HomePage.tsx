@@ -11,6 +11,10 @@ import { FallbackGoatImage } from '@/components/common/FallbackGoatImage';
 import { GoatRepository } from '@/repositories/GoatRepository';
 import { FarmRepository } from '@/repositories/FarmRepository';
 import type { Goat, Farm } from '@/types';
+import { useLocation } from '@/lib/location/LocationContext';
+import { formatDistrictLabel } from '@/lib/location/locationUtils';
+import { LocationPill } from '@/components/location/LocationPill';
+import { LocationRelevanceBadge } from '@/components/location/LocationRelevanceBadge';
 import {
   Search,
   ShieldCheck,
@@ -21,12 +25,16 @@ import {
   Sparkles,
   PhoneCall,
   CheckCircle2,
+  ChevronRight,
 } from 'lucide-react';
 
 export const HomePage: React.FC = () => {
   const navigate = useNavigate();
+  const { userDistrict, userDistrictLabel, getFarmRelevance } = useLocation();
+
   const [featuredGoats, setFeaturedGoats] = useState<Goat[]>([]);
-  const [farms, setFarms] = useState<Farm[]>([]);
+  const [allFarms, setAllFarms] = useState<Farm[]>([]);
+  const [farmGoatCounts, setFarmGoatCounts] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState<boolean>(true);
   const [selectedGoatForBooking, setSelectedGoatForBooking] = useState<Goat | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -39,7 +47,14 @@ export const HomePage: React.FC = () => {
           FarmRepository.getApprovedFarms(),
         ]);
         setFeaturedGoats(goatsData);
-        setFarms(farmsData.slice(0, 3));
+        setAllFarms(farmsData);
+
+        // Compute available goats count per farm
+        const counts: Record<string, number> = {};
+        goatsData.forEach((g) => {
+          counts[g.farmId] = (counts[g.farmId] || 0) + 1;
+        });
+        setFarmGoatCounts(counts);
       } catch (err) {
         console.error('Failed to load homepage content:', err);
       } finally {
@@ -48,6 +63,25 @@ export const HomePage: React.FC = () => {
     }
     loadHomeData();
   }, []);
+
+  // Compute prioritized farms by relevance (In District -> Nearby Districts -> Other Locations)
+  const prioritizedFarms = React.useMemo(() => {
+    if (!allFarms.length) return [];
+    if (!userDistrict) return allFarms.slice(0, 4);
+
+    const relevanceRank = {
+      IN_DISTRICT: 1,
+      NEARBY_DISTRICT: 2,
+      OTHER_LOCATION: 3,
+      UNKNOWN: 4,
+    };
+
+    return [...allFarms].sort((a, b) => {
+      const relA = getFarmRelevance(a.locationDistrict);
+      const relB = getFarmRelevance(b.locationDistrict);
+      return relevanceRank[relA] - relevanceRank[relB];
+    });
+  }, [allFarms, userDistrict, getFarmRelevance]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,7 +93,7 @@ export const HomePage: React.FC = () => {
   };
 
   const topGoatImage = featuredGoats.find((g) => g.primaryPhoto)?.primaryPhoto;
-  const heroBannerImage = farms.find((f) => f.bannerUrl)?.bannerUrl || topGoatImage;
+  const heroBannerImage = allFarms.find((f) => f.bannerUrl)?.bannerUrl || topGoatImage;
 
   return (
     <>
@@ -207,7 +241,106 @@ export const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* 4. FEATURED GOATS */}
+      {/* 3. GOATS & FARMS AVAILABLE NEAR YOU (LOCATION DISCOVERY) */}
+      <section className="py-12 sm:py-16 bg-gradient-to-b from-emerald-50/40 via-white to-white border-b border-slate-100">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-800">
+                  <MapPin className="h-3.5 w-3.5 text-emerald-800" />
+                  District Relevance
+                </span>
+                {userDistrict && (
+                  <span className="text-xs font-bold text-emerald-900 bg-emerald-100/80 px-2.5 py-0.5 rounded-md">
+                    📍 {userDistrictLabel}
+                  </span>
+                )}
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+                Goats Available Near You
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-500 mt-1">
+                Discover trusted goat farms and available livestock prioritized by district relevance.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <LocationPill variant="full" />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {prioritizedFarms.map((farm) => {
+              const relevance = getFarmRelevance(farm.locationDistrict);
+              const goatCount = farmGoatCounts[farm.id] ?? 0;
+
+              return (
+                <div
+                  key={farm.id}
+                  className="flex flex-col justify-between overflow-hidden rounded-3xl border border-slate-200 bg-white p-5 shadow-xs transition-all duration-200 hover:border-emerald-700/40 hover:shadow-md group"
+                >
+                  <div className="space-y-3">
+                    {/* Farm Image Banner + Logo */}
+                    <div className="relative h-28 w-full overflow-hidden rounded-2xl bg-gradient-to-r from-emerald-900 to-slate-800">
+                      {farm.bannerUrl ? (
+                        <img
+                          src={farm.bannerUrl}
+                          alt={farm.name}
+                          className="h-full w-full object-cover group-hover:scale-103 transition-transform duration-300"
+                        />
+                      ) : (
+                        <div className="h-full w-full bg-gradient-to-r from-emerald-950 via-emerald-900 to-slate-900" />
+                      )}
+
+                      <div className="absolute top-2.5 right-2.5">
+                        <VerifiedBadge label="Verified" variant="default" className="text-[10px]" />
+                      </div>
+
+                      <div className="absolute left-3 -bottom-3 flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white p-0.5 overflow-hidden border-2 border-white shadow-md text-emerald-800 font-bold">
+                        {farm.logoUrl ? (
+                          <img src={farm.logoUrl} alt={farm.name} className="h-full w-full object-cover rounded-lg" />
+                        ) : farm.isAmmalOwnFarm ? (
+                          <img src="/logo.jpg" alt={farm.name} className="h-full w-full object-cover rounded-lg" />
+                        ) : (
+                          <Building2 className="h-6 w-6 text-emerald-800" />
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="pt-2">
+                      <h3 className="font-bold text-base text-slate-900 truncate group-hover:text-emerald-800 transition-colors">
+                        {farm.name}
+                      </h3>
+                      <p className="text-xs text-slate-500 mt-0.5 truncate">
+                        📍 {formatDistrictLabel(farm.locationDistrict)}
+                      </p>
+                    </div>
+
+                    {/* District Relevance Badge & Goat Availability */}
+                    <div className="flex flex-wrap items-center justify-between gap-2 pt-1 text-xs">
+                      <LocationRelevanceBadge relevance={relevance} />
+
+                      <span className="font-bold text-slate-700 bg-slate-100 px-2.5 py-1 rounded-lg text-[11px]">
+                        {goatCount > 0 ? `${goatCount} goats` : 'Active farm'}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="pt-4 mt-4 border-t border-slate-100">
+                    <Link to={`/farms/${farm.id}`}>
+                      <Button variant="outline" size="sm" className="w-full font-bold text-xs h-9 rounded-xl">
+                        <span>View Farm</span>
+                        <ChevronRight className="h-3.5 w-3.5 ml-1" />
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
       <section className="py-14 sm:py-16 bg-slate-50/60 border-y border-slate-100">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <SectionHeader
@@ -254,7 +387,7 @@ export const HomePage: React.FC = () => {
           />
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {farms.map((farm) => (
+            {allFarms.slice(0, 3).map((farm) => (
               <div
                 key={farm.id}
                 className="flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-6 shadow-xs transition-all duration-200 hover:border-emerald-700/40 hover:shadow-sm"
@@ -265,10 +398,31 @@ export const HomePage: React.FC = () => {
                   </div>
 
                   <div>
-                    <h3 className="text-lg font-bold text-slate-900">{farm.name}</h3>
-                    <div className="flex items-center gap-1.5 text-xs text-slate-500 mt-1">
-                      <MapPin className="h-3.5 w-3.5 text-emerald-800" />
-                      <span>{farm.locationDistrict || 'Tamil Nadu'}, India</span>
+                    <div className="flex items-center gap-3">
+                      <div className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-slate-100 border border-slate-200 overflow-hidden text-emerald-800 font-bold shadow-xs">
+                        {farm.logoUrl ? (
+                          <img
+                            src={farm.logoUrl}
+                            alt={farm.name}
+                            className="h-full w-full object-cover"
+                          />
+                        ) : farm.isAmmalOwnFarm ? (
+                          <img
+                            src="/logo.jpg"
+                            alt={farm.name}
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <Building2 className="h-6 w-6 text-emerald-800" />
+                        )}
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-bold text-slate-900">{farm.name}</h3>
+                        <div className="flex items-center gap-1.5 text-xs text-slate-500 mt-0.5">
+                          <MapPin className="h-3.5 w-3.5 text-emerald-800 shrink-0" />
+                          <span>{farm.locationDistrict || 'Tamil Nadu'}, India</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
 

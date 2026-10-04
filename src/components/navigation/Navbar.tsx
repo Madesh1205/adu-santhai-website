@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { NotificationRepository } from '@/repositories/NotificationRepository';
 import { WishlistRepository } from '@/repositories/WishlistRepository';
 import type { AppNotification } from '@/types';
+import { LocationPill } from '@/components/location/LocationPill';
 import {
   Bell,
   Heart,
@@ -67,8 +68,13 @@ export const Navbar: React.FC = () => {
   // Fetch notification and wishlist counts and subscribe to realtime updates
   useEffect(() => {
     if (user) {
-      NotificationRepository.getUnreadCount(user.id).then(setUnreadCount);
-      WishlistRepository.getWishlistGoatIds(user.id).then((ids) => setWishlistCount(ids.length));
+      NotificationRepository.getUnreadCount(user.id)
+        .then(setUnreadCount)
+        .catch(() => setUnreadCount(0));
+
+      WishlistRepository.getWishlistGoatIds(user.id)
+        .then((ids) => setWishlistCount(ids ? ids.length : 0))
+        .catch(() => setWishlistCount(0));
 
       // Realtime notification listener
       const unsubscribe = NotificationRepository.subscribeToNotifications(user.id, (newNotif) => {
@@ -160,7 +166,9 @@ export const Navbar: React.FC = () => {
         </div>
 
         {/* Right Actions */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
+          {/* Location Selector Pill */}
+          <LocationPill variant="compact" className="hidden sm:inline-flex" />
           {/* Wishlist Button */}
           {user && (
             <Link

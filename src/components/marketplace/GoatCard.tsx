@@ -9,6 +9,9 @@ import { FallbackGoatImage } from '@/components/common/FallbackGoatImage';
 import { formatAge } from '@/lib/utils';
 import { Heart, Building2 } from 'lucide-react';
 import { useAuth } from '@/lib/auth/AuthContext';
+import { useLocation } from '@/lib/location/LocationContext';
+import { formatDistrictLabel } from '@/lib/location/locationUtils';
+import { LocationRelevanceBadge } from '@/components/location/LocationRelevanceBadge';
 import { WishlistRepository } from '@/repositories/WishlistRepository';
 
 interface GoatCardProps {
@@ -25,10 +28,13 @@ export const GoatCard: React.FC<GoatCardProps> = ({
   onOpenBookingModal,
 }) => {
   const { user } = useAuth();
+  const { getFarmRelevance } = useLocation();
   const navigate = useNavigate();
   const [saved, setSaved] = useState<boolean>(isWishlisted);
   const [isTogglingWishlist, setIsTogglingWishlist] = useState<boolean>(false);
   const [imgError, setImgError] = useState<boolean>(false);
+
+  const relevance = getFarmRelevance(goat.farmLocation);
 
   const handleWishlistClick = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -138,16 +144,18 @@ export const GoatCard: React.FC<GoatCardProps> = ({
           <span className="font-medium text-slate-700">{goat.weightKg} kg</span>
         </p>
 
-        {/* Farm Line */}
-        <div className="mt-2.5 flex items-center gap-1.5 text-xs text-slate-600">
-          <Building2 className="h-3.5 w-3.5 text-emerald-800 shrink-0" />
-          <span className="truncate font-medium">{goat.farmName}</span>
-          {goat.farmLocation && (
-            <>
-              <span className="text-slate-300">•</span>
-              <span className="truncate text-slate-400">{goat.farmLocation}</span>
-            </>
-          )}
+        {/* Farm Line + District Relevance */}
+        <div className="mt-2.5 flex items-center justify-between gap-2 text-xs text-slate-600">
+          <div className="flex items-center gap-1.5 truncate">
+            <Building2 className="h-3.5 w-3.5 text-emerald-800 shrink-0" />
+            <span className="truncate font-medium">{goat.farmName}</span>
+            <span className="text-slate-300">•</span>
+            <span className="truncate text-slate-500 font-semibold">
+              {formatDistrictLabel(goat.farmLocation)}
+            </span>
+          </div>
+
+          <LocationRelevanceBadge relevance={relevance} />
         </div>
 
         {/* Spacer */}

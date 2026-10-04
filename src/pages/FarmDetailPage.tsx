@@ -11,6 +11,9 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { VerifiedBadge } from '@/components/common/VerifiedBadge';
 import { EmptyState } from '@/components/common/EmptyState';
+import { useLocation } from '@/lib/location/LocationContext';
+import { formatDistrictLabel } from '@/lib/location/locationUtils';
+import { LocationRelevanceBadge } from '@/components/location/LocationRelevanceBadge';
 import type { Farm, Goat } from '@/types';
 import {
   Building2,
@@ -21,10 +24,13 @@ import {
 
 export const FarmDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const { getFarmRelevance } = useLocation();
   const [farm, setFarm] = useState<Farm | null>(null);
   const [goats, setGoats] = useState<Goat[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [selectedGoatForBooking, setSelectedGoatForBooking] = useState<Goat | null>(null);
+
+  const relevance = farm ? getFarmRelevance(farm.locationDistrict) : 'UNKNOWN';
 
   useEffect(() => {
     async function loadFarmAndGoats() {
@@ -149,11 +155,13 @@ export const FarmDetailPage: React.FC = () => {
                     <p className="text-sm font-semibold text-emerald-800">{farm.tagline}</p>
                   )}
 
-                  <div className="flex items-center gap-2 text-xs text-slate-500">
+                  <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
                     <MapPin className="h-3.5 w-3.5 text-emerald-800 shrink-0" />
-                    <span>{farm.address || `${farm.locationDistrict}, ${farm.locationState || 'Tamil Nadu'}, India`}</span>
+                    <span>{farm.address || `${formatDistrictLabel(farm.locationDistrict)}, Tamil Nadu, India`}</span>
                     <span className="text-slate-300">•</span>
-                    <span>{goats.length} active listings</span>
+                    <LocationRelevanceBadge relevance={relevance} />
+                    <span className="text-slate-300">•</span>
+                    <span className="font-medium text-slate-700">{goats.length} active listings</span>
                   </div>
                 </div>
               </div>
