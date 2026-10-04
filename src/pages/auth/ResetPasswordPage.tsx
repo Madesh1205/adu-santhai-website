@@ -181,7 +181,7 @@ export const ResetPasswordPage: React.FC = () => {
             <Link to="/" className="inline-block">
               <div className="inline-flex h-20 w-20 items-center justify-center rounded-2xl overflow-hidden bg-white shadow-sm border border-emerald-800/15 hover:border-emerald-800 transition-colors">
                 <img
-                  src="/logo.jpg"
+                  src="/logo.png"
                   alt="Ammal Farm Adu Santhai"
                   className="h-full w-full object-contain p-1"
                 />

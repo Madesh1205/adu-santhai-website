@@ -1,4 +1,4 @@
-import { supabase, resolveStorageUrl, BUCKET_GOAT_IMAGES } from '@/lib/supabase/client';
+import { supabase, resolveStorageUrl, BUCKET_GOAT_IMAGES, safeDbQuery } from '@/lib/supabase/client';
 import type { Database } from '@/lib/supabase/database.types';
 import type { Farm } from '@/types';
 
@@ -37,38 +37,43 @@ export const FarmRepository = {
    * Fetches all approved partner & ammal farms for the public directory.
    */
   async getApprovedFarms(): Promise<Farm[]> {
-    const { data, error } = await supabase
-      .from('farms')
-      .select('*')
-      .eq('status', 'APPROVED')
-      .order('is_ammal_own_farm', { ascending: false })
-      .order('created_at', { ascending: false });
+    const { data, error } = await safeDbQuery<FarmRow[]>(() =>
+      supabase
+        .from('farms')
+        .select('*')
+        .eq('status', 'APPROVED')
+        .order('is_ammal_own_farm', { ascending: false })
+        .order('created_at', { ascending: false })
+    );
 
     if (error) {
-      console.error('Error fetching approved farms:', error);
-      throw error;
+      console.warn('Farms fetch notice:', error.message || error);
+      return [];
     }
 
-    return (data || []).map(mapFarmRow);
+    return ((data as FarmRow[]) || []).map(mapFarmRow);
   },
 
   /**
    * Fetches single farm by ID.
    */
   async getFarmById(id: string): Promise<Farm | null> {
-    const { data, error } = await supabase
-      .from('farms')
-      .select('*')
-      .eq('id', id)
-      .maybeSingle();
+    if (!id) return null;
+    const { data, error } = await safeDbQuery<FarmRow>(() =>
+      supabase
+        .from('farms')
+        .select('*')
+        .eq('id', id)
+        .maybeSingle()
+    );
 
     if (error) {
-      console.error('Error fetching farm by id:', error);
-      throw error;
+      console.warn('Farm by ID fetch notice:', error.message || error);
+      return null;
     }
 
     if (!data) return null;
-    return mapFarmRow(data);
+    return mapFarmRow(data as FarmRow);
   },
 
   /**

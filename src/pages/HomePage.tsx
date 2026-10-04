@@ -276,9 +276,10 @@ export const HomePage: React.FC = () => {
               const goatCount = farmGoatCounts[farm.id] ?? 0;
 
               return (
-                <div
+                <Link
                   key={farm.id}
-                  className="flex flex-col justify-between overflow-hidden rounded-3xl border border-slate-200 bg-white p-5 shadow-xs transition-all duration-200 hover:border-emerald-700/40 hover:shadow-md group"
+                  to={`/farms/${farm.id}`}
+                  className="flex flex-col justify-between overflow-hidden rounded-3xl border border-slate-200 bg-white p-5 shadow-xs transition-all duration-200 hover:border-emerald-700/60 hover:shadow-md cursor-pointer group"
                 >
                   <div className="space-y-3">
                     {/* Farm Image Banner + Logo */}
@@ -301,7 +302,7 @@ export const HomePage: React.FC = () => {
                         {farm.logoUrl ? (
                           <img src={farm.logoUrl} alt={farm.name} className="h-full w-full object-cover rounded-lg" />
                         ) : farm.isAmmalOwnFarm ? (
-                          <img src="/logo.jpg" alt={farm.name} className="h-full w-full object-cover rounded-lg" />
+                          <img src="/logo.png" alt={farm.name} className="h-full w-full object-cover rounded-lg" />
                         ) : (
                           <Building2 className="h-6 w-6 text-emerald-800" />
                         )}
@@ -328,14 +329,12 @@ export const HomePage: React.FC = () => {
                   </div>
 
                   <div className="pt-4 mt-4 border-t border-slate-100">
-                    <Link to={`/farms/${farm.id}`}>
-                      <Button variant="outline" size="sm" className="w-full font-bold text-xs h-9 rounded-xl">
-                        <span>View Farm</span>
-                        <ChevronRight className="h-3.5 w-3.5 ml-1" />
-                      </Button>
-                    </Link>
+                    <Button variant="outline" size="sm" className="w-full font-bold text-xs h-9 rounded-xl group-hover:bg-emerald-800 group-hover:text-white group-hover:border-emerald-800 transition-colors pointer-events-none">
+                      <span>View Farm</span>
+                      <ChevronRight className="h-3.5 w-3.5 ml-1" />
+                    </Button>
                   </div>
-                </div>
+                </Link>
               );
             })}
           </div>
@@ -388,9 +387,10 @@ export const HomePage: React.FC = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {allFarms.slice(0, 3).map((farm) => (
-              <div
+              <Link
                 key={farm.id}
-                className="flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-6 shadow-xs transition-all duration-200 hover:border-emerald-700/40 hover:shadow-sm"
+                to={`/farms/${farm.id}`}
+                className="flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-6 shadow-xs transition-all duration-200 hover:border-emerald-700/60 hover:shadow-md cursor-pointer group"
               >
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
@@ -408,7 +408,7 @@ export const HomePage: React.FC = () => {
                           />
                         ) : farm.isAmmalOwnFarm ? (
                           <img
-                            src="/logo.jpg"
+                            src="/logo.png"
                             alt={farm.name}
                             className="h-full w-full object-cover"
                           />
@@ -417,7 +417,7 @@ export const HomePage: React.FC = () => {
                         )}
                       </div>
                       <div>
-                        <h3 className="text-lg font-bold text-slate-900">{farm.name}</h3>
+                        <h3 className="text-lg font-bold text-slate-900 group-hover:text-emerald-800 transition-colors">{farm.name}</h3>
                         <div className="flex items-center gap-1.5 text-xs text-slate-500 mt-0.5">
                           <MapPin className="h-3.5 w-3.5 text-emerald-800 shrink-0" />
                           <span>{farm.locationDistrict || 'Tamil Nadu'}, India</span>
@@ -432,22 +432,22 @@ export const HomePage: React.FC = () => {
                 </div>
 
                 <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between">
-                  <Link
-                    to={`/farms/${farm.id}`}
-                    className="text-xs font-bold text-emerald-800 hover:underline"
-                  >
+                  <span className="text-xs font-bold text-emerald-800 group-hover:underline">
                     View Available Goats →
-                  </Link>
+                  </span>
                   {farm.contactPhone && (
-                    <a
-                      href={`tel:${farm.contactPhone}`}
+                    <span
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        window.location.href = `tel:${farm.contactPhone}`;
+                      }}
                       className="inline-flex items-center gap-1 text-xs font-semibold text-slate-600 hover:text-slate-900"
                     >
                       <PhoneCall className="h-3 w-3 text-emerald-800" /> Call
-                    </a>
+                    </span>
                   )}
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         </div>
@@ -505,7 +505,7 @@ export const HomePage: React.FC = () => {
               <div className="shrink-0">
                 <div className="h-32 w-32 sm:h-40 sm:w-40 rounded-3xl overflow-hidden bg-white shadow-md border-2 border-emerald-800/20 p-2">
                   <img
-                    src="/logo.jpg"
+                    src="/logo.png"
                     alt="Ammal Farm • Adu Santhai Official Emblem"
                     className="h-full w-full object-contain"
                   />

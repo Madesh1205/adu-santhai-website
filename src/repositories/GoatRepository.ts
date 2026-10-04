@@ -1,4 +1,4 @@
-import { supabase, resolveStorageUrl } from '@/lib/supabase/client';
+import { supabase, resolveStorageUrl, safeDbQuery } from '@/lib/supabase/client';
 import type { Database } from '@/lib/supabase/database.types';
 import type { Goat, GoatFilterCriteria, Breed } from '@/types';
 import { calculateFinalPrice } from '@/types';
@@ -151,10 +151,10 @@ export const GoatRepository = {
       query = query.order('created_at', { ascending: false });
     }
 
-    const { data, error } = await query;
+    const { data, error } = await safeDbQuery(() => query);
     if (error) {
-      console.error('Error in getApprovedGoats:', error);
-      throw error;
+      console.warn('getApprovedGoats notice:', error.message || error);
+      return [];
     }
 
     return (data as GoatRow[] || []).map(mapGoatRow);
@@ -164,25 +164,27 @@ export const GoatRepository = {
    * Fetches featured goats for the homepage carousel.
    */
   async getFeaturedGoats(limit: number = 6): Promise<Goat[]> {
-    const { data, error } = await supabase
-      .from('goats')
-      .select(`
-        *,
-        farms (
-          id, name, farm_code, location_district, location_state, contact_phone, is_ammal_own_farm
-        ),
-        goat_images (
-          id, image_url, is_primary, display_order
-        )
-      `)
-      .eq('is_approved_by_admin', true)
-      .eq('status', 'AVAILABLE')
-      .order('is_featured', { ascending: false })
-      .order('created_at', { ascending: false })
-      .limit(limit);
+    const { data, error } = await safeDbQuery(() =>
+      supabase
+        .from('goats')
+        .select(`
+          *,
+          farms (
+            id, name, farm_code, location_district, location_state, contact_phone, is_ammal_own_farm
+          ),
+          goat_images (
+            id, image_url, is_primary, display_order
+          )
+        `)
+        .eq('is_approved_by_admin', true)
+        .eq('status', 'AVAILABLE')
+        .order('is_featured', { ascending: false })
+        .order('created_at', { ascending: false })
+        .limit(limit)
+    );
 
     if (error) {
-      console.error('Error fetching featured goats:', error);
+      console.warn('getFeaturedGoats notice:', error.message || error);
       return [];
     }
 
@@ -193,23 +195,26 @@ export const GoatRepository = {
    * Fetches single goat by ID.
    */
   async getGoatById(id: string): Promise<Goat | null> {
-    const { data, error } = await supabase
-      .from('goats')
-      .select(`
-        *,
-        farms (
-          id, name, farm_code, location_district, location_state, contact_phone, is_ammal_own_farm
-        ),
-        goat_images (
-          id, image_url, is_primary, display_order
-        )
-      `)
-      .eq('id', id)
-      .maybeSingle();
+    if (!id) return null;
+    const { data, error } = await safeDbQuery(() =>
+      supabase
+        .from('goats')
+        .select(`
+          *,
+          farms (
+            id, name, farm_code, location_district, location_state, contact_phone, is_ammal_own_farm
+          ),
+          goat_images (
+            id, image_url, is_primary, display_order
+          )
+        `)
+        .eq('id', id)
+        .maybeSingle()
+    );
 
     if (error) {
-      console.error('Error fetching goat by id:', error);
-      throw error;
+      console.warn('Goat by ID fetch notice:', error.message || error);
+      return null;
     }
 
     if (!data) return null;
@@ -365,18 +370,20 @@ export const GoatRepository = {
    * Fetches active breeds list.
    */
   async getBreeds(): Promise<Breed[]> {
-    const { data, error } = await supabase
-      .from('breeds')
-      .select('*')
-      .eq('is_active', true)
-      .order('name');
+    const { data, error } = await safeDbQuery<any[]>(() =>
+      supabase
+        .from('breeds')
+        .select('*')
+        .eq('is_active', true)
+        .order('name')
+    );
 
     if (error) {
-      console.error('Error fetching breeds:', error);
+      console.warn('Error fetching breeds notice:', error.message || error);
       return [];
     }
 
-    return (data || []).map((b) => ({
+    return ((data as any[]) || []).map((b) => ({
       id: b.id,
       name: b.name,
       origin: b.origin,

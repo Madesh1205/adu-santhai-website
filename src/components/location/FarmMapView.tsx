@@ -128,7 +128,7 @@ export const FarmMapView: React.FC<FarmMapViewProps> = ({
                 {selectedFarm.logoUrl ? (
                   <img src={selectedFarm.logoUrl} alt={selectedFarm.name} className="h-full w-full object-cover" />
                 ) : selectedFarm.isAmmalOwnFarm ? (
-                  <img src="/logo.jpg" alt={selectedFarm.name} className="h-full w-full object-cover" />
+                  <img src="/logo.png" alt={selectedFarm.name} className="h-full w-full object-cover" />
                 ) : (
                   <Building2 className="h-6 w-6 text-emerald-800" />
                 )}

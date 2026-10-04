@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, useMemo, useCallback } from 'react';
 import type { User, Session } from '@supabase/supabase-js';
-import { supabase, resolveStorageUrl, BUCKET_GOAT_IMAGES } from '@/lib/supabase/client';
+import { supabase, resolveStorageUrl, BUCKET_GOAT_IMAGES, clearExpiredJwtSession } from '@/lib/supabase/client';
 import { getAuthCallbackUrl } from '@/lib/auth/authConfig';
 import type { UserProfile, Farm, UserRole } from '@/types';
 
@@ -67,7 +67,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .maybeSingle();
 
       if (profileError) {
-        console.error('Error fetching profile:', profileError);
+        if (profileError.code === 'PGRST303' || profileError.message?.includes('JWT expired')) {
+          console.warn('Expired session token detected during profile fetch. Clearing stale session...');
+          await clearExpiredJwtSession();
+          setUser(null);
+          setSession(null);
+          setProfile(null);
+          setFarm(null);
+          return;
+        }
+        console.warn('Profile fetch notice:', profileError.message || profileError);
         setProfile(null);
         setFarm(null);
         return;

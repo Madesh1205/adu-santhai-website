@@ -183,9 +183,10 @@ export const FarmsPage: React.FC = () => {
           <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {sortedFilteredFarms.map((farm) => {
               return (
-                <div
+                <Link
                   key={farm.id}
-                  className="flex flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xs transition-all duration-200 hover:border-emerald-700/40 hover:shadow-md group"
+                  to={`/farms/${farm.id}`}
+                  className="flex flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xs transition-all duration-200 hover:border-emerald-700/60 hover:shadow-md cursor-pointer group"
                 >
                   {/* Banner Strip */}
                   <div className="relative h-28 w-full overflow-hidden bg-gradient-to-r from-emerald-900 to-slate-800">
@@ -220,7 +221,7 @@ export const FarmsPage: React.FC = () => {
                         />
                       ) : farm.isAmmalOwnFarm ? (
                         <img
-                          src="/logo.jpg"
+                          src="/logo.png"
                           alt={farm.name}
                           className="h-full w-full object-cover rounded-xl"
                         />
@@ -231,10 +232,8 @@ export const FarmsPage: React.FC = () => {
 
                     <div className="flex items-start justify-between gap-2">
                       <div>
-                        <h3 className="text-lg font-bold text-slate-900">
-                          <Link to={`/farms/${farm.id}`} className="hover:text-emerald-800 transition-colors">
-                            {farm.name}
-                          </Link>
+                        <h3 className="text-lg font-bold text-slate-900 group-hover:text-emerald-800 transition-colors">
+                          {farm.name}
                         </h3>
                         {farm.tagline && (
                           <p className="text-xs text-emerald-800 font-medium mt-0.5">{farm.tagline}</p>
@@ -249,35 +248,37 @@ export const FarmsPage: React.FC = () => {
                       <span className="truncate">{formatDistrictLabel(farm.locationDistrict)}</span>
                     </div>
 
-                <p className="mt-3 text-xs text-slate-600 line-clamp-3 leading-relaxed">
-                  {farm.description || 'Verified livestock breeding facility specializing in certified pedigree and meat goats.'}
-                </p>
+                    <p className="mt-3 text-xs text-slate-600 line-clamp-3 leading-relaxed">
+                      {farm.description || 'Verified livestock breeding facility specializing in certified pedigree and meat goats.'}
+                    </p>
 
-                <div className="mt-auto pt-5 border-t border-slate-100 flex items-center justify-between">
-                  {farm.contactPhone ? (
-                    <a
-                      href={`tel:${farm.contactPhone}`}
-                      className="flex items-center gap-1.5 text-xs font-bold text-slate-700 hover:text-emerald-800 transition-colors"
-                    >
-                      <PhoneCall className="h-4 w-4 text-emerald-800" />
-                      <span>Call Breeder</span>
-                    </a>
-                  ) : (
-                    <span className="text-xs text-slate-400">Verified Listing</span>
-                  )}
+                    <div className="mt-auto pt-5 border-t border-slate-100 flex items-center justify-between">
+                      {farm.contactPhone ? (
+                        <span
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            window.location.href = `tel:${farm.contactPhone}`;
+                          }}
+                          className="flex items-center gap-1.5 text-xs font-bold text-slate-700 hover:text-emerald-800 transition-colors z-10"
+                        >
+                          <PhoneCall className="h-4 w-4 text-emerald-800" />
+                          <span>Call Breeder</span>
+                        </span>
+                      ) : (
+                        <span className="text-xs text-slate-400">Verified Listing</span>
+                      )}
 
-                  <Link to={`/farms/${farm.id}`}>
-                    <Button variant="secondary" size="sm" className="text-xs font-bold gap-1">
-                      <span>View Herd</span>
-                      <ArrowRight className="h-3.5 w-3.5" />
-                    </Button>
-                  </Link>
-                </div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
+                      <Button variant="secondary" size="sm" className="text-xs font-bold gap-1 group-hover:bg-emerald-800 group-hover:text-white transition-colors pointer-events-none">
+                        <span>View Herd</span>
+                        <ArrowRight className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
         )}
       </div>
     </>

@@ -35,7 +35,7 @@ export const FarmAdminLayout: React.FC = () => {
                 {farm?.logoUrl ? (
                   <img src={farm.logoUrl} alt={farm.name} className="h-full w-full object-cover" />
                 ) : farm?.isAmmalOwnFarm ? (
-                  <img src="/logo.jpg" alt={farm.name} className="h-full w-full object-cover" />
+                  <img src="/logo.png" alt={farm.name} className="h-full w-full object-cover" />
                 ) : (
                   <Building2 className="h-7 w-7 text-emerald-800" />
                 )}

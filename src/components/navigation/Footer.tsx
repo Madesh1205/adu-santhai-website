@@ -52,7 +52,7 @@ export const Footer: React.FC = () => {
             <div className="flex items-center gap-2.5">
               <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl overflow-hidden bg-white shadow-xs border border-slate-200">
                 <img
-                  src="/logo.jpg"
+                  src="/logo.png"
                   alt="Ammal Farm Adu Santhai"
                   className="h-full w-full object-contain p-0.5"
                 />

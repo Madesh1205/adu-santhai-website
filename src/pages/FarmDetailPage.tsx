@@ -128,7 +128,7 @@ export const FarmDetailPage: React.FC = () => {
                     />
                   ) : farm.isAmmalOwnFarm ? (
                     <img
-                      src="/logo.jpg"
+                      src="/logo.png"
                       alt={farm.name}
                       className="h-full w-full object-cover rounded-xl"
                     />

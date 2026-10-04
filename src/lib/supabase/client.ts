@@ -78,6 +78,52 @@ export const BUCKET_FARM_DOCS = 'farm-docs';
 export const BUCKET_VET_CERTIFICATES = 'vet-certificates';
 
 /**
+ * Safely clears local auth session storage if JWT has expired (PostgREST PGRST303).
+ */
+export async function clearExpiredJwtSession(): Promise<void> {
+  try {
+    await supabase.auth.signOut({ scope: 'local' });
+  } catch {
+    // Fallback manual cleanup of supabase auth keys in localStorage
+  }
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && (key.includes('supabase') || key.includes('sb-') || key.includes('auth-token'))) {
+        localStorage.removeItem(key);
+      }
+    }
+  } catch {
+    // Ignore localStorage access errors
+  }
+}
+
+/**
+ * Executes a Supabase database request, automatically clearing expired JWTs and retrying once if PGRST303 is returned.
+ */
+export async function safeDbQuery<T = any>(
+  queryFn: () => PromiseLike<{ data: T | null; error: any }>
+): Promise<{ data: T | null; error: any }> {
+  try {
+    let result = await queryFn();
+    if (result.error && (result.error.code === 'PGRST303' || result.error.message?.includes('JWT expired'))) {
+      console.warn('Expired JWT token detected (PGRST303). Clearing stale auth session and retrying query...');
+      await clearExpiredJwtSession();
+      result = await queryFn();
+    }
+    return result as { data: T | null; error: any };
+  } catch (err: any) {
+    if (err?.code === 'PGRST303' || err?.message?.includes('JWT expired')) {
+      console.warn('Expired JWT exception detected. Clearing stale auth session...');
+      await clearExpiredJwtSession();
+      const retry = await queryFn();
+      return retry as { data: T | null; error: any };
+    }
+    throw err;
+  }
+}
+
+/**
  * Resolves a storage image path to a public CDN URL.
  * Handles both relative paths (e.g. "FARM-001/GOAT-008/01.jpg") and full URLs.
  */

@@ -129,7 +129,7 @@ export const Navbar: React.FC = () => {
           <Link to="/" className="flex items-center gap-3 group">
             <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl overflow-hidden bg-white shadow-xs border border-emerald-800/15 group-hover:border-emerald-800 transition-colors">
               <img
-                src="/logo.jpg"
+                src="/logo.png"
                 alt="Ammal Farm Adu Santhai"
                 className="h-full w-full object-contain p-0.5"
               />
