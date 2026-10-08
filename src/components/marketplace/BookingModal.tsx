@@ -4,6 +4,7 @@ import type { Goat } from '@/types';
 import { Dialog } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { FallbackGoatImage } from '@/components/common/FallbackGoatImage';
 import { PriceDisplay } from '@/components/common/PriceDisplay';
 import { formatAge } from '@/lib/utils';
 import { BookingRepository, type BookingHoldResult } from '@/repositories/BookingRepository';
@@ -25,6 +26,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({ goat, isOpen, onClos
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<BookingHoldResult | null>(null);
+  const [imgError, setImgError] = useState<boolean>(false);
 
   if (!goat) return null;
 
@@ -142,11 +144,21 @@ export const BookingModal: React.FC<BookingModalProps> = ({ goat, isOpen, onClos
         <div className="space-y-4 pt-2">
           {/* Goat Summary Card */}
           <div className="flex items-center gap-3 rounded-2xl bg-slate-50 p-3 border border-slate-200">
-            <img
-              src={goat.primaryPhoto}
-              alt={goat.name}
-              className="h-16 w-16 rounded-xl object-cover bg-slate-200 shrink-0"
-            />
+            {goat.primaryPhoto && !imgError ? (
+              <img
+                src={goat.primaryPhoto}
+                alt={goat.name}
+                referrerPolicy="no-referrer"
+                className="h-16 w-16 rounded-xl object-cover bg-slate-200 shrink-0"
+                onError={() => setImgError(true)}
+              />
+            ) : (
+              <FallbackGoatImage
+                className="h-16 w-16 rounded-xl shrink-0"
+                breedName={goat.breedName}
+                goatCode={goat.goatCode}
+              />
+            )}
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between">
                 <h4 className="font-bold text-slate-900 truncate text-sm">{goat.name}</h4>

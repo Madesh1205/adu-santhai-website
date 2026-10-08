@@ -277,6 +277,10 @@ export const GoatDetailPage: React.FC = () => {
                     <img
                       src={photoUrl}
                       alt={`${goat.name} view ${idx + 1}`}
+                      referrerPolicy="no-referrer"
+                      onError={(e) => {
+                        (e.currentTarget as HTMLElement).style.opacity = '0.3';
+                      }}
                       className="h-full w-full object-cover"
                     />
                   </button>

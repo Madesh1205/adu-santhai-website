@@ -10,11 +10,20 @@ export const ScrollToTop = () => {
   useEffect(() => {
     if (hash) {
       const id = hash.replace('#', '');
-      const element = document.getElementById(id);
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth' });
-        return;
+      const scrollToHash = () => {
+        const element = document.getElementById(id);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' });
+          return true;
+        }
+        return false;
+      };
+
+      if (!scrollToHash()) {
+        const timer = setTimeout(() => scrollToHash(), 120);
+        return () => clearTimeout(timer);
       }
+      return;
     }
 
     window.scrollTo({

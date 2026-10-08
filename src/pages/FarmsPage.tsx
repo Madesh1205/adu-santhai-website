@@ -12,7 +12,6 @@ import { useLocation } from '@/lib/location/LocationContext';
 import { formatDistrictLabel } from '@/lib/location/locationUtils';
 import { LocationPill } from '@/components/location/LocationPill';
 import { LocationRelevanceBadge } from '@/components/location/LocationRelevanceBadge';
-import { FarmMapView } from '@/components/location/FarmMapView';
 import {
   Building2,
   MapPin,
@@ -21,16 +20,13 @@ import {
   ArrowRight,
   PlusCircle,
   X,
-  Map,
-  List,
 } from 'lucide-react';
 
 export const FarmsPage: React.FC = () => {
-  const { userDistrict, userDistrictLabel, getFarmRelevance } = useLocation();
+  const { userDistrict, getFarmRelevance } = useLocation();
   const [farms, setFarms] = useState<Farm[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
 
   useEffect(() => {
     async function loadFarms() {
@@ -100,31 +96,6 @@ export const FarmsPage: React.FC = () => {
           <div className="flex flex-wrap items-center gap-3">
             <LocationPill variant="compact" />
 
-            {/* List vs Map View Toggle */}
-            <div className="flex items-center gap-1 rounded-xl bg-slate-100 p-1 border border-slate-200">
-              <button
-                type="button"
-                onClick={() => setViewMode('list')}
-                className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                  viewMode === 'list' ? 'bg-white text-emerald-800 shadow-2xs' : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                <List className="h-3.5 w-3.5" />
-                <span>List</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setViewMode('map')}
-                className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                  viewMode === 'map' ? 'bg-white text-emerald-800 shadow-2xs' : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                <Map className="h-3.5 w-3.5" />
-                <span>Map</span>
-              </button>
-            </div>
-
             <div className="relative w-full sm:w-64">
               <Search className="absolute left-3.5 top-2.5 h-4 w-4 text-slate-400" />
               <input
@@ -154,16 +125,8 @@ export const FarmsPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Farms Grid or Map View */}
-        {viewMode === 'map' ? (
-          <div className="mt-8 space-y-4">
-            <div className="rounded-2xl bg-emerald-50 p-4 border border-emerald-200 flex items-center justify-between text-xs text-emerald-900 font-semibold">
-              <span>🗺️ Interactive breeder farms map across Tamil Nadu. Click any farm marker to preview.</span>
-              {userDistrict && <span>📍 Prioritizing farms near {userDistrictLabel}</span>}
-            </div>
-            <FarmMapView farms={sortedFilteredFarms} />
-          </div>
-        ) : loading ? (
+        {/* Farms Grid */}
+        {loading ? (
           <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[1, 2, 3, 4, 5, 6].map((i) => (
               <div key={i} className="h-64 rounded-3xl bg-slate-100 animate-pulse" />
@@ -194,6 +157,10 @@ export const FarmsPage: React.FC = () => {
                       <img
                         src={farm.bannerUrl}
                         alt={farm.name}
+                        referrerPolicy="no-referrer"
+                        onError={(e) => {
+                          (e.currentTarget as HTMLElement).style.display = 'none';
+                        }}
                         className="h-full w-full object-cover group-hover:scale-103 transition-transform duration-300"
                       />
                     ) : (
@@ -217,6 +184,10 @@ export const FarmsPage: React.FC = () => {
                         <img
                           src={farm.logoUrl}
                           alt={farm.name}
+                          referrerPolicy="no-referrer"
+                          onError={(e) => {
+                            (e.currentTarget as HTMLImageElement).src = '/logo.png';
+                          }}
                           className="h-full w-full object-cover rounded-xl"
                         />
                       ) : farm.isAmmalOwnFarm ? (

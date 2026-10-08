@@ -104,6 +104,10 @@ export const FarmDetailPage: React.FC = () => {
               <img
                 src={farm.bannerUrl}
                 alt={`${farm.name} Banner`}
+                referrerPolicy="no-referrer"
+                onError={(e) => {
+                  (e.currentTarget as HTMLElement).style.display = 'none';
+                }}
                 className="h-full w-full object-cover"
               />
             ) : (
@@ -124,6 +128,10 @@ export const FarmDetailPage: React.FC = () => {
                     <img
                       src={farm.logoUrl}
                       alt={farm.name}
+                      referrerPolicy="no-referrer"
+                      onError={(e) => {
+                        (e.currentTarget as HTMLImageElement).src = '/logo.png';
+                      }}
                       className="h-full w-full object-cover rounded-xl"
                     />
                   ) : farm.isAmmalOwnFarm ? (

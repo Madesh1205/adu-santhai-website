@@ -288,6 +288,10 @@ export const HomePage: React.FC = () => {
                         <img
                           src={farm.bannerUrl}
                           alt={farm.name}
+                          referrerPolicy="no-referrer"
+                          onError={(e) => {
+                            (e.currentTarget as HTMLElement).style.display = 'none';
+                          }}
                           className="h-full w-full object-cover group-hover:scale-103 transition-transform duration-300"
                         />
                       ) : (
@@ -300,7 +304,15 @@ export const HomePage: React.FC = () => {
 
                       <div className="absolute left-3 -bottom-3 flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white p-0.5 overflow-hidden border-2 border-white shadow-md text-emerald-800 font-bold">
                         {farm.logoUrl ? (
-                          <img src={farm.logoUrl} alt={farm.name} className="h-full w-full object-cover rounded-lg" />
+                          <img
+                            src={farm.logoUrl}
+                            alt={farm.name}
+                            referrerPolicy="no-referrer"
+                            onError={(e) => {
+                              (e.currentTarget as HTMLImageElement).src = '/logo.png';
+                            }}
+                            className="h-full w-full object-cover rounded-lg"
+                          />
                         ) : farm.isAmmalOwnFarm ? (
                           <img src="/logo.png" alt={farm.name} className="h-full w-full object-cover rounded-lg" />
                         ) : (
@@ -404,6 +416,10 @@ export const HomePage: React.FC = () => {
                           <img
                             src={farm.logoUrl}
                             alt={farm.name}
+                            referrerPolicy="no-referrer"
+                            onError={(e) => {
+                              (e.currentTarget as HTMLImageElement).src = '/logo.png';
+                            }}
                             className="h-full w-full object-cover"
                           />
                         ) : farm.isAmmalOwnFarm ? (

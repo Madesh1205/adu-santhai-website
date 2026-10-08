@@ -1,11 +1,11 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { SEOHead } from '@/components/common/SEOHead';
-import { DEFAULT_GOAT_IMAGE_FALLBACK } from '@/components/common/FallbackGoatImage';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { BookingRepository } from '@/repositories/BookingRepository';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { EmptyState } from '@/components/common/EmptyState';
+import { DEFAULT_GOAT_IMAGE_FALLBACK } from '@/components/common/FallbackGoatImage';
 import { formatCurrency, formatDateTime } from '@/lib/utils';
 import type { Booking, BookingStatus } from '@/types';
 import {
@@ -122,6 +122,10 @@ export const FarmBookingsPage: React.FC = () => {
                       <img
                         src={b.goatPhoto || DEFAULT_GOAT_IMAGE_FALLBACK}
                         alt={b.goatName || 'Goat'}
+                        referrerPolicy="no-referrer"
+                        onError={(e) => {
+                          (e.currentTarget as HTMLImageElement).src = DEFAULT_GOAT_IMAGE_FALLBACK;
+                        }}
                         className="h-16 w-16 rounded-xl object-cover bg-slate-100 border border-slate-200 shrink-0"
                       />
                       <div className="space-y-1">

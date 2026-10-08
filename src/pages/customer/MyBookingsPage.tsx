@@ -145,6 +145,10 @@ export const MyBookingsPage: React.FC = () => {
                       <img
                         src={b.goatPhoto || DEFAULT_GOAT_IMAGE_FALLBACK}
                         alt={b.goatName || 'Reserved Goat'}
+                        referrerPolicy="no-referrer"
+                        onError={(e) => {
+                          (e.currentTarget as HTMLImageElement).src = DEFAULT_GOAT_IMAGE_FALLBACK;
+                        }}
                         className="h-20 w-20 rounded-2xl object-cover bg-slate-100 shrink-0 border border-slate-200"
                       />
                       <div className="space-y-1">

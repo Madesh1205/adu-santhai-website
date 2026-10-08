@@ -186,6 +186,10 @@ export const AdminBookingsPage: React.FC = () => {
                         <img
                           src={b.goatPhoto || DEFAULT_GOAT_IMAGE_FALLBACK}
                           alt={b.goatName || 'Goat'}
+                          referrerPolicy="no-referrer"
+                          onError={(e) => {
+                            (e.currentTarget as HTMLImageElement).src = DEFAULT_GOAT_IMAGE_FALLBACK;
+                          }}
                           className="h-full w-full object-cover"
                         />
                       </div>

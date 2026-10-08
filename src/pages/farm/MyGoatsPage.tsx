@@ -5,6 +5,7 @@ import { useAuth } from '@/lib/auth/AuthContext';
 import { GoatRepository } from '@/repositories/GoatRepository';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { DEFAULT_GOAT_IMAGE_FALLBACK } from '@/components/common/FallbackGoatImage';
 import { EmptyState } from '@/components/common/EmptyState';
 import { formatCurrency, formatAge } from '@/lib/utils';
 import type { Goat, GoatStatus } from '@/types';
@@ -147,8 +148,12 @@ export const MyGoatsPage: React.FC = () => {
                 >
                   <div className="flex items-start gap-4">
                     <img
-                      src={goat.primaryPhoto}
+                      src={goat.primaryPhoto || DEFAULT_GOAT_IMAGE_FALLBACK}
                       alt={goat.name}
+                      referrerPolicy="no-referrer"
+                      onError={(e) => {
+                        (e.currentTarget as HTMLImageElement).src = DEFAULT_GOAT_IMAGE_FALLBACK;
+                      }}
                       className="h-20 w-20 rounded-xl object-cover bg-slate-100 border border-slate-200 shrink-0"
                     />
                     <div className="space-y-1">

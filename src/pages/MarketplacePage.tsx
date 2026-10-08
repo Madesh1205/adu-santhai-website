@@ -14,7 +14,6 @@ import { WishlistRepository } from '@/repositories/WishlistRepository';
 import { useAuth } from '@/lib/auth/AuthContext';
 import type { Goat, GoatFilterCriteria, Breed, Farm, GoatGender, SortOption } from '@/types';
 import { useLocation } from '@/lib/location/LocationContext';
-import { FarmMapView } from '@/components/location/FarmMapView';
 import {
   Search,
   SlidersHorizontal,
@@ -24,8 +23,6 @@ import {
   Check,
   ArrowRight,
   MapPin,
-  Map,
-  List,
 } from 'lucide-react';
 
 const TAMIL_NADU_DISTRICTS = [
@@ -69,7 +66,6 @@ export const MarketplacePage: React.FC = () => {
   const [showMobileFilter, setShowMobileFilter] = useState<boolean>(false);
   const [selectedGoatForBooking, setSelectedGoatForBooking] = useState<Goat | null>(null);
   const [visibleCount, setVisibleCount] = useState<number>(ITEMS_PER_PAGE);
-  const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
 
   // Filter criteria states initialized from searchParams
   const [searchQuery, setSearchQuery] = useState<string>(searchParams.get('q') || '');
@@ -688,35 +684,6 @@ export const MarketplacePage: React.FC = () => {
               )}
             </div>
 
-            {/* View Mode Toggle (List vs Map) */}
-            <div className="flex items-center gap-1 rounded-xl bg-slate-100 p-1 border border-slate-200 shrink-0">
-              <button
-                type="button"
-                onClick={() => setViewMode('list')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                  viewMode === 'list'
-                    ? 'bg-white text-emerald-800 shadow-2xs font-bold'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                <List className="h-3.5 w-3.5" />
-                <span>List</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setViewMode('map')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                  viewMode === 'map'
-                    ? 'bg-white text-emerald-800 shadow-2xs font-bold'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                <Map className="h-3.5 w-3.5" />
-                <span>Map View</span>
-              </button>
-            </div>
-
             {/* Desktop Sort Dropdown */}
             <div className="hidden lg:flex items-center gap-2 shrink-0">
               <span className="text-xs font-semibold text-slate-500">Sort by:</span>
@@ -763,16 +730,8 @@ export const MarketplacePage: React.FC = () => {
               )}
             </div>
 
-            {/* Results Grid / Map View */}
-            {viewMode === 'map' ? (
-              <div className="space-y-4">
-                <div className="rounded-2xl bg-emerald-50 p-4 border border-emerald-200 flex items-center justify-between text-xs text-emerald-900 font-semibold">
-                  <span>🗺️ Showing partner goat farms on interactive map. Click a farm marker to view inventory.</span>
-                  {userDistrict && <span>📍 Prioritizing farms near {userDistrictLabel}</span>}
-                </div>
-                <FarmMapView farms={farms} />
-              </div>
-            ) : loading ? (
+            {/* Results Grid */}
+            {loading ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
                 {Array.from({ length: 6 }).map((_, i) => (
                   <GoatCardSkeleton key={i} />
