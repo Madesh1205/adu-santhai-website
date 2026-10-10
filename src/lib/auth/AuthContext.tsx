@@ -148,17 +148,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           createdAt: new Date().toISOString(),
         };
 
-        // Try syncing profile record
-        try {
-          await supabase.from('profiles').upsert({
-            id: fallbackProfile.id,
-            email: fallbackProfile.email,
-            name: fallbackProfile.name,
-            phone: fallbackProfile.phone,
-            role: fallbackProfile.role,
-          });
-        } catch {
-          // ignore background sync error
+        // Keep the payload aligned with the database schema (profiles.full_name).
+        // Supabase returns query errors instead of throwing, so inspect the result.
+        const { error: profileSyncError } = await supabase.from('profiles').upsert({
+          id: fallbackProfile.id,
+          email: fallbackProfile.email,
+          full_name: fallbackProfile.name,
+          phone: fallbackProfile.phone,
+          role: fallbackProfile.role,
+        });
+
+        if (profileSyncError) {
+          console.warn('Profile sync notice:', profileSyncError.message);
         }
 
         setProfile(fallbackProfile);
