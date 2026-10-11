@@ -39,7 +39,7 @@ The Android app also has deeper feature screens/components and repository-driven
 - [x] Booking status changes in both Farm Admin and Super Admin repositories now use server-side `confirm_booking`, `complete_booking`, and `cancel_booking` RPCs instead of direct browser updates to `bookings` and `goats`; database authorization, lifecycle triggers, and notifications remain authoritative.
 - [ ] Customer booking lifecycle, 24-hour holds/expiry, cancellation, and farm/admin updates: verify end-to-end with customer and farm accounts.
 - [x] Notification center: added live Supabase notification updates, mark-all-read error handling, mark-as-read actions, and safe navigation for recognized goat/farm/booking/report/user links. Still needs browser testing and role-specific deep-link validation.
-- [x] Notification center now has All/Unread/Bookings/Approvals/Payments/System filters, per-notification delete, clear-all with confirmation, role-aware approvals visibility, real-time inserts, mark-as-read actions, and role-aware workflow links.
+- [x] Notification center now has All/Unread/Bookings/Approvals/Payments/System filters, per-notification delete, clear-all with confirmation, role-aware approvals visibility, real-time inserts, mark-as-read actions, role-aware workflow links, and visible fetch failures with retry instead of silently showing an empty list.
 - [ ] Validate notification category mapping and deep links against every deployed notification event type using test accounts.
 - [ ] Reviews, reports, and moderation workflows: verify availability and permissions across both clients.
 - [ ] Farm verification documents, listing quotas/fees, approval/payment workflow, and Ammal Farm fee exemption.
