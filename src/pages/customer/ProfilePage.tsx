@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/auth/AuthContext';
@@ -23,6 +23,13 @@ export const ProfilePage: React.FC = () => {
   const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
   const [confirmText, setConfirmText] = useState<string>('');
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
+
+  // Auth/profile data can arrive after the route mounts. Keep the form in sync
+  // with the loaded account and with a successful profile refresh.
+  useEffect(() => {
+    setName(profile?.name || '');
+    setPhone(profile?.phone || '');
+  }, [profile?.id, profile?.name, profile?.phone]);
 
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
