@@ -43,7 +43,9 @@ The Android app also has deeper feature screens/components and repository-driven
 - [x] Notification center now has All/Unread/Bookings/Approvals/Payments/System filters, per-notification delete, clear-all with confirmation, role-aware approvals visibility, real-time inserts, mark-as-read actions, role-aware workflow links, and visible fetch failures with retry instead of silently showing an empty list.
 - [ ] Validate notification category mapping and deep links against every deployed notification event type using test accounts.
 - [ ] Reviews, reports, and moderation workflows: verify availability and permissions across both clients.
-- [ ] Farm verification documents, listing quotas/fees, approval/payment workflow, and Ammal Farm fee exemption.
+- [x] Farm listing quota updates use `admin_update_farm_listing_limit`, which verifies Super Admin role and prevents limits below consumed slots.
+- [x] Partner farm manual approval uses `approve_partner_farm_with_manual_payment` to atomically record payment, approve the farm, assign initial slots, and link the owner role. Admin UI requires confirmation that payment was actually received.
+- [ ] Farm verification documents and end-to-end approval/payment behavior still require test-account verification; verify Ammal Farm fee exemption in UI and database.
 - [ ] Wishlist consistency, sorting/filtering, location relevance, and goat availability synchronization.
 - [ ] Auth parity: immediate sign-in after registration, password reset redirect, session restoration, and role refresh.
 - [ ] Image storage path compatibility across web and Android, including legacy paths; never delete files merely because a path looks old.
@@ -61,10 +63,13 @@ The Android app also has deeper feature screens/components and repository-driven
 ## Validation checklist
 
 - [x] Add GitHub Actions CI workflow to run TypeScript check and production build on feature branches, main pushes, and pull requests.
-- [ ] Confirm CI workflow passes: `bun run lint` and `bun run build`
+- [x] Confirm CI workflow passes: `bun run lint` and `bun run build` (latest completed runs before the newest inventory status change passed; newest run is in progress).
 - [ ] Customer auth, marketplace, details, wishlist, booking, cancellation, notifications
 - [x] Farm Admin booking list: added search by goat/customer/booking code/status and filters for cancelled and expired reservations.
-- [ ] Farm Admin CRUD, images, booking management, settings and quota behavior
+- [x] Goat creation uses `create_goat_listing_secure`; photo record insert/update failures are surfaced instead of silently ignored.
+- [x] Farm inventory status UI no longer lets farm admins manually force RESERVED/BOOKING_PENDING/SOLD/COMPLETED back to AVAILABLE; reservation state is left to booking workflows.
+- [x] Farm inventory fetch failures now show an error and retry action.
+- [ ] Farm Admin CRUD, images, booking management, settings and quota behavior still require browser end-to-end testing.
 - [ ] Super Admin approvals, moderation, users, reports, booking oversight and payment workflow
 - [ ] Responsive mobile and desktop navigation
 - [ ] Confirm no service-role credentials are present in browser code
