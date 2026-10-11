@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/lib/supabase/client';
 import { SEOHead } from '@/components/common/SEOHead';
 import { NotificationRepository } from '@/repositories/NotificationRepository';
 import { useAuth } from '@/lib/auth/AuthContext';
@@ -7,21 +9,26 @@ import { Badge } from '@/components/ui/badge';
 import { EmptyState } from '@/components/common/EmptyState';
 import { formatDateTime } from '@/lib/utils';
 import type { AppNotification } from '@/types';
-import { Bell, CheckCheck, Clock } from 'lucide-react';
+import { Bell, CheckCheck, Clock, AlertCircle, ArrowUpRight, RefreshCw } from 'lucide-react';
 
 export const NotificationsPage: React.FC = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [busyId, setBusyId] = useState<string | null>(null);
 
   const loadNotifications = async () => {
     if (!user) return;
     setLoading(true);
+    setErrorMsg(null);
     try {
       const list = await NotificationRepository.getNotifications(user.id, 50);
       setNotifications(list);
     } catch (err) {
       console.error('Failed to load notifications:', err);
+      setErrorMsg('Could not load notifications. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -33,8 +40,56 @@ export const NotificationsPage: React.FC = () => {
 
   const handleMarkAllRead = async () => {
     if (!user) return;
-    await NotificationRepository.markAllAsRead(user.id);
-    setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+    setErrorMsg(null);
+    try {
+      const { error } = await supabase
+        .from('notifications')
+        .update({ is_read: true })
+        .eq('user_id', user.id)
+        .eq('is_read', false);
+      if (error) throw error;
+      setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+    } catch (err) {
+      console.error('Failed to mark notifications as read:', err);
+      setErrorMsg('Could not mark notifications as read. Please try again.');
+    }
+  };
+
+  const getNotificationPath = (linkType: string | null, linkId: string | null) => {
+    if (!linkType) return null;
+    const type = linkType.toUpperCase();
+    if (type.includes('GOAT') && linkId) return `/goats/${encodeURIComponent(linkId)}`;
+    if (type.includes('FARM') && linkId) return `/farms/${encodeURIComponent(linkId)}`;
+    if (type.includes('BOOKING') || type.includes('ORDER')) {
+      return type.includes('FARM') ? '/farm/bookings' : '/my-bookings';
+    }
+    if (type.includes('REPORT')) return '/admin/reports';
+    if (type.includes('USER')) return '/admin/users';
+    return null;
+  };
+
+  const handleNotificationOpen = async (notification: AppNotification) => {
+    if (!user || busyId) return;
+    setErrorMsg(null);
+    const targetPath = getNotificationPath(notification.linkType, notification.linkId);
+    setBusyId(notification.id);
+    try {
+      if (!notification.isRead) {
+        const { error } = await supabase
+          .from('notifications')
+          .update({ is_read: true })
+          .eq('id', notification.id)
+          .eq('user_id', user.id);
+        if (error) throw error;
+        setNotifications((prev) => prev.map((n) => n.id === notification.id ? { ...n, isRead: true } : n));
+      }
+      if (targetPath) navigate(targetPath);
+    } catch (err) {
+      console.error('Failed to open notification:', err);
+      setErrorMsg('Could not update this notification. Please try again.');
+    } finally {
+      setBusyId(null);
+    }
   };
 
   const unreadCount = notifications.filter((n) => !n.isRead).length;
@@ -74,6 +129,16 @@ export const NotificationsPage: React.FC = () => {
           )}
         </div>
 
+        {errorMsg && (
+          <div role="alert" className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-800">
+            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+            <span>{errorMsg}</span>
+            <button type="button" onClick={loadNotifications} className="ml-auto inline-flex items-center gap-1 font-bold underline">
+              <RefreshCw className="h-3.5 w-3.5" /> Retry
+            </button>
+          </div>
+        )}
+
         {loading ? (
           <div className="space-y-3">
             {[1, 2, 3, 4].map((i) => (
@@ -97,21 +162,27 @@ export const NotificationsPage: React.FC = () => {
                     : 'border-slate-200 bg-white hover:border-slate-300'
                 }`}
               >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="space-y-1">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                  <div className="min-w-0 space-y-1">
                     <div className="flex items-center gap-2">
                       <h4 className="font-bold text-sm text-slate-900">{n.title}</h4>
                       {!n.isRead && (
-                        <span className="flex h-2 w-2 rounded-full bg-emerald-800" />
+                        <span aria-label="Unread" className="flex h-2 w-2 rounded-full bg-emerald-800" />
                       )}
                     </div>
                     <p className="text-xs text-slate-600 leading-relaxed">{n.body}</p>
+                    <p className="text-[11px] text-slate-400">{formatDateTime(n.createdAt)}</p>
                   </div>
-
-                  <div className="flex items-center gap-1 text-[11px] text-slate-400 shrink-0">
-                    <Clock className="h-3 w-3" />
-                    <span>{formatDateTime(n.createdAt)}</span>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleNotificationOpen(n)}
+                    disabled={busyId === n.id}
+                    className="inline-flex shrink-0 items-center justify-center gap-1.5 self-start rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-emerald-900 transition-colors hover:bg-emerald-50 disabled:cursor-wait disabled:opacity-60"
+                    aria-label={getNotificationPath(n.linkType, n.linkId) ? `Open notification: ${n.title}` : `Mark notification as read: ${n.title}`}
+                  >
+                    {busyId === n.id ? 'Opening…' : getNotificationPath(n.linkType, n.linkId) ? 'View details' : n.isRead ? 'Read' : 'Mark as read'}
+                    <ArrowUpRight className="h-3.5 w-3.5" />
+                  </button>
                 </div>
               </div>
             ))}
