@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { EmptyState } from '@/components/common/EmptyState';
 import { formatDateTime } from '@/lib/utils';
 import type { AppNotification } from '@/types';
-import { Bell, CheckCheck, Clock, AlertCircle, ArrowUpRight, RefreshCw } from 'lucide-react';
+import { Bell, CheckCheck, AlertCircle, ArrowUpRight, RefreshCw } from 'lucide-react';
 
 export const NotificationsPage: React.FC = () => {
   const navigate = useNavigate();
