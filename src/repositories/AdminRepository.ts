@@ -205,10 +205,16 @@ export const AdminRepository = {
    * Updates farm listing limit (quota).
    */
   async updateFarmListingLimit(farmId: string, limit: number): Promise<void> {
-    const { error } = await supabase
-      .from('farms')
-      .update({ goat_listing_limit: limit, updated_at: new Date().toISOString() })
-      .eq('id', farmId);
+    if (!Number.isInteger(limit) || limit < 0) {
+      throw new Error('Listing limit must be a non-negative whole number.');
+    }
+
+    // The database RPC verifies the caller is SUPER_ADMIN, locks the farm,
+    // and prevents reducing the limit below already-consumed listing slots.
+    const { error } = await (supabase.rpc as any)('admin_update_farm_listing_limit', {
+      p_farm_id: farmId,
+      p_limit: limit,
+    });
 
     if (error) {
       console.error('Error updating farm quota:', error);
