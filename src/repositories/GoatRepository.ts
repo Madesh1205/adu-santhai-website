@@ -102,6 +102,10 @@ export const GoatRepository = {
       if (filter.farmId) {
         query = query.eq('farm_id', filter.farmId);
       }
+      if (filter.locationDistrict && filter.locationDistrict !== 'ALL') {
+        // Apply the farm's district through the embedded farms relationship.
+        query = query.eq('farms.location_district', filter.locationDistrict);
+      }
       if (filter.minPrice !== undefined && filter.minPrice > 0) {
         query = query.gte('price', filter.minPrice);
       }
