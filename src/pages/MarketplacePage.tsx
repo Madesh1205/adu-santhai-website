@@ -707,7 +707,7 @@ export const MarketplacePage: React.FC = () => {
         {/* Marketplace Grid Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           {/* Desktop Left Filter Rail (3 Cols) */}
-          <aside className="hidden lg:block lg:col-span-3 rounded-2xl border border-slate-200 bg-white p-5 shadow-xs sticky top-24">
+          <aside className="hidden lg:block lg:col-span-3 rounded-2xl border border-slate-200 bg-white p-6 shadow-xs sticky top-24">
             {renderFilterPanel()}
           </aside>
 
@@ -732,7 +732,7 @@ export const MarketplacePage: React.FC = () => {
 
             {/* Results Grid */}
             {loading ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
                 {Array.from({ length: 6 }).map((_, i) => (
                   <GoatCardSkeleton key={i} />
                 ))}
@@ -749,7 +749,7 @@ export const MarketplacePage: React.FC = () => {
             ) : (
               /* Real Data Card Grid */
               <>
-                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
                   {displayedGoats.map((goat) => (
                     <GoatCard
                       key={goat.id}

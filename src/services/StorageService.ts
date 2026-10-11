@@ -73,10 +73,10 @@ export class StorageService {
   ): Promise<string> {
     try {
       const compressedBlob = await this.compressImage(file);
-      const cleanFarmCode = farmCode.trim().replace(/[^a-zA-Z0-9_-]/g, '') || 'FARM-001';
+      const cleanFarmIdentifier = farmCode.trim().replace(/[^a-zA-Z0-9_-]/g, '') || 'FARM-001';
       const cleanGoatCode = goatCode.trim().replace(/[^a-zA-Z0-9_-]/g, '') || 'GOAT';
       const timestamp = Date.now();
-      const filePath = `${cleanFarmCode}/${cleanGoatCode}/${timestamp}_${index}.webp`;
+      const filePath = `farm/${cleanFarmIdentifier}/${cleanGoatCode}/${timestamp}_${index}.webp`;
 
       const { data, error } = await supabase.storage
         .from(BUCKET_GOAT_IMAGES)

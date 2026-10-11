@@ -88,26 +88,45 @@ export const GoatFormPage: React.FC = () => {
     setBreedId(b ? b.id : null);
   };
 
+  const MAX_FILE_SIZE_BYTES = 15 * 1024 * 1024; // 15MB limit
+
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0 || !farm) return;
 
-    setUploadingPhotos(true);
     setErrorMsg(null);
+    const fileList = Array.from(files);
+
+    // 1. Client-Side Validation
+    const validFiles: File[] = [];
+    for (const file of fileList) {
+      if (file.size > MAX_FILE_SIZE_BYTES) {
+        setErrorMsg(`File "${file.name}" exceeds the maximum 15MB limit.`);
+        return;
+      }
+      if (!file.type.startsWith('image/')) {
+        setErrorMsg(`File "${file.name}" is not a valid image format.`);
+        return;
+      }
+      validFiles.push(file);
+    }
+
+    setUploadingPhotos(true);
 
     try {
-      const fileList = Array.from(files);
-      const uploadPromises = fileList.map((file) =>
-        StorageService.uploadGoatPhoto(file, farm.farmCode, goatCode)
+      const uploadPromises = validFiles.map((file, idx) =>
+        StorageService.uploadGoatPhoto(file, farm.id || farm.farmCode, goatCode, photos.length + idx)
       );
 
       const uploadedUrls = await Promise.all(uploadPromises);
       setPhotos((prev) => [...prev, ...uploadedUrls]);
     } catch (err: any) {
       console.error('Photo upload failed:', err);
-      setErrorMsg(err.message || 'Failed to upload photos. Please try again.');
+      setErrorMsg(err.message || 'Failed to upload photos. Please verify your connection and permissions.');
     } finally {
       setUploadingPhotos(false);
+      // Reset input value so re-selecting same file triggers event
+      e.target.value = '';
     }
   };
 

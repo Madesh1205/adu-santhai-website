@@ -120,7 +120,7 @@ export const GoatCard: React.FC<GoatCardProps> = ({
       </Link>
 
       {/* 2. BODY CONTENT */}
-      <div className="flex flex-1 flex-col p-4">
+      <div className="flex flex-1 flex-col p-5">
         {/* Verification indicator */}
         <div className="flex items-center justify-between gap-2 mb-1.5">
           <VerifiedBadge label="Verified" variant="subtle" />

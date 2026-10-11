@@ -18,7 +18,9 @@ export const SEOHead: React.FC<SEOHeadProps> = ({
   schema,
 }) => {
   const appUrl = import.meta.env.VITE_APP_URL || 'https://adusanthai.ammalfarm.dpdns.org';
-  const fullTitle = title ? `${title} | Adu Santhai - Ammal Farm` : 'Adu Santhai | Tamil Nadu Goat Marketplace - Ammal Farm';
+  const fullTitle = title
+    ? (title.includes('Ammal Farm') ? title : `${title} | Ammal Farm Adu Santhai`)
+    : 'Adu Santhai – Goat Marketplace Platform | Ammal Farm';
   const fullUrl = `${appUrl.replace(/\/$/, '')}${path.startsWith('/') ? path : `/${path}`}`;
 
   useEffect(() => {
@@ -37,6 +39,9 @@ export const SEOHead: React.FC<SEOHeadProps> = ({
     };
 
     setMeta('name', 'description', description);
+    setMeta('property', 'og:site_name', 'Ammal Farm Adu Santhai');
+    setMeta('name', 'application-name', 'Ammal Farm Adu Santhai');
+    setMeta('name', 'apple-mobile-web-app-title', 'Ammal Farm Adu Santhai');
     setMeta('property', 'og:title', fullTitle);
     setMeta('property', 'og:description', description);
     setMeta('property', 'og:url', fullUrl);

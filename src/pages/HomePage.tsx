@@ -98,8 +98,8 @@ export const HomePage: React.FC = () => {
   return (
     <>
       <SEOHead
-        title="Adu Santhai | Tamil Nadu's Premier Direct Goat Marketplace"
-        description="Buy verified live goats directly from Ammal Farm and top certified breeders. Boer, Sirohi, Jamnapari, Tellicherry, and Kanni with 24-hour hold reservations."
+        title="Adu Santhai – Goat Marketplace Platform | Ammal Farm"
+        description="Tamil Nadu's premier verified goat marketplace platform associated with Ammal Farm. Browse certified breeds, reserve healthy goats with 24-hour holds, and connect with trusted breeders."
         path="/"
       />
 

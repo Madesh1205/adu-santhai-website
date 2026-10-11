@@ -170,6 +170,55 @@ export const GoatDetailPage: React.FC = () => {
   const isReserved = goat.status === 'RESERVED' || goat.status === 'BOOKING_PENDING';
   const isSold = goat.status === 'SOLD' || goat.status === 'COMPLETED';
 
+  const goatSchema = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'Product',
+        '@id': `https://adusanthai.ammalfarm.dpdns.org/goats/${goat.id}#product`,
+        name: goat.name,
+        description: `Buy ${goat.breedName} goat (${goat.weightKg} kg, ${formatAge(goat.ageMonths)}) directly from ${goat.farmName} on Adu Santhai.`,
+        image: goat.photos && goat.photos.length > 0 ? goat.photos : [goat.primaryPhoto],
+        sku: goat.goatCode,
+        category: 'Livestock > Goats',
+        offers: {
+          '@type': 'Offer',
+          priceCurrency: 'INR',
+          price: goat.finalPrice || goat.price,
+          itemCondition: 'https://schema.org/NewCondition',
+          availability: goat.status === 'AVAILABLE' ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+          seller: {
+            '@type': 'Organization',
+            name: goat.farmName,
+          },
+        },
+      },
+      {
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          {
+            '@type': 'ListItem',
+            position: 1,
+            name: 'Marketplace',
+            item: 'https://adusanthai.ammalfarm.dpdns.org/marketplace',
+          },
+          {
+            '@type': 'ListItem',
+            position: 2,
+            name: goat.breedName,
+            item: `https://adusanthai.ammalfarm.dpdns.org/marketplace?breed=${encodeURIComponent(goat.breedName)}`,
+          },
+          {
+            '@type': 'ListItem',
+            position: 3,
+            name: goat.name,
+            item: `https://adusanthai.ammalfarm.dpdns.org/goats/${goat.id}`,
+          },
+        ],
+      },
+    ],
+  };
+
   return (
     <>
       <SEOHead
@@ -178,6 +227,7 @@ export const GoatDetailPage: React.FC = () => {
         image={goat.primaryPhoto}
         path={`/goats/${goat.id}`}
         type="product"
+        schema={goatSchema}
       />
 
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 sm:py-8 pb-28 lg:pb-12">
