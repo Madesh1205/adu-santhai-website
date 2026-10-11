@@ -57,33 +57,32 @@ export const ProfilePage: React.FC = () => {
     e.preventDefault();
     if (!user || confirmText.trim().toUpperCase() !== 'DELETE') return;
 
+    // Match the Android app: the central platform administrator must transfer
+    // ownership before closing the account.
+    if (profile?.role === 'SUPER_ADMIN') {
+      setErrorMsg('The central Adu Santhai administrator account cannot be deleted. Transfer ownership before closing this account.');
+      return;
+    }
+
     setIsDeleting(true);
     setErrorMsg(null);
 
     try {
-      // 1. Delete user wishlist entries
-      await supabase.from('wishlist').delete().eq('user_id', user.id);
+      // Use the server-authoritative deletion RPC. Do not delete profile/wishlist
+      // rows directly from the browser: the RPC applies booking checks and
+      // performs the related cleanup atomically under database permissions.
+      const { error } = await (supabase as any).rpc('delete_user_account', {
+        p_user_id: user.id,
+      });
 
-      // 2. Delete user profile record
-      const { error: profileDeleteError } = await supabase
-        .from('profiles')
-        .delete()
-        .eq('id', user.id);
+      if (error) throw error;
 
-      if (profileDeleteError) {
-        console.warn('Profile record removal note:', profileDeleteError);
-      }
-
-      // 3. Sign out session
       await signOut();
-
-      // 4. Navigate to home
       navigate('/', { replace: true });
     } catch (err: any) {
       console.error('Account deletion error:', err);
-      setErrorMsg(err.message || 'Failed to delete account. Please contact ammalfarm@gmail.com for assistance.');
+      setErrorMsg(err.message || 'Account deletion failed. Resolve any active bookings and try again.');
       setIsDeleting(false);
-      setShowDeleteModal(false);
     }
   };
 
@@ -207,7 +206,13 @@ export const ProfilePage: React.FC = () => {
           </form>
         </div>
 
-        {/* Danger Zone: Delete Account */}
+        {/* The central platform administrator cannot self-delete. */}
+        {profile?.role === 'SUPER_ADMIN' ? (
+          <div className="rounded-3xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-900">
+            The central administrator account cannot be deleted from here. Transfer platform ownership first.
+          </div>
+        ) : (
+        /* Danger Zone: Delete Account */
         <div className="rounded-3xl border border-rose-200 bg-rose-50/40 p-6 sm:p-8 shadow-xs space-y-4">
           <div className="flex items-center gap-2 text-rose-800">
             <Trash2 className="h-5 w-5 shrink-0" />
@@ -231,6 +236,7 @@ export const ProfilePage: React.FC = () => {
             </Button>
           </div>
         </div>
+        )}
       </div>
 
       {/* Account Deletion Confirmation Modal */}
