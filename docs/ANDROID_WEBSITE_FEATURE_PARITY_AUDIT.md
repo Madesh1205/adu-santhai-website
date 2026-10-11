@@ -1,0 +1,68 @@
+# Android-to-Website Feature Parity Audit
+
+Date: 2026-10-11
+Scope: `Madesh1205/Goat-livestock-App` compared with `Madesh1205/adu-santhai-website`.
+
+## Goal
+
+Make the website a reliable web client for the same Adu Santhai platform and Supabase backend as the Android app. Preserve working app features, data integrity, role checks, Row Level Security, SEO, accessibility, and responsive layouts. Do not delete database records or remove public/legal pages as part of UI cleanup.
+
+## Current navigation inventory
+
+### Android navigation routes found in `AppNavigation.kt`
+
+- Authentication: Login, Register, Forgot Password, Profile, Account
+- Customer/common: Marketplace, Goat Detail, Farm Detail, Orders, My Bookings, Wishlist, Notifications
+- Legal: Privacy Policy, Terms & Conditions
+- Farm Admin: Farm Dashboard, Add Goat, Farm Bookings
+- Super Admin: Super Admin Dashboard, Pending Approvals, Manage Farms, All Goat Listings
+
+The Android app also has deeper feature screens/components and repository-driven workflows; these must be audited separately rather than inferred from route names alone.
+
+### Website routes found in `src/routes/AppRouter.tsx`
+
+- Public: Home, Marketplace, Goat Detail, Farms, Farm Detail
+- Legal: Privacy, Terms, Refund Policy
+- Auth: Login, Register, Forgot Password, Reset Password, Auth Callback
+- Customer: My Bookings, Wishlist, Notifications, Profile
+- Farm Admin: Dashboard, My Goats, Create/Edit Goat, Bookings, Farm Settings
+- Super Admin: Dashboard, Goat Moderation, Farm Moderation, Reports, Bookings, Users
+
+## Initial parity gaps to verify
+
+- [ ] Android Account screen versus website profile/account controls: check edit profile, theme, logout, account deletion, and settings.
+- [ ] Android Orders and My Bookings versus website My Bookings: compare their actual semantics and statuses; do not merge them until confirmed.
+- [ ] Android Pending Approvals / Manage Farms / All Goat Listings versus website admin pages: compare every action, filter, state, and approval/payment rule.
+- [ ] Android goat listing details and image gallery versus website create/edit forms: compare every field, validation, upload/replacement/deletion, and listing status.
+- [ ] Customer booking lifecycle, 24-hour holds/expiry, cancellation, and farm/admin updates: verify consistent rules and error handling.
+- [ ] Notification parity: in-app list, unread state, deep links, and actions.
+- [ ] Reviews, reports, and moderation workflows: verify availability and permissions across both clients.
+- [ ] Farm verification documents, listing quotas/fees, approval/payment workflow, and Ammal Farm fee exemption.
+- [ ] Wishlist consistency, sorting/filtering, location relevance, and goat availability synchronization.
+- [ ] Auth parity: immediate sign-in after registration, password reset redirect, session restoration, and role refresh.
+- [ ] Image storage path compatibility across web and Android, including legacy paths; never delete files merely because a path looks old.
+- [ ] SEO and legal routes remain public and functional; remove duplicate marketing/visual sections only after checking navigation and conversion needs.
+
+## Cleanup rules
+
+1. Remove duplicate or dead UI/routes only after searching all imports, links, deep links, and tests.
+2. Do not remove useful web-only SEO, sitemap, structured data, legal pages, or public listing pages.
+3. Do not alter production database schema or RLS as a side effect of frontend cleanup.
+4. Keep role authorization enforced server-side/RLS; hiding a button is not authorization.
+5. Do not remove or overwrite Storage objects as part of website feature cleanup.
+6. Avoid changing business rules just to make the website look similar; confirm the Android repository and Supabase implementation first.
+
+## Validation checklist
+
+- [ ] TypeScript check: `npm run lint`
+- [ ] Production build: `npm run build`
+- [ ] Customer auth, marketplace, details, wishlist, booking, cancellation, notifications
+- [ ] Farm Admin CRUD, images, booking management, settings and quota behavior
+- [ ] Super Admin approvals, moderation, users, reports, booking oversight and payment workflow
+- [ ] Responsive mobile and desktop navigation
+- [ ] Confirm no service-role credentials are present in browser code
+- [ ] Verify no unrelated database or Storage records are changed
+
+## Status
+
+Initial route inventory completed from repository source. Detailed screen-by-screen comparison, code changes, and build verification are still pending. This document is an audit checklist, not a claim that feature parity has already been implemented.
