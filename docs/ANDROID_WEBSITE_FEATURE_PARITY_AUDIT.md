@@ -36,10 +36,11 @@ The Android app also has deeper feature screens/components and repository-driven
 - [ ] Android Pending Approvals / Manage Farms / All Goat Listings versus website admin pages: compare every action, filter, state, and approval/payment rule.
 - [ ] Android goat listing details and image gallery versus website create/edit forms: compare every field, validation, upload/replacement/deletion, and listing status.
 - [x] Customer reservations: added search by goat/farm/booking code/status and filters for pending, reserved, confirmed, completed, cancelled, and expired records.
-- [x] Booking status changes now use server-side `confirm_booking`, `complete_booking`, and `cancel_booking` RPCs instead of direct browser updates to `bookings` and `goats`; database authorization, lifecycle triggers, and notifications remain authoritative.
+- [x] Booking status changes in both Farm Admin and Super Admin repositories now use server-side `confirm_booking`, `complete_booking`, and `cancel_booking` RPCs instead of direct browser updates to `bookings` and `goats`; database authorization, lifecycle triggers, and notifications remain authoritative.
 - [ ] Customer booking lifecycle, 24-hour holds/expiry, cancellation, and farm/admin updates: verify end-to-end with customer and farm accounts.
 - [x] Notification center: added live Supabase notification updates, mark-all-read error handling, mark-as-read actions, and safe navigation for recognized goat/farm/booking/report/user links. Still needs browser testing and role-specific deep-link validation.
-- [ ] Full Android notification parity: filter tabs (All/Unread/Bookings/Approvals/Payments/System), delete/clear actions, and full typed deep-link behavior.
+- [x] Notification center now has All/Unread/Bookings/Approvals/Payments/System filters, per-notification delete, clear-all with confirmation, role-aware approvals visibility, real-time inserts, mark-as-read actions, and role-aware workflow links.
+- [ ] Validate notification category mapping and deep links against every deployed notification event type using test accounts.
 - [ ] Reviews, reports, and moderation workflows: verify availability and permissions across both clients.
 - [ ] Farm verification documents, listing quotas/fees, approval/payment workflow, and Ammal Farm fee exemption.
 - [ ] Wishlist consistency, sorting/filtering, location relevance, and goat availability synchronization.
