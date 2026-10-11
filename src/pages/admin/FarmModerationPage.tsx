@@ -43,17 +43,31 @@ export const FarmModerationPage: React.FC = () => {
   }, [loadFarms]);
 
   const handleVerify = async (farmId: string) => {
-    const limitStr = prompt('Enter active goat listing limit for this farm:', '2');
-    if (limitStr === null) return;
-    const limit = parseInt(limitStr, 10) || 2;
+    const confirmed = confirm(
+      'Confirm that the ₹500 partner farm approval fee has actually been received. This action records it as PAID and approves the farm.'
+    );
+    if (!confirmed) return;
+
+    const amountStr = prompt('Approval fee received (₹):', '500');
+    if (amountStr === null) return;
+    const amount = Number(amountStr);
+    if (!Number.isFinite(amount) || amount < 0) {
+      alert('Enter a valid non-negative payment amount.');
+      return;
+    }
+
+    const paymentRef = prompt('Manual payment reference / receipt number (optional):', '');
+    if (paymentRef === null) return;
+    const notes = prompt('Payment notes (optional):', 'Partner farm approval fee received manually.');
+    if (notes === null) return;
 
     setActionId(farmId);
     try {
-      await AdminRepository.verifyFarm(farmId, limit);
+      await AdminRepository.approvePartnerFarmWithManualPayment(farmId, amount, paymentRef, notes);
       await loadFarms();
-    } catch (err) {
-      console.error('Failed to verify farm:', err);
-      alert('Failed to verify farm.');
+    } catch (err: any) {
+      console.error('Failed to approve farm with payment record:', err);
+      alert(err?.message || 'Farm approval failed. No approval should be assumed; check the payment and farm records.');
     } finally {
       setActionId(null);
     }
