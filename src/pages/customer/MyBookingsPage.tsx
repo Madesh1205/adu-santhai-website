@@ -15,6 +15,8 @@ import {
   Clock,
   PhoneCall,
   ExternalLink,
+  Search,
+  RefreshCw,
 } from 'lucide-react';
 
 function CountdownTimer({ expiresAt }: { expiresAt: string }) {
@@ -61,6 +63,8 @@ export const MyBookingsPage: React.FC = () => {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState<string>('ALL');
+  const [searchQuery, setSearchQuery] = useState<string>('');
 
   const loadBookings = useCallback(async () => {
     if (!user) return;
@@ -78,6 +82,19 @@ export const MyBookingsPage: React.FC = () => {
   useEffect(() => {
     loadBookings();
   }, [loadBookings]);
+
+  const filteredBookings = bookings.filter((booking) => {
+    const matchesStatus = statusFilter === 'ALL' || booking.status === statusFilter;
+    const query = searchQuery.trim().toLowerCase();
+    const matchesQuery = !query || [
+      booking.goatName,
+      booking.goatCode,
+      booking.farmName,
+      booking.bookingCode,
+      booking.status,
+    ].some((value) => value?.toLowerCase().includes(query));
+    return matchesStatus && matchesQuery;
+  });
 
   const handleCancelReservation = async (bookingId: string) => {
     if (!confirm('Are you sure you want to cancel this 24-hour reservation hold? The goat will become available for other buyers.')) {
@@ -128,7 +145,60 @@ export const MyBookingsPage: React.FC = () => {
           />
         ) : (
           <div className="space-y-5">
-            {bookings.map((b) => {
+            <div className="space-y-3 rounded-2xl border border-slate-200 bg-white p-4">
+              <label className="relative block">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="search"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search goat, farm, booking code or status"
+                  className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 pl-9 pr-3 text-sm outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-700/10"
+                  aria-label="Search reservations"
+                />
+              </label>
+              <div className="flex flex-wrap gap-2" role="group" aria-label="Filter reservations by status">
+                {[
+                  { id: 'ALL', label: 'All', count: bookings.length },
+                  { id: 'PENDING', label: 'Pending', count: bookings.filter((b) => b.status === 'PENDING').length },
+                  { id: 'RESERVED', label: 'Reserved', count: bookings.filter((b) => b.status === 'RESERVED').length },
+                  { id: 'CONFIRMED', label: 'Confirmed', count: bookings.filter((b) => b.status === 'CONFIRMED').length },
+                  { id: 'COMPLETED', label: 'Completed', count: bookings.filter((b) => b.status === 'COMPLETED').length },
+                  { id: 'CANCELLED', label: 'Cancelled', count: bookings.filter((b) => b.status === 'CANCELLED').length },
+                  { id: 'EXPIRED', label: 'Expired', count: bookings.filter((b) => b.status === 'EXPIRED').length },
+                ].map((tab) => (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => setStatusFilter(tab.id)}
+                    aria-pressed={statusFilter === tab.id}
+                    className={`rounded-lg px-3 py-2 text-xs font-bold transition-colors ${
+                      statusFilter === tab.id
+                        ? 'bg-emerald-800 text-white'
+                        : 'border border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+                    }`}
+                  >
+                    {tab.label} ({tab.count})
+                  </button>
+                ))}
+                {(statusFilter !== 'ALL' || searchQuery) && (
+                  <button
+                    type="button"
+                    onClick={() => { setStatusFilter('ALL'); setSearchQuery(''); }}
+                    className="inline-flex items-center gap-1 rounded-lg px-3 py-2 text-xs font-bold text-slate-500 hover:bg-slate-100"
+                  >
+                    <RefreshCw className="h-3 w-3" /> Reset
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {filteredBookings.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center">
+                <p className="font-bold text-slate-800">No matching reservations</p>
+                <p className="mt-1 text-sm text-slate-500">Try another status or search term.</p>
+              </div>
+            ) : filteredBookings.map((b) => {
               const isHold = b.status === 'RESERVED' || b.status === 'PENDING';
               const isConfirmed = b.status === 'CONFIRMED';
               const isCompleted = b.status === 'COMPLETED';
