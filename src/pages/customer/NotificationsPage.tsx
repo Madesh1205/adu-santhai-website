@@ -72,15 +72,28 @@ export const NotificationsPage: React.FC = () => {
   const getNotificationPath = (linkType: string | null, linkId: string | null) => {
     if (!linkType) return null;
     const type = linkType.toUpperCase();
-    if (type.includes('GOAT') && linkId) return `/goats/${encodeURIComponent(linkId)}`;
-    if (type.includes('FARM') && linkId) return `/farms/${encodeURIComponent(linkId)}`;
-    if (type.includes('BOOKING') || type.includes('ORDER')) {
-      if (profile?.role === 'SUPER_ADMIN') return '/admin/bookings';
-      if (profile?.role === 'FARM_ADMIN' || type.includes('FARM')) return '/farm/bookings';
+    const isSuperAdmin = profile?.role === 'SUPER_ADMIN';
+    const isFarmAdmin = profile?.role === 'FARM_ADMIN';
+
+    // Resolve workflow-specific routes before generic farm/goat detail links.
+    if (type.includes('BOOKING') || type.includes('ORDER') || type.includes('RESERVATION')) {
+      if (isSuperAdmin) return '/admin/bookings';
+      if (isFarmAdmin) return '/farm/bookings';
       return '/my-bookings';
     }
-    if (type.includes('REPORT') && profile?.role === 'SUPER_ADMIN') return '/admin/reports';
-    if (type.includes('USER') && profile?.role === 'SUPER_ADMIN') return '/admin/users';
+    if (type.includes('REPORT') && isSuperAdmin) return '/admin/reports';
+    if (type.includes('USER') && isSuperAdmin) return '/admin/users';
+    if ((type.includes('APPROVAL') || type.includes('APPLICATION') || type.includes('PAYMENT')) && isSuperAdmin) {
+      return type.includes('FARM') || type.includes('APPLICATION') ? '/admin/farms' : '/admin/goats';
+    }
+    if (type.includes('GOAT') && linkId) {
+      if (isSuperAdmin && (type.includes('PENDING') || type.includes('LISTING'))) return '/admin/goats';
+      return `/goats/${encodeURIComponent(linkId)}`;
+    }
+    if (type.includes('FARM') && linkId) {
+      if (isSuperAdmin && (type.includes('PENDING') || type.includes('APPLICATION'))) return '/admin/farms';
+      return `/farms/${encodeURIComponent(linkId)}`;
+    }
     return null;
   };
 
@@ -242,7 +255,7 @@ export const NotificationsPage: React.FC = () => {
                 { id: 'ALL', label: 'All', count: notifications.length },
                 { id: 'UNREAD', label: 'Unread', count: unreadCount },
                 { id: 'BOOKINGS', label: 'Bookings', count: notifications.filter((n) => getNotificationCategory(n) === 'BOOKINGS').length },
-                { id: 'APPROVALS', label: 'Approvals', count: notifications.filter((n) => getNotificationCategory(n) === 'APPROVALS').length },
+                ...(profile?.role === 'CUSTOMER' ? [] : [{ id: 'APPROVALS', label: 'Approvals', count: notifications.filter((n) => getNotificationCategory(n) === 'APPROVALS').length }]),
                 { id: 'PAYMENTS', label: 'Payments', count: notifications.filter((n) => getNotificationCategory(n) === 'PAYMENTS').length },
                 { id: 'SYSTEM', label: 'System', count: notifications.filter((n) => getNotificationCategory(n) === 'SYSTEM').length },
               ].map((tab) => (
