@@ -60,6 +60,7 @@ The Android app also has deeper feature screens/components and repository-driven
 - [x] Add GitHub Actions CI workflow to run TypeScript check and production build on feature branches, main pushes, and pull requests.
 - [ ] Confirm CI workflow passes: `bun run lint` and `bun run build`
 - [ ] Customer auth, marketplace, details, wishlist, booking, cancellation, notifications
+- [x] Farm Admin booking list: added search by goat/customer/booking code/status and filters for cancelled and expired reservations.
 - [ ] Farm Admin CRUD, images, booking management, settings and quota behavior
 - [ ] Super Admin approvals, moderation, users, reports, booking oversight and payment workflow
 - [ ] Responsive mobile and desktop navigation
@@ -68,4 +69,4 @@ The Android app also has deeper feature screens/components and repository-driven
 
 ## Status
 
-Initial route inventory completed. Functional changes made on this branch: account deletion delegates to the server-side RPC and protects the SUPER_ADMIN account in the UI; the notification center now supports real-time updates, mark-as-read actions, and recognized deep links; customer reservations now have search and status filters. CI passed on the earlier baseline, but the newest notification changes are awaiting fresh CI results. Detailed screen-by-screen comparison and build/runtime verification are still pending. This document is an audit checklist, not a claim that feature parity has already been implemented.
+Initial route inventory completed. Functional changes made on this branch: account deletion delegates to the server-side RPC and protects the SUPER_ADMIN account in the UI; the notification center now supports real-time updates, mark-as-read actions, and recognized deep links; customer reservations and Farm Admin bookings now have search and status filters. CI passed on the earlier baseline, but the newest notification changes are awaiting fresh CI results. Detailed screen-by-screen comparison and build/runtime verification are still pending. This document is an audit checklist, not a claim that feature parity has already been implemented.
