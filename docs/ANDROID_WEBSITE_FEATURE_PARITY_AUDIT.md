@@ -55,8 +55,8 @@ The Android app also has deeper feature screens/components and repository-driven
 
 ## Validation checklist
 
-- [ ] TypeScript check: `npm run lint`
-- [ ] Production build: `npm run build`
+- [x] Add GitHub Actions CI workflow to run TypeScript check and production build on feature branches, main pushes, and pull requests.
+- [ ] Confirm CI workflow passes: `bun run lint` and `bun run build`
 - [ ] Customer auth, marketplace, details, wishlist, booking, cancellation, notifications
 - [ ] Farm Admin CRUD, images, booking management, settings and quota behavior
 - [ ] Super Admin approvals, moderation, users, reports, booking oversight and payment workflow
