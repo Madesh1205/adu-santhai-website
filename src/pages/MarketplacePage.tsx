@@ -26,22 +26,22 @@ import {
 } from 'lucide-react';
 
 const TAMIL_NADU_DISTRICTS = [
-  'Tiruvannamalai',
-  'Vellore',
-  'Salem',
+  'Chennai',
+  'Coimbatore',
+  'Cuddalore',
   'Dharmapuri',
+  'Dindigul',
+  'Erode',
   'Krishnagiri',
   'Madurai',
-  'Tiruchirappalli',
-  'Coimbatore',
-  'Erode',
-  'Tirunelveli',
-  'Thanjavur',
-  'Dindigul',
   'Namakkal',
+  'Salem',
+  'Thanjavur',
+  'Tiruchirappalli',
+  'Tirunelveli',
+  'Tiruvannamalai',
+  'Vellore',
   'Villupuram',
-  'Cuddalore',
-  'Chennai',
 ];
 
 const ITEMS_PER_PAGE = 12;
@@ -712,7 +712,7 @@ export const MarketplacePage: React.FC = () => {
           </aside>
 
           {/* Right Results Grid (9 Cols) */}
-          <main className="lg:col-span-9 space-y-6">
+          <main className="w-full min-w-0 lg:col-span-9 space-y-6">
             {/* Results Counter & Active Pills */}
             <div className="flex items-center justify-between text-xs text-slate-500 pb-2 border-b border-slate-100">
               <span>
@@ -732,7 +732,7 @@ export const MarketplacePage: React.FC = () => {
 
             {/* Results Grid */}
             {loading ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+              <div className="grid w-full min-w-0 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
                 {Array.from({ length: 6 }).map((_, i) => (
                   <GoatCardSkeleton key={i} />
                 ))}
