@@ -31,6 +31,7 @@ The Android app also has deeper feature screens/components and repository-driven
 ## Initial parity gaps to verify
 
 - [x] Account deletion: website now calls the server-authoritative `delete_user_account(p_user_id)` RPC instead of deleting profile/wishlist rows directly; website UI blocks self-deletion for SUPER_ADMIN. Build/runtime verification and deployed-RPC availability still need checking.
+- [x] Profile and Farm Settings forms now hydrate from asynchronously loaded auth context data instead of remaining blank/stale after route mount.
 - [ ] Remaining Account screen parity: compare theme selection, refresh profile, logout confirmation, and role-specific navigation.
 - [ ] Android Orders and My Bookings versus website My Bookings: compare their actual semantics and statuses; do not merge them until confirmed.
 - [ ] Android Pending Approvals / Manage Farms / All Goat Listings versus website admin pages: compare every action, filter, state, and approval/payment rule.
