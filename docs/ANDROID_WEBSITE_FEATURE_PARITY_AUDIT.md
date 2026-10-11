@@ -45,7 +45,8 @@ The Android app also has deeper feature screens/components and repository-driven
 - [ ] Reviews, reports, and moderation workflows: verify availability and permissions across both clients.
 - [x] Farm listing quota updates use `admin_update_farm_listing_limit`, which verifies Super Admin role and prevents limits below consumed slots.
 - [x] Partner farm manual approval uses `approve_partner_farm_with_manual_payment` to atomically record payment, approve the farm, assign initial slots, and link the owner role. Admin UI requires confirmation that payment was actually received.
-- [ ] Farm verification documents and end-to-end approval/payment behavior still require test-account verification; verify Ammal Farm fee exemption in UI and database.
+- [x] Farm moderation UI now routes the central Ammal Farm through the no-fee approval path rather than the partner-payment RPC. Test-account verification remains pending.
+- [ ] Listing payments: the existing database verifier does not cryptographically verify Razorpay signatures and the secure listing RPC currently marks new listings paid at ₹0. The website now fails closed and a migration revokes direct client execution of the insecure verifier. A trusted Supabase Edge Function (server-side order creation/signature verification) and a corrected listing-creation payment state are required before partner listing payments can be re-enabled.
 - [ ] Wishlist consistency, sorting/filtering, location relevance, and goat availability synchronization.
 - [ ] Auth parity: immediate sign-in after registration, password reset redirect, session restoration, and role refresh.
 - [ ] Image storage path compatibility across web and Android, including legacy paths; never delete files merely because a path looks old.
@@ -63,7 +64,7 @@ The Android app also has deeper feature screens/components and repository-driven
 ## Validation checklist
 
 - [x] Add GitHub Actions CI workflow to run TypeScript check and production build on feature branches, main pushes, and pull requests.
-- [x] Confirm CI workflow passes: `bun run lint` and `bun run build` (latest completed runs before the newest inventory status change passed; newest run is in progress).
+- [x] Confirm CI workflow passes: `bun run lint` and `bun run build` on the last completed run before the payment hardening changes. Re-run CI after the latest commits.
 - [ ] Customer auth, marketplace, details, wishlist, booking, cancellation, notifications
 - [x] Farm Admin booking list: added search by goat/customer/booking code/status and filters for cancelled and expired reservations.
 - [x] Goat creation uses `create_goat_listing_secure`; photo record insert/update failures are surfaced instead of silently ignored.
@@ -77,4 +78,4 @@ The Android app also has deeper feature screens/components and repository-driven
 
 ## Status
 
-Initial route inventory completed. Functional changes made on this branch: account deletion delegates to the server-side RPC and protects the SUPER_ADMIN account in the UI; the notification center now supports real-time updates, mark-as-read actions, and recognized deep links; customer reservations and Farm Admin bookings now have search and status filters; booking status transitions now use secure database RPCs in both Farm Admin and Super Admin repositories. CI passed for the latest mobile marketplace, district sorting, and layout commits. Narrow-screen visual QA and detailed screen-by-screen comparison/build-runtime verification remain pending. This document is an audit checklist, not a claim that feature parity has already been implemented.
+Initial route inventory completed. Functional changes made on this branch: account deletion delegates to the server-side RPC and protects the SUPER_ADMIN account in the UI; the notification center now supports real-time updates, mark-as-read actions, and recognized deep links; customer reservations and Farm Admin bookings now have search and status filters; booking status transitions now use secure database RPCs in both Farm Admin and Super Admin repositories. CI passed on earlier mobile marketplace, district sorting, and layout commits. Payment hardening has since been committed and must be revalidated by CI. Narrow-screen visual QA and detailed screen-by-screen comparison/build-runtime verification remain pending. Payment is deliberately disabled until a trusted server-side Razorpay verification flow is implemented; do not treat the current listing payment workflow as production-ready. This document is an audit checklist, not a claim that feature parity has already been implemented.
