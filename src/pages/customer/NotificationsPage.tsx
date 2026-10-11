@@ -13,7 +13,7 @@ import { Bell, CheckCheck, AlertCircle, ArrowUpRight, RefreshCw } from 'lucide-r
 
 export const NotificationsPage: React.FC = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -73,10 +73,12 @@ export const NotificationsPage: React.FC = () => {
     if (type.includes('GOAT') && linkId) return `/goats/${encodeURIComponent(linkId)}`;
     if (type.includes('FARM') && linkId) return `/farms/${encodeURIComponent(linkId)}`;
     if (type.includes('BOOKING') || type.includes('ORDER')) {
-      return type.includes('FARM') ? '/farm/bookings' : '/my-bookings';
+      if (profile?.role === 'SUPER_ADMIN') return '/admin/bookings';
+      if (profile?.role === 'FARM_ADMIN' || type.includes('FARM')) return '/farm/bookings';
+      return '/my-bookings';
     }
-    if (type.includes('REPORT')) return '/admin/reports';
-    if (type.includes('USER')) return '/admin/users';
+    if (type.includes('REPORT') && profile?.role === 'SUPER_ADMIN') return '/admin/reports';
+    if (type.includes('USER') && profile?.role === 'SUPER_ADMIN') return '/admin/users';
     return null;
   };
 
