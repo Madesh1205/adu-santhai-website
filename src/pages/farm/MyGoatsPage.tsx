@@ -21,17 +21,20 @@ export const MyGoatsPage: React.FC = () => {
   const { farm } = useAuth();
   const [goats, setGoats] = useState<Goat[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<string>('ALL');
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const loadGoats = useCallback(async () => {
     if (!farm) return;
     setLoading(true);
+    setLoadError(null);
     try {
       const data = await GoatRepository.getMyFarmGoats(farm.id);
       setGoats(data);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to load farm goats:', err);
+      setLoadError(err?.message || 'Could not load your goat listings. Check your connection and try again.');
     } finally {
       setLoading(false);
     }
@@ -126,6 +129,14 @@ export const MyGoatsPage: React.FC = () => {
             {[1, 2, 3].map((i) => (
               <div key={i} className="h-28 rounded-2xl bg-slate-100 animate-pulse" />
             ))}
+          </div>
+        ) : loadError ? (
+          <div role="alert" className="rounded-2xl border border-red-200 bg-red-50 p-5 text-sm text-red-800">
+            <p className="font-bold">Could not load goat listings</p>
+            <p className="mt-1">{loadError}</p>
+            <Button type="button" variant="outline" className="mt-3 border-red-300" onClick={loadGoats}>
+              Try Again
+            </Button>
           </div>
         ) : filteredGoats.length === 0 ? (
           <EmptyState
