@@ -226,6 +226,7 @@ export const MyGoatsPage: React.FC = () => {
                       title={isReserved || isSold ? 'Booking workflow controls this listing status' : 'Update listing availability'}
                       className="rounded-xl border border-slate-200 bg-white py-1.5 px-2.5 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-800 disabled:cursor-not-allowed disabled:opacity-50"
                     >
+                      {isReserved && <option value="LOCKED">Managed by booking</option>}
                       <option value="AVAILABLE">Mark Available</option>
                       <option value="SOLD">Mark Sold</option>
                     </select>
