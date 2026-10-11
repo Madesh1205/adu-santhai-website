@@ -281,18 +281,22 @@ export const GoatRepository = {
     goatData: Database['public']['Tables']['goats']['Insert'],
     imageUrls: string[]
   ): Promise<string> {
-    const { data, error } = await supabase
-      .from('goats')
-      .insert(goatData)
-      .select('id')
-      .single();
+    // Use the server-side creation RPC so farm ownership, approval, and
+    // listing-slot consumption are validated atomically with the insert.
+    const { data, error } = await (supabase.rpc as any)('create_goat_listing_secure', {
+      p_goat: goatData,
+    });
 
     if (error) {
-      console.error('Error creating goat listing:', error);
+      console.error('Secure goat listing creation failed:', error);
       throw error;
     }
 
-    const goatId = data.id;
+    const created = (Array.isArray(data) ? data[0] : data) as { id?: string } | null;
+    const goatId = created?.id;
+    if (!goatId) {
+      throw new Error('The server created no listing ID. Refresh your listings before trying again.');
+    }
 
     if (imageUrls.length > 0) {
       const imageRecords = imageUrls.map((url, idx) => ({
@@ -307,7 +311,8 @@ export const GoatRepository = {
         .insert(imageRecords);
 
       if (imgErr) {
-        console.warn('Warning inserting images:', imgErr);
+        console.error('Goat listing was created, but saving its photo records failed:', imgErr);
+        throw new Error('The goat listing was created, but its photos could not be attached. Open the listing and save the photos again.');
       }
     }
 
