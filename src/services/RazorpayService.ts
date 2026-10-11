@@ -50,6 +50,15 @@ export class RazorpayService {
     customerPhone?: string;
     farmName?: string;
   }): Promise<PaymentVerificationResult> {
+    // Do not open a client-only checkout until a trusted server creates the
+    // Razorpay order and verifies its signature. The current database RPC is
+    // intentionally disabled by migration 20261011190000.
+    void params;
+    throw new Error(
+      'Online listing payments are temporarily unavailable while secure server-side verification is configured. No payment has been taken.'
+    );
+
+    /* Secure server-side checkout must be implemented before enabling this code:
     const isLoaded = await this.loadScript();
     if (!isLoaded) {
       throw new Error('Razorpay SDK could not be loaded. Please check your internet connection.');
@@ -142,5 +151,6 @@ export class RazorpayService {
         reject(err);
       }
     });
+    */
   }
 }
