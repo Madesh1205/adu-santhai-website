@@ -732,7 +732,7 @@ export const MarketplacePage: React.FC = () => {
 
             {/* Results Grid */}
             {loading ? (
-              <div className="grid w-full min-w-0 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
+              <div className="grid w-full min-w-0 grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
                 {Array.from({ length: 6 }).map((_, i) => (
                   <GoatCardSkeleton key={i} />
                 ))}
@@ -749,7 +749,7 @@ export const MarketplacePage: React.FC = () => {
             ) : (
               /* Real Data Card Grid */
               <>
-                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                   {displayedGoats.map((goat) => (
                     <GoatCard
                       key={goat.id}
