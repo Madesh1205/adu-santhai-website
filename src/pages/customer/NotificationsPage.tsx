@@ -38,6 +38,18 @@ export const NotificationsPage: React.FC = () => {
     loadNotifications();
   }, [user]);
 
+  // Keep the web notification center current while it is open, matching the
+  // Android app's live notification updates.
+  useEffect(() => {
+    if (!user) return;
+    return NotificationRepository.subscribeToNotifications(user.id, (notification) => {
+      setNotifications((previous) => {
+        if (previous.some((item) => item.id === notification.id)) return previous;
+        return [notification, ...previous].slice(0, 50);
+      });
+    });
+  }, [user]);
+
   const handleMarkAllRead = async () => {
     if (!user) return;
     setErrorMsg(null);
