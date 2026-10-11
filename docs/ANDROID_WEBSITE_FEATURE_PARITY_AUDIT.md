@@ -35,6 +35,7 @@ The Android app also has deeper feature screens/components and repository-driven
 - [ ] Android Orders and My Bookings versus website My Bookings: compare their actual semantics and statuses; do not merge them until confirmed.
 - [ ] Android Pending Approvals / Manage Farms / All Goat Listings versus website admin pages: compare every action, filter, state, and approval/payment rule.
 - [ ] Android goat listing details and image gallery versus website create/edit forms: compare every field, validation, upload/replacement/deletion, and listing status.
+- [x] Customer reservations: added search by goat/farm/booking code/status and filters for pending, reserved, confirmed, completed, cancelled, and expired records.
 - [ ] Customer booking lifecycle, 24-hour holds/expiry, cancellation, and farm/admin updates: verify consistent rules and error handling.
 - [x] Notification center: added live Supabase notification updates, mark-all-read error handling, mark-as-read actions, and safe navigation for recognized goat/farm/booking/report/user links. Still needs browser testing and role-specific deep-link validation.
 - [ ] Full Android notification parity: filter tabs (All/Unread/Bookings/Approvals/Payments/System), delete/clear actions, and full typed deep-link behavior.
@@ -67,4 +68,4 @@ The Android app also has deeper feature screens/components and repository-driven
 
 ## Status
 
-Initial route inventory completed. Functional changes made on this branch: account deletion delegates to the server-side RPC and protects the SUPER_ADMIN account in the UI; the notification center now supports real-time updates, mark-as-read actions, and recognized deep links. CI passed on the earlier baseline, but the newest notification changes are awaiting fresh CI results. Detailed screen-by-screen comparison and build/runtime verification are still pending. This document is an audit checklist, not a claim that feature parity has already been implemented.
+Initial route inventory completed. Functional changes made on this branch: account deletion delegates to the server-side RPC and protects the SUPER_ADMIN account in the UI; the notification center now supports real-time updates, mark-as-read actions, and recognized deep links; customer reservations now have search and status filters. CI passed on the earlier baseline, but the newest notification changes are awaiting fresh CI results. Detailed screen-by-screen comparison and build/runtime verification are still pending. This document is an audit checklist, not a claim that feature parity has already been implemented.
