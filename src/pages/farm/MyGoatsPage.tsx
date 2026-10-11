@@ -44,13 +44,25 @@ export const MyGoatsPage: React.FC = () => {
     loadGoats();
   }, [loadGoats]);
 
-  const handleStatusChange = async (goatId: string, newStatus: GoatStatus) => {
+  const handleStatusChange = async (goat: Goat, newStatus: GoatStatus) => {
+    // Booking state is controlled by the secure booking lifecycle RPCs.
+    // Do not let the farm UI overwrite a reserved/completed booking state.
+    if (goat.status === 'RESERVED' || goat.status === 'BOOKING_PENDING' ||
+        goat.status === 'COMPLETED' || goat.status === 'SOLD') {
+      alert('This listing is reserved or sold. Its status must be changed through the booking workflow.');
+      return;
+    }
+    if (newStatus !== 'AVAILABLE' && newStatus !== 'SOLD') {
+      alert('Farm admins can mark a listing available or sold. Reservation status is managed by bookings.');
+      return;
+    }
+
     try {
-      await GoatRepository.updateGoatListing(goatId, { status: newStatus });
+      await GoatRepository.updateGoatListing(goat.id, { status: newStatus });
       await loadGoats();
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to change goat status:', err);
-      alert('Failed to update goat status.');
+      alert(err?.message || 'Failed to update goat status.');
     }
   };
 
@@ -207,13 +219,14 @@ export const MyGoatsPage: React.FC = () => {
                   {/* Actions Row */}
                   <div className="flex flex-wrap items-center gap-2 pt-2 md:pt-0 border-t md:border-t-0 border-slate-100">
                     <select
-                      value={goat.status}
-                      onChange={(e) => handleStatusChange(goat.id, e.target.value as GoatStatus)}
+                      value={goat.status === 'AVAILABLE' ? 'AVAILABLE' : goat.status === 'SOLD' ? 'SOLD' : 'LOCKED'}
+                      onChange={(e) => handleStatusChange(goat, e.target.value as GoatStatus)}
                       aria-label="Change goat status"
-                      className="rounded-xl border border-slate-200 bg-white py-1.5 px-2.5 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-800"
+                      disabled={isReserved || isSold}
+                      title={isReserved || isSold ? 'Booking workflow controls this listing status' : 'Update listing availability'}
+                      className="rounded-xl border border-slate-200 bg-white py-1.5 px-2.5 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-800 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       <option value="AVAILABLE">Mark Available</option>
-                      <option value="RESERVED">Mark Reserved</option>
                       <option value="SOLD">Mark Sold</option>
                     </select>
 
