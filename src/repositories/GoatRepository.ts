@@ -338,8 +338,17 @@ export const GoatRepository = {
     }
 
     if (imageUrls) {
-      // Clear existing images and re-insert
-      await supabase.from('goat_images').delete().eq('goat_id', id);
+      // Check both operations explicitly so an image-save failure is not
+      // silently reported as a successful listing update.
+      const { error: deleteImagesError } = await supabase
+        .from('goat_images')
+        .delete()
+        .eq('goat_id', id);
+      if (deleteImagesError) {
+        console.error('Failed to replace goat image records:', deleteImagesError);
+        throw deleteImagesError;
+      }
+
       if (imageUrls.length > 0) {
         const imageRecords = imageUrls.map((url, idx) => ({
           goat_id: id,
@@ -347,7 +356,13 @@ export const GoatRepository = {
           is_primary: idx === 0,
           display_order: idx,
         }));
-        await supabase.from('goat_images').insert(imageRecords);
+        const { error: insertImagesError } = await supabase
+          .from('goat_images')
+          .insert(imageRecords);
+        if (insertImagesError) {
+          console.error('Failed to save goat image records:', insertImagesError);
+          throw new Error('Goat details were saved, but the photos could not be attached. Please reopen the listing and retry the photo update.');
+        }
       }
     }
   },
