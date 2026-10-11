@@ -69,7 +69,7 @@ export const GoatCard: React.FC<GoatCardProps> = ({
   const isSold = goat.status === 'SOLD' || goat.status === 'COMPLETED';
 
   return (
-    <div className="group relative flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white transition-all duration-200 hover:border-emerald-700/40 hover:shadow-md">
+    <div className="group relative flex min-w-0 w-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white transition-all duration-200 hover:border-emerald-700/40 hover:shadow-md">
       {/* 1. DOMINANT IMAGE CONTAINER */}
       <Link to={`/goats/${goat.id}`} className="relative aspect-4/3 w-full overflow-hidden bg-slate-100 block">
         {goat.primaryPhoto && !imgError ? (
@@ -120,7 +120,7 @@ export const GoatCard: React.FC<GoatCardProps> = ({
       </Link>
 
       {/* 2. BODY CONTENT */}
-      <div className="flex flex-1 flex-col p-5">
+      <div className="flex min-w-0 flex-1 flex-col p-3 sm:p-5">
         {/* Verification indicator */}
         <div className="flex items-center justify-between gap-2 mb-1.5">
           <VerifiedBadge label="Verified" variant="subtle" />
