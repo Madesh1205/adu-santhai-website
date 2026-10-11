@@ -184,6 +184,33 @@ export const AdminRepository = {
   },
 
   /**
+   * Atomically records a Super Admin-confirmed manual approval payment,
+   * approves the partner farm, grants initial slots, and links its owner role.
+   */
+  async approvePartnerFarmWithManualPayment(
+    farmId: string,
+    amount: number,
+    paymentRef: string,
+    notes: string
+  ): Promise<void> {
+    if (!Number.isFinite(amount) || amount < 0) {
+      throw new Error('Approval payment amount must be a valid non-negative amount.');
+    }
+
+    const { error } = await (supabase.rpc as any)('approve_partner_farm_with_manual_payment', {
+      p_farm_id: farmId,
+      p_amount: amount,
+      p_payment_ref: paymentRef.trim() || null,
+      p_notes: notes.trim() || null,
+    });
+
+    if (error) {
+      console.error('Failed to approve partner farm with payment record:', error);
+      throw error;
+    }
+  },
+
+  /**
    * Suspends a farm from publishing or taking bookings.
    */
   async suspendFarm(farmId: string): Promise<void> {
