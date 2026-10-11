@@ -357,13 +357,17 @@ export const GoatRepository = {
     });
 
     if (error) {
-      console.warn('RPC delete_goat_listing_secure failed, trying standard delete:', error);
-      const { error: directErr } = await supabase.from('goats').delete().eq('id', id);
-      if (directErr) throw directErr;
-      return true;
+      // Never fall back to a direct table delete: the RPC enforces the
+      // account, farm ownership, booking, and storage cleanup rules.
+      console.error('Secure goat deletion failed:', error);
+      throw error;
     }
 
-    return Boolean(data);
+    if (!data) {
+      throw new Error('The listing could not be deleted. It may be linked to an active booking or you may not have permission.');
+    }
+
+    return true;
   },
 
   /**
