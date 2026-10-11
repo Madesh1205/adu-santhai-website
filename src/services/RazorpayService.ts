@@ -55,7 +55,10 @@ export class RazorpayService {
       throw new Error('Razorpay SDK could not be loaded. Please check your internet connection.');
     }
 
-    const razorpayKeyId = import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_AmmalFarmListing100';
+    const razorpayKeyId = import.meta.env.VITE_RAZORPAY_KEY_ID?.trim();
+    if (!razorpayKeyId) {
+      throw new Error('Online listing payments are not configured. Please contact support; no payment has been taken.');
+    }
     const amountInPaise = 10000; // ₹100.00
 
     return new Promise((resolve, reject) => {
@@ -75,12 +78,25 @@ export class RazorpayService {
         },
         handler: async (response: any) => {
           try {
-            // Verify payment on Supabase backend atomically
+            // Fail closed: never invent order IDs or signatures. The current
+            // checkout must be created and signature-verified by a trusted server
+            // before this client can claim a listing fee is paid.
+            if (!response.razorpay_order_id || !response.razorpay_payment_id || !response.razorpay_signature) {
+              resolve({
+                success: false,
+                error: 'Payment cannot be verified securely. Do not retry the payment; contact support with your payment receipt.',
+              });
+              return;
+            }
+
+            // This RPC is retained for compatibility only. Its current database
+            // implementation does not cryptographically verify Razorpay signatures;
+            // it must not be treated as secure until replaced by server-side verification.
             const { error } = await supabase.rpc('verify_listing_payment_atomic', {
               p_goat_id: params.goatId,
-              p_order_id: response.razorpay_order_id || `ORD-${Date.now()}`,
+              p_order_id: response.razorpay_order_id,
               p_payment_id: response.razorpay_payment_id,
-              p_signature: response.razorpay_signature || 'direct_verified',
+              p_signature: response.razorpay_signature,
               p_amount: 100,
             });
 
