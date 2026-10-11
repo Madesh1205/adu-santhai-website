@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { SEOHead } from '@/components/common/SEOHead';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { FarmRepository } from '@/repositories/FarmRepository';
@@ -27,6 +27,32 @@ export const FarmSettingsPage: React.FC = () => {
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  // Farm context may be populated asynchronously after this page mounts.
+  // Hydrate every editable field when the authenticated farm profile changes.
+  useEffect(() => {
+    if (!farm) return;
+    setName(farm.name || '');
+    setTagline(farm.tagline || '');
+    setDescription(farm.description || '');
+    setContactPhone(farm.contactPhone || '');
+    setContactEmail(farm.contactEmail || '');
+    setLocationDistrict(farm.locationDistrict || 'Tiruvannamalai');
+    setAddress(farm.address || '');
+    setLogoUrl(farm.logoUrl || null);
+    setBannerUrl(farm.bannerUrl || null);
+  }, [
+    farm?.id,
+    farm?.name,
+    farm?.tagline,
+    farm?.description,
+    farm?.contactPhone,
+    farm?.contactEmail,
+    farm?.locationDistrict,
+    farm?.address,
+    farm?.logoUrl,
+    farm?.bannerUrl,
+  ]);
 
   if (!farm) return null;
 
