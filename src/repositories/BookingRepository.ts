@@ -171,50 +171,27 @@ export const BookingRepository = {
     status: BookingStatus,
     adminNotes?: string
   ): Promise<void> {
-    const updates: Database['public']['Tables']['bookings']['Update'] = {
-      status,
-      admin_notes: adminNotes,
-      updated_at: new Date().toISOString(),
-    };
+    // Booking lifecycle transitions are server-authoritative. The database RPCs
+    // lock the booking, validate the caller's role/farm ownership and transition,
+    // and triggers keep goat availability and notifications in sync.
+    let rpcName: 'confirm_booking' | 'complete_booking' | 'cancel_booking';
+    const params: Record<string, string | null> = { p_booking_id: bookingId };
 
     if (status === 'CONFIRMED') {
-      updates.confirmed_at = new Date().toISOString();
+      rpcName = 'confirm_booking';
     } else if (status === 'COMPLETED') {
-      updates.completed_at = new Date().toISOString();
+      rpcName = 'complete_booking';
     } else if (status === 'CANCELLED') {
-      updates.cancelled_at = new Date().toISOString();
+      rpcName = 'cancel_booking';
+      params.p_reason = adminNotes?.trim() || null;
+    } else {
+      throw new Error(`Unsupported booking status transition: ${status}`);
     }
 
-    const { data: updatedBooking, error } = await supabase
-      .from('bookings')
-      .update(updates)
-      .eq('id', bookingId)
-      .select('goat_id')
-      .single();
-
+    const { error } = await (supabase as any).rpc(rpcName, params);
     if (error) {
-      console.error('Error updating booking status:', error);
-      throw error;
+      console.error(`Booking RPC ${rpcName} failed:`, error);
+      throw new Error(error.message || 'Could not update booking status.');
     }
-
-    // Sync goat status accordingly
-    if (updatedBooking?.goat_id) {
-      if (status === 'CANCELLED' || status === 'EXPIRED') {
-        await supabase
-          .from('goats')
-          .update({ status: 'AVAILABLE' })
-          .eq('id', updatedBooking.goat_id);
-      } else if (status === 'COMPLETED') {
-        await supabase
-          .from('goats')
-          .update({ status: 'SOLD' })
-          .eq('id', updatedBooking.goat_id);
-      } else if (status === 'CONFIRMED') {
-        await supabase
-          .from('goats')
-          .update({ status: 'CONFIRMED' })
-          .eq('id', updatedBooking.goat_id);
-      }
-    }
-  },
+  }
 };
