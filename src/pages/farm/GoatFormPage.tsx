@@ -4,7 +4,6 @@ import { SEOHead } from '@/components/common/SEOHead';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { GoatRepository } from '@/repositories/GoatRepository';
 import { StorageService } from '@/services/StorageService';
-import { RazorpayService } from '@/services/RazorpayService';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -27,7 +26,7 @@ export const GoatFormPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const isEditMode = Boolean(id);
   const navigate = useNavigate();
-  const { farm, user } = useAuth();
+  const { farm } = useAuth();
 
   const [breeds, setBreeds] = useState<Breed[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
