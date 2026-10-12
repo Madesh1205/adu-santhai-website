@@ -184,6 +184,33 @@ export const AdminRepository = {
   },
 
   /**
+   * Atomically records a Super Admin-confirmed manual approval payment,
+   * approves the partner farm, grants initial slots, and links its owner role.
+   */
+  async approvePartnerFarmWithManualPayment(
+    farmId: string,
+    amount: number,
+    paymentRef: string,
+    notes: string
+  ): Promise<void> {
+    if (!Number.isFinite(amount) || amount < 0) {
+      throw new Error('Approval payment amount must be a valid non-negative amount.');
+    }
+
+    const { error } = await (supabase.rpc as any)('approve_partner_farm_with_manual_payment', {
+      p_farm_id: farmId,
+      p_amount: amount,
+      p_payment_ref: paymentRef.trim() || null,
+      p_notes: notes.trim() || null,
+    });
+
+    if (error) {
+      console.error('Failed to approve partner farm with payment record:', error);
+      throw error;
+    }
+  },
+
+  /**
    * Suspends a farm from publishing or taking bookings.
    */
   async suspendFarm(farmId: string): Promise<void> {
@@ -205,10 +232,16 @@ export const AdminRepository = {
    * Updates farm listing limit (quota).
    */
   async updateFarmListingLimit(farmId: string, limit: number): Promise<void> {
-    const { error } = await supabase
-      .from('farms')
-      .update({ goat_listing_limit: limit, updated_at: new Date().toISOString() })
-      .eq('id', farmId);
+    if (!Number.isInteger(limit) || limit < 0) {
+      throw new Error('Listing limit must be a non-negative whole number.');
+    }
+
+    // The database RPC verifies the caller is SUPER_ADMIN, locks the farm,
+    // and prevents reducing the limit below already-consumed listing slots.
+    const { error } = await (supabase.rpc as any)('admin_update_farm_listing_limit', {
+      p_farm_id: farmId,
+      p_limit: limit,
+    });
 
     if (error) {
       console.error('Error updating farm quota:', error);
@@ -258,46 +291,26 @@ export const AdminRepository = {
     status: BookingStatus,
     adminNotes?: string
   ): Promise<void> {
-    const updates: any = {
-      status,
-      admin_notes: adminNotes,
-      updated_at: new Date().toISOString(),
-    };
+    // Use the same locked, server-authoritative lifecycle RPCs as Farm Admin.
+    // Database authorization allows Super Admins to manage platform bookings.
+    let rpcName: 'confirm_booking' | 'complete_booking' | 'cancel_booking';
+    const params: Record<string, string | null> = { p_booking_id: bookingId };
 
-    if (status === 'CONFIRMED') updates.confirmed_at = new Date().toISOString();
-    if (status === 'COMPLETED') updates.completed_at = new Date().toISOString();
-    if (status === 'CANCELLED') updates.cancelled_at = new Date().toISOString();
-
-    const { data: updatedBooking, error } = await supabase
-      .from('bookings')
-      .update(updates)
-      .eq('id', bookingId)
-      .select('goat_id')
-      .single();
-
-    if (error) {
-      console.error('Error updating booking status by admin:', error);
-      throw error;
+    if (status === 'CONFIRMED') {
+      rpcName = 'confirm_booking';
+    } else if (status === 'COMPLETED') {
+      rpcName = 'complete_booking';
+    } else if (status === 'CANCELLED') {
+      rpcName = 'cancel_booking';
+      params.p_reason = adminNotes?.trim() || 'Cancelled by Super Admin';
+    } else {
+      throw new Error(`Unsupported booking status transition: ${status}`);
     }
 
-    // Release goat if cancelled or expired
-    if (updatedBooking?.goat_id) {
-      if (status === 'CANCELLED' || status === 'EXPIRED') {
-        await supabase
-          .from('goats')
-          .update({ status: 'AVAILABLE' })
-          .eq('id', updatedBooking.goat_id);
-      } else if (status === 'COMPLETED') {
-        await supabase
-          .from('goats')
-          .update({ status: 'SOLD' })
-          .eq('id', updatedBooking.goat_id);
-      } else if (status === 'CONFIRMED') {
-        await supabase
-          .from('goats')
-          .update({ status: 'CONFIRMED' })
-          .eq('id', updatedBooking.goat_id);
-      }
+    const { error } = await (supabase as any).rpc(rpcName, params);
+    if (error) {
+      console.error(`Admin booking RPC ${rpcName} failed:`, error);
+      throw new Error(error.message || 'Could not update booking status.');
     }
   },
 

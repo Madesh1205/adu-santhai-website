@@ -16,8 +16,8 @@ export const NotificationRepository = {
         .limit(limit);
 
       if (error) {
-        console.warn('Notifications fetch notice:', error.message || error);
-        return [];
+        console.error('Notifications fetch failed:', error.message || error);
+        throw error;
       }
 
       return (data || []).map((row) => ({
@@ -32,8 +32,8 @@ export const NotificationRepository = {
         createdAt: row.created_at,
       }));
     } catch (err) {
-      console.warn('Notifications fetch network fallback:', err);
-      return [];
+      console.error('Notifications fetch network error:', err);
+      throw err;
     }
   },
 

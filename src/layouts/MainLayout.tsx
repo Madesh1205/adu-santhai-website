@@ -7,9 +7,9 @@ import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 
 export const MainLayout: React.FC = () => {
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 selection:bg-emerald-500 selection:text-white">
+    <div className="min-h-screen flex flex-col overflow-x-clip bg-slate-50 text-slate-900 selection:bg-emerald-500 selection:text-white">
       <Navbar />
-      <main className="flex-1">
+      <main className="min-w-0 flex-1 pb-[calc(4.5rem+env(safe-area-inset-bottom,0px))] md:pb-0">
         <ErrorBoundary>
           <Outlet />
         </ErrorBoundary>

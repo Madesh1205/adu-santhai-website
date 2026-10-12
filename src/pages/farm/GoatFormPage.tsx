@@ -4,7 +4,6 @@ import { SEOHead } from '@/components/common/SEOHead';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { GoatRepository } from '@/repositories/GoatRepository';
 import { StorageService } from '@/services/StorageService';
-import { RazorpayService } from '@/services/RazorpayService';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -27,7 +26,7 @@ export const GoatFormPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const isEditMode = Boolean(id);
   const navigate = useNavigate();
-  const { farm, user } = useAuth();
+  const { farm } = useAuth();
 
   const [breeds, setBreeds] = useState<Breed[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -176,27 +175,17 @@ export const GoatFormPage: React.FC = () => {
         await GoatRepository.updateGoatListing(id, goatPayload, photos);
         navigate('/farm/goats');
       } else {
-        const newGoatId = await GoatRepository.createGoatListing(goatPayload, photos);
-
-        // Atomic Razorpay payment trigger for partner farms (waived for Ammal Farm)
+        // Never create a partner listing until the server-side Razorpay order and
+        // signature verification flow is deployed. The database has the same guard.
         if (!farm.isAmmalOwnFarm) {
-          try {
-            const payRes = await RazorpayService.payListingFee({
-              goatId: newGoatId,
-              goatName: goatPayload.name,
-              customerEmail: user?.email,
-              customerPhone: farm.contactPhone || undefined,
-              farmName: farm.name,
-            });
-
-            if (!payRes.success) {
-              console.warn('Listing fee payment skipped or cancelled:', payRes.error);
-            }
-          } catch (pErr) {
-            console.warn('Razorpay checkout trigger skipped:', pErr);
-          }
+          setErrorMsg(
+            'Partner goat listings are temporarily paused while secure online listing payments are configured. No listing was created and no payment was taken. Please try again later.'
+          );
+          setIsSubmitting(false);
+          return;
         }
 
+        await GoatRepository.createGoatListing(goatPayload, photos);
         navigate('/farm/goats');
       }
     } catch (err: any) {

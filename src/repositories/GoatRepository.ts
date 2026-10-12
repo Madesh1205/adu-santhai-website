@@ -102,6 +102,10 @@ export const GoatRepository = {
       if (filter.farmId) {
         query = query.eq('farm_id', filter.farmId);
       }
+      if (filter.locationDistrict && filter.locationDistrict !== 'ALL') {
+        // Apply the farm's district through the embedded farms relationship.
+        query = query.eq('farms.location_district', filter.locationDistrict);
+      }
       if (filter.minPrice !== undefined && filter.minPrice > 0) {
         query = query.gte('price', filter.minPrice);
       }
@@ -281,18 +285,22 @@ export const GoatRepository = {
     goatData: Database['public']['Tables']['goats']['Insert'],
     imageUrls: string[]
   ): Promise<string> {
-    const { data, error } = await supabase
-      .from('goats')
-      .insert(goatData)
-      .select('id')
-      .single();
+    // Use the server-side creation RPC so farm ownership, approval, and
+    // listing-slot consumption are validated atomically with the insert.
+    const { data, error } = await (supabase.rpc as any)('create_goat_listing_secure', {
+      p_goat: goatData,
+    });
 
     if (error) {
-      console.error('Error creating goat listing:', error);
+      console.error('Secure goat listing creation failed:', error);
       throw error;
     }
 
-    const goatId = data.id;
+    const created = (Array.isArray(data) ? data[0] : data) as { id?: string } | null;
+    const goatId = created?.id;
+    if (!goatId) {
+      throw new Error('The server created no listing ID. Refresh your listings before trying again.');
+    }
 
     if (imageUrls.length > 0) {
       const imageRecords = imageUrls.map((url, idx) => ({
@@ -307,7 +315,8 @@ export const GoatRepository = {
         .insert(imageRecords);
 
       if (imgErr) {
-        console.warn('Warning inserting images:', imgErr);
+        console.error('Goat listing was created, but saving its photo records failed:', imgErr);
+        throw new Error('The goat listing was created, but its photos could not be attached. Open the listing and save the photos again.');
       }
     }
 
@@ -333,8 +342,17 @@ export const GoatRepository = {
     }
 
     if (imageUrls) {
-      // Clear existing images and re-insert
-      await supabase.from('goat_images').delete().eq('goat_id', id);
+      // Check both operations explicitly so an image-save failure is not
+      // silently reported as a successful listing update.
+      const { error: deleteImagesError } = await supabase
+        .from('goat_images')
+        .delete()
+        .eq('goat_id', id);
+      if (deleteImagesError) {
+        console.error('Failed to replace goat image records:', deleteImagesError);
+        throw deleteImagesError;
+      }
+
       if (imageUrls.length > 0) {
         const imageRecords = imageUrls.map((url, idx) => ({
           goat_id: id,
@@ -342,7 +360,13 @@ export const GoatRepository = {
           is_primary: idx === 0,
           display_order: idx,
         }));
-        await supabase.from('goat_images').insert(imageRecords);
+        const { error: insertImagesError } = await supabase
+          .from('goat_images')
+          .insert(imageRecords);
+        if (insertImagesError) {
+          console.error('Failed to save goat image records:', insertImagesError);
+          throw new Error('Goat details were saved, but the photos could not be attached. Please reopen the listing and retry the photo update.');
+        }
       }
     }
   },
@@ -357,13 +381,17 @@ export const GoatRepository = {
     });
 
     if (error) {
-      console.warn('RPC delete_goat_listing_secure failed, trying standard delete:', error);
-      const { error: directErr } = await supabase.from('goats').delete().eq('id', id);
-      if (directErr) throw directErr;
-      return true;
+      // Never fall back to a direct table delete: the RPC enforces the
+      // account, farm ownership, booking, and storage cleanup rules.
+      console.error('Secure goat deletion failed:', error);
+      throw error;
     }
 
-    return Boolean(data);
+    if (!data) {
+      throw new Error('The listing could not be deleted. It may be linked to an active booking or you may not have permission.');
+    }
+
+    return true;
   },
 
   /**

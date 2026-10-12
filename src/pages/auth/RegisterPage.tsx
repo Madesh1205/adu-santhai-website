@@ -18,22 +18,22 @@ import {
 } from 'lucide-react';
 
 const TAMIL_NADU_DISTRICTS = [
-  'Tiruvannamalai',
-  'Vellore',
-  'Salem',
+  'Chennai',
+  'Coimbatore',
+  'Cuddalore',
   'Dharmapuri',
+  'Dindigul',
+  'Erode',
   'Krishnagiri',
   'Madurai',
-  'Tiruchirappalli',
-  'Coimbatore',
-  'Erode',
-  'Tirunelveli',
-  'Thanjavur',
-  'Dindigul',
   'Namakkal',
+  'Salem',
+  'Thanjavur',
+  'Tiruchirappalli',
+  'Tirunelveli',
+  'Tiruvannamalai',
+  'Vellore',
   'Villupuram',
-  'Cuddalore',
-  'Chennai',
 ];
 
 export const RegisterPage: React.FC = () => {

@@ -11,6 +11,8 @@ import type { Booking, BookingStatus } from '@/types';
 import {
   CalendarCheck,
   PhoneCall,
+  Search,
+  RefreshCw,
 } from 'lucide-react';
 
 export const FarmBookingsPage: React.FC = () => {
@@ -19,6 +21,7 @@ export const FarmBookingsPage: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [filterTab, setFilterTab] = useState<string>('ALL');
+  const [searchQuery, setSearchQuery] = useState<string>('');
 
   const loadBookings = useCallback(async () => {
     if (!farm) return;
@@ -51,11 +54,15 @@ export const FarmBookingsPage: React.FC = () => {
   };
 
   const filteredBookings = bookings.filter((b) => {
-    if (filterTab === 'ALL') return true;
-    if (filterTab === 'HOLDS') return b.status === 'RESERVED' || b.status === 'PENDING';
-    if (filterTab === 'CONFIRMED') return b.status === 'CONFIRMED';
-    if (filterTab === 'COMPLETED') return b.status === 'COMPLETED';
-    return true;
+    const matchesStatus =
+      filterTab === 'ALL' ||
+      (filterTab === 'HOLDS' && (b.status === 'RESERVED' || b.status === 'PENDING')) ||
+      b.status === filterTab;
+    const query = searchQuery.trim().toLowerCase();
+    const matchesQuery = !query || [
+      b.goatName, b.goatCode, b.customerName, b.customerPhone, b.bookingCode, b.status,
+    ].some((value) => value?.toLowerCase().includes(query));
+    return matchesStatus && matchesQuery;
   });
 
   return (
@@ -70,13 +77,27 @@ export const FarmBookingsPage: React.FC = () => {
           </p>
         </div>
 
-        {/* Filter Tabs */}
-        <div className="flex gap-2 overflow-x-auto text-xs font-semibold">
+        {/* Search and status filters */}
+        <div className="space-y-3 rounded-2xl border border-slate-200 bg-white p-4">
+          <label className="relative block">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <input
+              type="search"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search goat, customer, booking code or status"
+              aria-label="Search farm bookings"
+              className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 pl-9 pr-3 text-sm outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-700/10"
+            />
+          </label>
+          <div className="flex gap-2 overflow-x-auto text-xs font-semibold">
           {[
             { id: 'ALL', label: `All Orders (${bookings.length})` },
             { id: 'HOLDS', label: `Active 24h Holds (${bookings.filter((b) => b.status === 'RESERVED' || b.status === 'PENDING').length})` },
             { id: 'CONFIRMED', label: `Confirmed (${bookings.filter((b) => b.status === 'CONFIRMED').length})` },
             { id: 'COMPLETED', label: `Completed (${bookings.filter((b) => b.status === 'COMPLETED').length})` },
+            { id: 'CANCELLED', label: `Cancelled (${bookings.filter((b) => b.status === 'CANCELLED').length})` },
+            { id: 'EXPIRED', label: `Expired (${bookings.filter((b) => b.status === 'EXPIRED').length})` },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -90,6 +111,16 @@ export const FarmBookingsPage: React.FC = () => {
               {tab.label}
             </button>
           ))}
+          </div>
+          {(filterTab !== 'ALL' || searchQuery) && (
+            <button
+              type="button"
+              onClick={() => { setFilterTab('ALL'); setSearchQuery(''); }}
+              className="inline-flex items-center gap-1 text-xs font-bold text-slate-500 hover:text-slate-900"
+            >
+              <RefreshCw className="h-3 w-3" /> Reset filters
+            </button>
+          )}
         </div>
 
         {/* Bookings List */}
