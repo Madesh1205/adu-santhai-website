@@ -267,14 +267,64 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         password,
         options: {
           data: {
+            full_name: name.trim(),
             name: name.trim(),
-            phone: cleanPhone,
-            role,
+            phone: cleanPhone || '+910000000000',
+            role: role || 'CUSTOMER',
           },
         },
       });
 
-      if (error) return { error };
+      if (error) {
+        // 1. Clear user-friendly error for already registered emails
+        if (error.message?.toLowerCase().includes('already registered')) {
+          return { error: new Error('An account with this email address is already registered. Please log in or request a password reset.') };
+        }
+
+        // 2. Fallback for database trigger error: retry plain signUp without metadata options
+        if (error.message?.toLowerCase().includes('database error saving new user')) {
+          const { data: retryData, error: retryError } = await supabase.auth.signUp({
+            email: cleanEmail,
+            password,
+          });
+
+          if (!retryError && retryData?.user) {
+            // Auth user created! Upsert profile and fetch context
+            try {
+              await supabase.from('profiles').upsert({
+                id: retryData.user.id,
+                email: cleanEmail,
+                full_name: name.trim() || 'Ammal User',
+                phone: cleanPhone || '+910000000000',
+                role,
+              });
+            } catch (pErr) {
+              console.warn('Profile fallback upsert notice:', pErr);
+            }
+
+            if (!retryData.session) {
+              const { error: signInErr } = await supabase.auth.signInWithPassword({
+                email: cleanEmail,
+                password,
+              });
+              if (!signInErr) {
+                const { data: refreshedSession } = await supabase.auth.getSession();
+                if (refreshedSession.session?.user) {
+                  await fetchProfileAndFarm(refreshedSession.session.user.id, refreshedSession.session.user);
+                }
+              }
+            } else {
+              await fetchProfileAndFarm(retryData.user.id, retryData.user);
+            }
+
+            return { data: retryData, error: null };
+          }
+
+          return { error: new Error('Registration failed due to a database trigger error in Supabase. Please execute the provided SQL migration in your Supabase SQL Editor.') };
+        }
+
+        return { error };
+      }
 
       if (data.user) {
         try {

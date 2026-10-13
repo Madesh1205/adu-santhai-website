@@ -179,7 +179,7 @@ export const FarmAdminLayout: React.FC = () => {
       </div>
 
       {/* Main Content Area */}
-      <main className="flex-1 mx-auto max-w-7xl w-full px-4 sm:px-6 lg:px-8 py-8">
+      <main className="flex-1 mx-auto max-w-7xl w-full px-4 sm:px-6 lg:px-8 py-8 pb-24 md:pb-8">
         <ErrorBoundary>
           <Outlet />
         </ErrorBoundary>

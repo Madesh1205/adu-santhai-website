@@ -18,7 +18,6 @@ import {
   PhoneCall,
   Search,
   ArrowRight,
-  PlusCircle,
   X,
 } from 'lucide-react';
 
@@ -114,14 +113,6 @@ export const FarmsPage: React.FC = () => {
                 </button>
               )}
             </div>
-
-            <Link to="/register-farm">
-              <Button variant="default" size="sm" className="font-bold gap-1.5 shrink-0">
-                <PlusCircle className="h-4 w-4" />
-                <span className="hidden sm:inline">Partner Registration</span>
-                <span className="sm:hidden">Register</span>
-              </Button>
-            </Link>
           </div>
         </div>
 

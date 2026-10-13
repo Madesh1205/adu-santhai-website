@@ -184,9 +184,22 @@ export const RegisterPage: React.FC = () => {
                 <form onSubmit={handleSubmit}>
                   <CardContent className="space-y-4">
                     {error && (
-                      <div className="flex items-start gap-2 rounded-xl bg-red-50 p-3 border border-red-200 text-xs text-red-700">
-                        <AlertCircle className="h-4 w-4 shrink-0 text-red-600 mt-0.5" />
-                        <span>{error}</span>
+                      <div className="flex flex-col gap-2 rounded-xl bg-red-50 p-3.5 border border-red-200 text-xs text-red-700">
+                        <div className="flex items-start gap-2">
+                          <AlertCircle className="h-4 w-4 shrink-0 text-red-600 mt-0.5" />
+                          <span className="leading-snug">{error}</span>
+                        </div>
+                        {(error.toLowerCase().includes('already registered') || error.toLowerCase().includes('log in') || error.toLowerCase().includes('sign in')) && (
+                          <div className="mt-1 pt-2 border-t border-red-200/60 flex items-center justify-between">
+                            <span className="font-semibold text-[11px] text-red-800">Have an account?</span>
+                            <Link
+                              to="/login"
+                              className="font-bold text-xs text-emerald-800 hover:underline flex items-center gap-1 bg-white px-2.5 py-1 rounded-lg border border-slate-200 shadow-2xs"
+                            >
+                              Go to Sign In →
+                            </Link>
+                          </div>
+                        )}
                       </div>
                     )}
 

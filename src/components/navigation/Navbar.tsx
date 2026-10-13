@@ -348,12 +348,14 @@ export const Navbar: React.FC = () => {
             </Link>
           )}
 
-          {/* Primary CTA: Browse Goats */}
-          <Link to="/marketplace" className="hidden sm:inline-flex">
-            <Button variant="default" size="sm" className="font-bold">
-              Browse Goats
-            </Button>
-          </Link>
+          {/* Primary CTA: Browse Goats (shown when not logged in to avoid crowding user profile & notifications) */}
+          {!user && (
+            <Link to="/marketplace" className="hidden sm:inline-flex">
+              <Button variant="default" size="sm" className="font-bold">
+                Browse Goats
+              </Button>
+            </Link>
+          )}
 
           {/* Mobile Menu Hamburger */}
           <button

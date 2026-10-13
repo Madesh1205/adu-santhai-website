@@ -485,19 +485,36 @@ export const MarketplacePage: React.FC = () => {
         </button>
 
         {openSections.farm && (
-          <div className="pt-1">
-            <select
-              value={selectedFarmId}
-              onChange={(e) => setSelectedFarmId(e.target.value)}
-              className="w-full rounded-lg border border-slate-200 py-1.5 px-2 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-700 bg-white"
+          <div className="space-y-1 pt-1 max-h-48 overflow-y-auto pr-1">
+            <button
+              type="button"
+              onClick={() => setSelectedFarmId('ALL')}
+              className={`flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-colors cursor-pointer ${
+                selectedFarmId === 'ALL'
+                  ? 'bg-emerald-50 text-emerald-900 font-bold'
+                  : 'text-slate-600 hover:bg-slate-50'
+              }`}
             >
-              <option value="ALL">All Partner Farms</option>
-              {farms.map((f) => (
-                <option key={f.id} value={f.id}>
+              <span>All Partner Farms</span>
+              {selectedFarmId === 'ALL' && <Check className="h-3.5 w-3.5 text-emerald-800" />}
+            </button>
+            {farms.map((f) => (
+              <button
+                key={f.id}
+                type="button"
+                onClick={() => setSelectedFarmId(f.id)}
+                className={`flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-colors cursor-pointer text-left ${
+                  selectedFarmId === f.id
+                    ? 'bg-emerald-50 text-emerald-900 font-bold'
+                    : 'text-slate-600 hover:bg-slate-50'
+                }`}
+              >
+                <span className="truncate">
                   {f.name} {f.isAmmalOwnFarm ? '(Central Hub)' : `(${f.locationDistrict})`}
-                </option>
-              ))}
-            </select>
+                </span>
+                {selectedFarmId === f.id && <Check className="h-3.5 w-3.5 text-emerald-800 shrink-0" />}
+              </button>
+            ))}
           </div>
         )}
       </div>
@@ -634,35 +651,21 @@ export const MarketplacePage: React.FC = () => {
             </div>
 
             {/* Mobile Filter Button */}
-            <div className="flex items-center gap-2 lg:hidden">
+            <div className="flex items-center gap-2 lg:hidden w-full">
               <Button
                 variant="outline"
                 size="sm"
-                className="flex-1 flex items-center justify-center gap-2 h-10 rounded-xl"
+                className="w-full flex items-center justify-center gap-2 h-10 rounded-xl font-bold"
                 onClick={() => setShowMobileFilter(true)}
               >
                 <SlidersHorizontal className="h-4 w-4 text-emerald-800" />
                 <span>Filters {activeFilterCount > 0 ? `(${activeFilterCount})` : ''}</span>
               </Button>
-
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as SortOption)}
-                aria-label="Sort goats by"
-                className="rounded-xl border border-slate-200 bg-white py-2 px-3 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-700 h-10"
-              >
-                <option value="newest">Newest First</option>
-                <option value="price_low_high">Price: Low to High</option>
-                <option value="price_high_low">Price: High to Low</option>
-                <option value="weight_heaviest">Heaviest First</option>
-                <option value="age_youngest">Youngest First</option>
-                <option value="top_rated">Featured First</option>
-              </select>
             </div>
           </div>
 
-          {/* Desktop Search & Sort Row */}
-          <div className="flex flex-col sm:flex-row items-center gap-3">
+          {/* Desktop Search Row */}
+          <div className="flex items-center gap-3">
             <div className="relative flex-1 w-full">
               <Search className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
               <input
@@ -682,24 +685,6 @@ export const MarketplacePage: React.FC = () => {
                   <X className="h-4 w-4" />
                 </button>
               )}
-            </div>
-
-            {/* Desktop Sort Dropdown */}
-            <div className="hidden lg:flex items-center gap-2 shrink-0">
-              <span className="text-xs font-semibold text-slate-500">Sort by:</span>
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as SortOption)}
-                aria-label="Sort goats by"
-                className="rounded-xl border border-slate-200 bg-white py-2.5 px-3 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-700"
-              >
-                <option value="newest">Newest Listings</option>
-                <option value="price_low_high">Price: Low to High</option>
-                <option value="price_high_low">Price: High to Low</option>
-                <option value="weight_heaviest">Weight: Heaviest First</option>
-                <option value="age_youngest">Age: Youngest First</option>
-                <option value="top_rated">Featured First</option>
-              </select>
             </div>
           </div>
         </div>
